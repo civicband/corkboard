@@ -1,0 +1,21 @@
+{
+    "databases": {
+        "sites": {
+            "tables": {
+                "sites": {
+                    "sort": "state",
+                    "size": 1000
+                }
+            }
+        }
+    },
+    "plugins": {
+        "datasette-homepage-table": {
+            "database": "sites",
+            "table": "sites"
+        },
+        "umami": {
+            "subdomain": "home"
+        }
+    }
+}

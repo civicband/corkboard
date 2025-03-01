@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Civic Band</title>
+  <script defer src="https://analytics.civic.band/sunshine"
+    data-website-id="6250918b-6a0c-4c05-a6cb-ec8f86349e1a"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="fediverse:creator" content="@civicband@sfba.social">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="h-full">
+  <div class="bg-white px-6 py-32 lg:px-8">
+    <div class="mx-auto max-w-3xl text-base/7 text-gray-700">
+      <p class="text-base/7 font-semibold text-indigo-600"><a href="/">
+          < Back</a>
+      </p>
+      <h1 class="mt-2 text-pretty text-4xl font-semibold tracking-tight text-gray-900 sm:text-5xl">How CivicBand makes
+        this all happen</h1>
+      <p class="mt-6 text-xl/8">CivicBand is a collection of sites for querying and exploring municipal and civic data.
+        Each site is its own Datasette instance, with both in-house and third-party plugins.</p>
+      <div class="mt-10 max-w-2xl">
+        <p>The way we get data from municipality websites and into our system follows a pretty standard Extract,
+          Transform, Load pattern. Effectively, we pull extract data (in the form of PDFs) out of websites, OCR that
+          into text, load that text into a SQLite DB, and deploy the DB with Datasette to the production server. Let's
+          talk about that process in more detail, by going through a hypothetical, say "Getting the data for Alameda,
+          CA" </p>
+        <ul class="list-disc mt-8 max-w-xl space-y-8 text-gray-600">
+          <li class="gap-x-3">
+            Start by looking at the Alameda, CA city government website, and figure out if there's some system they're
+            using to store all meeting minutes.
+          </li>
+          <li class="gap-x-3">
+            There is! I'm not going to name it here, because while this data is public data, the systems that cities
+            contract with to run it aren't. They could make my life way more difficult if they chose. They could also
+            make
+            my life easier! If you run one of these systems, email hello@civic.band.
+          </li>
+          <li class="gap-x-3">
+            Fetch all the PFDs, store them in folders organized by "pdfs/MeetingName/Date", eg
+            "pdfs/CityCouncil/2020-04-20.pdf". We do this so we the directory structure itself is metadata that we can
+            use
+            in later processing.
+          </li>
+          <li class="gap-x-3">
+            Run all the PDFs through a program that splits each PDF into a folder of images by page number, eg
+            "images/CityCouncil/2020-04-20/1.png". We do this so that the OCR jobs can be parallelized easier, and it
+            matches how the data is eventually stored.
+          </li>
+          <li class="gap-x-3">
+            Upload the images to a CDN, so that it can be displayed alongside the text result.
+          </li>
+          <li class="gap-x-3">
+            Run Tesseract on all the page images, saving the output as text files, eg "txt/CityCouncil/2020-04-20/1.txt"
+          </li>
+          <li class="gap-x-3">
+            Load all the text files as rows into a SQLite DB, with search turned on.
+          </li>
+          <li class="gap-x-3">
+            Deploy that DB to a docker container running Datasette on the production server.
+          </li>
+        </ul>
+        <p class="mt-8">Each of these steps represents many hours of work and trial and error, not to mention the
+          scrapers I have written for various storage systems. I may eventuall open-source parts of this, but am pretty
+          unlikely to open-source the whole thing. That said, if you want to work on this, or work on the data, please
+          reach out to hello@civic.band.</p>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

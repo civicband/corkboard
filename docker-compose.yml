@@ -1,0 +1,58 @@
+services:
+  django_blue:
+    build: .
+    ports:
+      - 8000:8000
+    volumes:
+      - .:/app/
+      - ../civic-band/sites:/sites/
+    environment:
+      - DJP_PLUGINS_DIR=django_plugins
+      - WEB_CONCURRENCY=4
+      - DJANGO_SETTINGS_MODULE=config.prod_settings
+    command: uvicorn config.asgi:application --host 0.0.0.0 --limit-max-requests 100 --timeout-graceful-shutdown 7
+  django_green:
+    build: .
+    ports:
+      - 8001:8000
+    volumes:
+      - .:/app/
+      - ../civic-band/sites:/sites/
+    environment:
+      - DJP_PLUGINS_DIR=django_plugins
+      - WEB_CONCURRENCY=4
+      - DJANGO_SETTINGS_MODULE=config.prod_settings
+    command: uvicorn config.asgi:application --host 0.0.0.0 --limit-max-requests 100 --timeout-graceful-shutdown 7
+
+  sites_datasette_blue:
+    build: 
+      dockerfile: Dockerfile.sites
+    ports:
+      - 40001:8001
+    volumes:
+      - ".:/app"
+    command: >
+      datasette -h 0.0.0.0 /app/sites.db 
+      --metadata /app/metadata.json 
+      --template-dir /app/templates/sites-database
+      --setting default_page_size 1000
+      --setting sql_time_limit_ms 3000
+      --setting num_sql_threads 5
+      --setting allow_download off
+      --setting allow_csv_stream off
+  sites_datasette_green:
+    build: 
+      dockerfile: Dockerfile.sites
+    ports:
+      - 40002:8001
+    volumes:
+      - ".:/app"
+    command: >
+      datasette -h 0.0.0.0 /app/sites.db 
+      --metadata /app/metadata.json 
+      --template-dir /app/templates/sites-database
+      --setting default_page_size 1000
+      --setting sql_time_limit_ms 3000
+      --setting num_sql_threads 5
+      --setting allow_download off
+      --setting allow_csv_stream offbreak

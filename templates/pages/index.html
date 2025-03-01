@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Civic Band -- Government and municipality meeting data</title>
+    <script defer src="https://analytics.civic.band/sunshine" data-website-id="6250918b-6a0c-4c05-a6cb-ec8f86349e1a"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Dive into City Meeting Data Across the U.S. | Instant Access to Council Agendas, Minutes, and Local Government Insights | Searchable, Queryable Transparency Toolkit" />
+    <meta property="og:url" content="https://civic.band">
+    <meta property="og:title" content="Civic Band: Government and Municipality Meeting Data">
+    <meta property="og:description" content="Dive into City Meeting Data Across the U.S.">
+    <meta property="og:site_name" content="CivicBand"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="h-full">
+    <div class="bg-gray-900 py-16">
+      <div class="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-6 lg:grid-cols-12 lg:gap-8 lg:px-8">
+        <div class="lg:col-span-7">
+          <h2 class="text-5xl font-semibold tracking-tight text-white sm:text-7xl">Civic Band</h2>
+          <p class="mt-8 text-pretty text-lg font-medium text-gray-300 sm:text-xl/8">This is a slowly growing collection of databases of the minutes from civic governments. A project from <a href="https://galaxybrain.co">Galaxy Brain</a>. Email hello @ civic dot band with questions.</p> 
+          <div class="mx-auto mt-7 max-w-2xl lg:mx-0 lg:max-w-none">
+            <div class="grid grid-cols-1 gap-x-8 gap-y-6 text-base/7 font-semibold text-white sm:grid-cols-2 md:flex lg:gap-x-10">
+              <a href="/how.html">How it works <span aria-hidden="true">&rarr;</span></a>
+              <a href="/why.html">Why? <span aria-hidden="true">&rarr;</span></a>
+              <a href="/rss.xml">RSS Feed <span aria-hidden="true">&rarr;</span></a>
+              <a rel="me" href="https://sfba.social/@civicband">Mastodon <span aria-hidden="true">&rarr;</span></a>
+              <a rel="me" href="https://bsky.app/profile/civic.band">Bluesky <span aria-hidden="true">&rarr;</span></a>
+              <a href="https://donate.stripe.com/3cs3dN5Ki0BRgzSeUX">Support! <span aria-hidden="true">&rarr;</span></a>
+            </div>
+            <dl class="mt-7 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+              <div class="flex flex-col-reverse gap-1">
+                <dt class="text-base/7 text-gray-300">Municipalities tracked</dt>
+                <dd class="text-4xl font-semibold tracking-tight text-white">{{ num_sites }}</dd>
+              </div>
+              <div class="flex flex-col-reverse gap-1">
+                <dt class="text-base/7 text-gray-300">Pages of documents</dt>
+                <dd class="text-4xl font-semibold tracking-tight text-white">{{ total_pages }}</dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+        <form class="w-full max-w-md lg:col-span-5 lg:pt-2" action="https://buttondown.com/api/emails/embed-subscribe/civicband"
+        method="post"
+        target="popupwindow"
+        onsubmit="window.open('https://buttondown.com/civicband', 'popupwindow')"
+        class="embeddable-buttondown-form">
+          <div class="flex gap-x-4" >
+            <label for="bd-email" class="sr-only">Email address</label>
+            <input id="bd-email" name="email" type="email" autocomplete="email" required class="min-w-0 flex-auto rounded-md border-0 bg-white/5 px-3.5 py-2 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm/6" placeholder="Enter your email">
+            <button type="submit" class="flex-none rounded-md bg-indigo-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">Subscribe</button>
+          </div>
+          <p class="mt-4 text-sm/6 text-gray-300">We care about your data. Read our <a href="/privacy.html" class="font-semibold text-white">privacy&nbsp;policy</a>.</p>
+        </form>
+      </div>
+    </div>
+<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+  <div class="sm:flex sm:items-center">
+  </div>
+  <div class="mt-8 flow-root">
+    <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+      {% comment %} <iframe class="w-full aspect-auto" style="height: 50vh" src="https://sites.civic.band/sites/sites"></iframe> {% endcomment %}
+      <div class="inline-block w-1/2 py-2 align-middle sm:px-6 lg:px-8">
+        <table class="min-w-full">
+          <thead class="bg-white">
+            <tr>
+              <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">Municipality</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Kind</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Pages Tracked</th>
+            </tr>
+          </thead>
+          {% for country, states in countries.items|dictsort:0 %}
+          <tbody class="bg-white">
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">{{ country }}</th>
+            </tr>
+            {% for state, sites in states.items|dictsort:0 %}
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">{{ state }}</th>
+            </tr>
+            {% for site in sites %}
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://{{ site.subdomain }}.civic.band">{{ site.name }}</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ site.kind }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ site.pages }}</td>
+            </tr>
+            {% endfor %}{% endfor %}{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+  </body>
+</html>
+
+
+

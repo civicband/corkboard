@@ -1,0 +1,7 @@
+sqlite_utils
+django
+djp
+whitenoise
+https://github.com/simonw/datasette/archive/refs/tags/1.0a13.zip
+uvicorn
+datasette-template-sql==1.0.2

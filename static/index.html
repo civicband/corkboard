@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Civic Band -- Government and municipality meeting data</title>
+    <script defer src="https://analytics.civic.band/sunshine" data-website-id="6250918b-6a0c-4c05-a6cb-ec8f86349e1a"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Dive into City Meeting Data Across the U.S. | Instant Access to Council Agendas, Minutes, and Local Government Insights | Searchable, Queryable Transparency Toolkit" />
+    <meta property="og:url" content="https://civic.band">
+    <meta property="og:title" content="Civic Band: Government and Municipality Meeting Data">
+    <meta property="og:description" content="Dive into City Meeting Data Across the U.S.">
+    <meta property="og:site_name" content="CivicBand"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="h-full">
+    <div class="bg-gray-900 py-16">
+      <div class="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-6 lg:grid-cols-12 lg:gap-8 lg:px-8">
+        <div class="lg:col-span-7">
+          <h2 class="text-5xl font-semibold tracking-tight text-white sm:text-7xl">Civic Band</h2>
+          <p class="mt-8 text-pretty text-lg font-medium text-gray-300 sm:text-xl/8">This is a slowly growing collection of databases of the minutes from civic governments. A project from <a href="https://galaxybrain.co">Galaxy Brain</a>. Email hello @ civic dot band with questions.</p> 
+          <div class="mx-auto mt-7 max-w-2xl lg:mx-0 lg:max-w-none">
+            <div class="grid grid-cols-1 gap-x-8 gap-y-6 text-base/7 font-semibold text-white sm:grid-cols-2 md:flex lg:gap-x-10">
+              <a href="/how.html">How it works <span aria-hidden="true">&rarr;</span></a>
+              <a href="/why.html">Why? <span aria-hidden="true">&rarr;</span></a>
+              <a href="/rss.xml">RSS Feed <span aria-hidden="true">&rarr;</span></a>
+              <a rel="me" href="https://sfba.social/@civicband">Mastodon <span aria-hidden="true">&rarr;</span></a>
+              <a rel="me" href="https://bsky.app/profile/civic.band">Bluesky <span aria-hidden="true">&rarr;</span></a>
+              <a href="https://donate.stripe.com/3cs3dN5Ki0BRgzSeUX">Support! <span aria-hidden="true">&rarr;</span></a>
+            </div>
+            <dl class="mt-7 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+              <div class="flex flex-col-reverse gap-1">
+                <dt class="text-base/7 text-gray-300">Municipalities tracked</dt>
+                <dd class="text-4xl font-semibold tracking-tight text-white">217</dd>
+              </div>
+              <div class="flex flex-col-reverse gap-1">
+                <dt class="text-base/7 text-gray-300">Pages of documents</dt>
+                <dd class="text-4xl font-semibold tracking-tight text-white">2952994</dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+        <form class="w-full max-w-md lg:col-span-5 lg:pt-2" action="https://buttondown.com/api/emails/embed-subscribe/civicband"
+        method="post"
+        target="popupwindow"
+        onsubmit="window.open('https://buttondown.com/civicband', 'popupwindow')"
+        class="embeddable-buttondown-form">
+          <div class="flex gap-x-4" >
+            <label for="bd-email" class="sr-only">Email address</label>
+            <input id="bd-email" name="email" type="email" autocomplete="email" required class="min-w-0 flex-auto rounded-md border-0 bg-white/5 px-3.5 py-2 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm/6" placeholder="Enter your email">
+            <button type="submit" class="flex-none rounded-md bg-indigo-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">Subscribe</button>
+          </div>
+          <p class="mt-4 text-sm/6 text-gray-300">We care about your data. Read our <a href="/privacy.html" class="font-semibold text-white">privacy&nbsp;policy</a>.</p>
+        </form>
+      </div>
+    </div>
+<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+  <div class="sm:flex sm:items-center">
+  </div>
+  <div class="mt-8 flow-root">
+    <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+      <div class="inline-block w-1/2 py-2 align-middle sm:px-6 lg:px-8">
+        <table class="min-w-full">
+          <thead class="bg-white">
+            <tr>
+              <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">Municipality</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Kind</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Pages Tracked</th>
+            </tr>
+          </thead>
+          
+          <tbody class="bg-white">
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">Canada</th>
+            </tr>
+            
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">ON</th>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://ottawa.on.canada.civic.band">Ottawa</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">34707</td>
+            </tr>
+            
+          <tbody class="bg-white">
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">US</th>
+            </tr>
+            
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">AZ</th>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://adams-county.az.civic.band">Adams County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">4885</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://jefferson-county.az.civic.band">Jefferson County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">614</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://mesa.az.civic.band">Mesa</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">50112</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://tucson.az.civic.band">Tucson</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">824</td>
+            </tr>
+            
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">CA</th>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://alameda-county.ca.civic.band">Alameda County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">13872</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://alameda.ca.civic.band">Alameda</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">21181</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://alamedausd.ca.civic.band">Alameda Unified School District</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">school_district</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">118261</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://albany.ca.civic.band">Albany</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">5398</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://americancanyon.ca.civic.band">American Canyon</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">2841</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://atherton.ca.civic.band">Atherton</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">town</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">367</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://bart.ca.civic.band">Bay Area Rapid Transit</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">transit_agency</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">1623</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://belmont.ca.civic.band">Belmont</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">514</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://benicia.ca.civic.band">Benicia</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">6518</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://berkeley.ca.civic.band">Berkeley</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">139241</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://brentwood.ca.civic.band">Brentwood</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">7515</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://burbank.ca.civic.band">Burbank</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">280</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://burlingame.ca.civic.band">Burlingame</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">6850</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://butte-county.ca.civic.band">Butte County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">2167</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://capitola.ca.civic.band">Capitola</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">5040</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://chico.ca.civic.band">Chico</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">3714</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://chino.ca.civic.band">Chino</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">2784</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://chulavista.ca.civic.band">Chula Vista</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">6132</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://concord.ca.civic.band">Concord</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">1023</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://contra-costa-county.ca.civic.band">Contra Costa County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">899</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://contracosta-county.ca.civic.band">Contra Costa County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">2659</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://costamesa.ca.civic.band">Costa Mesa</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">1126</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://cotati.ca.civic.band">Cotati</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">5434</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://cupertino.ca.civic.band">Cupertino</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">11815</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://dalycity.ca.civic.band">Daly City</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">2925</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://danville.ca.civic.band">Danville</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">town</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">2355</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://dixon.ca.civic.band">Dixon</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">5750</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://dublin.ca.civic.band">Dublin</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">1146</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://eastpaloalto.ca.civic.band">East Palo Alto</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">107</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://ebrpd.ca.civic.band">East Bay Regional Parks District</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">parks_district</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">1857</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://elcerrito.ca.civic.band">El Cerrito</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">2184</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://elkgrove.ca.civic.band">Elk Grove</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">3268</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://emeryville.ca.civic.band">Emeryville</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">3048</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://escondido.ca.civic.band">Escondido</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">4302</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://fontana.ca.civic.band">Fontana</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">4699</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://fortbragg.ca.civic.band">Fort Bragg</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">3210</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://fostercity.ca.civic.band">Foster City</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">2150</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://fresno-county.ca.civic.band">Fresno County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">3870</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://fresno.ca.civic.band">Frenso</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">10156</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://fullerton.ca.civic.band">Fullerton</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">3631</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://gilroy.ca.civic.band">Gilroy</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">2024</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://glendale.ca.civic.band">Glendale</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">11028</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://halfmoonbay.ca.civic.band">Half Moon Bay</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">546</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://hayward.ca.civic.band">Hayward</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">7114</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://hernando-schools.ca.civic.band">Hernando School District</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">school_district</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">215</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://huntingtonbeach.ca.civic.band">Huntington Beach</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">8921</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://irvine.ca.civic.band">Irvine</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">5880</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://judicialcouncil.ca.civic.band">Judicial Council of California</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">judicial_council</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">2835</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://kern-county.ca.civic.band">Kern County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">0</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://lafayette.ca.civic.band">Lafayette</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">20178</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://lancaster.ca.civic.band">Lancaster</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">872</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://livermore.ca.civic.band">Livermore</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">1796</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://longbeach.ca.civic.band">Long Beach</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">31771</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://losaltoshills.ca.civic.band">Los Altos Hills</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">town</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">7340</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://losangeles.ca.civic.band">Los Angeles</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">42135</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://madera-county.ca.civic.band">Madera County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">27598</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://marin-county.ca.civic.band">Marin County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">0</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://mariposa-county.ca.civic.band">Mariposa County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">20252</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://martinez.ca.civic.band">Martinez</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">3452</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://mendocino-county.ca.civic.band">Mendocino County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">2759</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://menifee.ca.civic.band">Menifee</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">4782</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://milpitas.ca.civic.band">Milpitas</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">3845</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://modesto.ca.civic.band">Modesto</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">4384</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://monterey-county.ca.civic.band">Monterey County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">9220</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://morganhill.ca.civic.band">Morgan Hill</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">2488</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://mountainview.ca.civic.band">Mountain View</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">4727</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://mtc.ca.civic.band">Metropolitan Transportation Commission (ABAG)</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">transportation_commission</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">5791</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://murrieta.ca.civic.band">Murrieta</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">237</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://napa-county.ca.civic.band">Napa County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">3014</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://nevada-county.ca.civic.band">Nevada County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">3037</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://novato.ca.civic.band">Novato</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">2096</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://oakland.ca.civic.band">Oakland</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">41561</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://oc-sanitation.ca.civic.band">Orange County Sanitation District</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">sanitation_district</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">2104</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://ontario.ca.civic.band">Ontario</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">989</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://orange.ca.civic.band">City of Orange</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">1669</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://oxnard.ca.civic.band">Oxnard</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">6635</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://palmdale.ca.civic.band">Palmdale</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">1906</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://paloalto.ca.civic.band">Palo Alto</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">39314</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://petaluma.ca.civic.band">Petaluma</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">5802</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://pleasanton.ca.civic.band">Pleasanton</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">138</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://portofoakland.ca.civic.band">Port of Oakland</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">port_authority</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">1453</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://ranchocordova.ca.civic.band">Rancho Cordova</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">3669</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://ranchocucamonga.ca.civic.band">Rancho Cucamonga</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">121</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://redlands-usd.ca.civic.band">Redlands Unified School District</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">school_district</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">625</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://redondobeach.ca.civic.band">Redondo Beach</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">5382</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://redwoodcity.ca.civic.band">Redwood City</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">2712</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://richmond.ca.civic.band">Richmond</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">10888</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://riovista.ca.civic.band">Rio Vista</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">1951</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://riverside.ca.civic.band">Riverside</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">9405</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://rohnertpark.ca.civic.band">Rohnert Park</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">3760</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://sacramento.ca.civic.band">Sacramento</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">35</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://salinas.ca.civic.band">Salinas</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">1400</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://sananselmo.ca.civic.band">San Anselmo</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">town</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">3558</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://sanbernadino.ca.civic.band">San Bernadino</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">3298</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://sanbernardino-county.ca.civic.band">San Bernardino County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">12035</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://sancarlos.ca.civic.band">San Carlos</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">5377</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://sandiego-county.ca.civic.band">San Diego County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">10998</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://sanfrancisco.ca.civic.band">San Francisco</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">27410</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://sanjoaquin-county.ca.civic.band">San Joaquin County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">281130</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://sanjose.ca.civic.band">San Jose</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">9984</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://sanleandro.ca.civic.band">San Leandro</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">4671</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://sanluisobispo-county.ca.civic.band">San Luis Obispo County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">7293</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://sanmateo-county.ca.civic.band">San Mateo County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">3660</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://sanmateo.ca.civic.band">San Mateo</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">733</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://santaana.ca.civic.band">Santa Ana</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">7544</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://santabarbara-county.ca.civic.band">Santa Barbara County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">20594</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://santaclara-county.ca.civic.band">Santa Clara County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">60751</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://santaclara.ca.civic.band">Santa Clara</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">11378</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://santacruz-county.ca.civic.band">Santa Cruz County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">296403</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://santacruz.ca.civic.band">Santa Cruz</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">8006</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://santamaria.ca.civic.band">Santa Maria</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">2201</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://santarosa.ca.civic.band">Santa Rosa</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">9877</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://sausalito.ca.civic.band">Sausalito</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">1587</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://sbcera.ca.civic.band">San Bernadino County Employees&#39; Retirement Assoication</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">retirement_association</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">571</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://scottsvalley.ca.civic.band">Scotts Valley</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">1444</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://seaside.ca.civic.band">Seaside</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">1711</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://shafter.ca.civic.band">Shafter</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">10</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://shasta-county.ca.civic.band">Shasta County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">2642</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://simivalley.ca.civic.band">Simi Valley</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">2859</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://solano-county.ca.civic.band">Solano County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">1</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://sonoma-county.ca.civic.band">Sonoma County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">4641</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://stockton.ca.civic.band">Stockton</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">8969</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://suisuncity.ca.civic.band">Suisun City</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">11</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://sunnyvale.ca.civic.band">Sunnyvale</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">11925</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://sutter-county.ca.civic.band">Sutter County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">2034</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://tehama-county.ca.civic.band">Tehama County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">936</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://temecula.ca.civic.band">Temecula</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">1280</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://thousandoaks.ca.civic.band">Thousand Oaks</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">3595</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://trinity-county.ca.civic.band">Trinity County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">2372</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://tulare-county.ca.civic.band">Tulare County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">2943</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://tuolumne-county.ca.civic.band">Tuolumne County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">2499</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://vacaville.ca.civic.band">Vacaville</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">3543</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://vallejo.ca.civic.band">Vallejo</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">1431</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://ventura-county.ca.civic.band">Ventura County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">7024</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://victorville.ca.civic.band">Victorville</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">1443</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://visalia.ca.civic.band">Visalia</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">2080</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://walnutcreek.ca.civic.band">Walnut Creek</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">6032</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://watsonville.ca.civic.band">Watsonville</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">2113</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://windsor.ca.civic.band">Windsor</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">town</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">4042</td>
+            </tr>
+            
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">CO</th>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://arapahoe-county.co.civic.band">Arapahoe County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">2607</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://boulder-county.co.civic.band">Boulder County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">10307</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://denver.co.civic.band">Denver</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">15894</td>
+            </tr>
+            
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">FL</th>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://coralgables.fl.civic.band">Coral Gables</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">22794</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://hillsborough-county.fl.civic.band">Hillsborough County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">1762</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://jacksonville.fl.civic.band">Jacksonville</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">20286</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://tampa.fl.civic.band">Tampa</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">9329</td>
+            </tr>
+            
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">Fl</th>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://pinellas-county.fl.civic.band">Pinellas County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">4289</td>
+            </tr>
+            
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">GA</th>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://atlanta.ga.civic.band">Atlanta</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">240806</td>
+            </tr>
+            
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">HI</th>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://maui-county.hi.civic.band">Maui County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">121266</td>
+            </tr>
+            
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">IL</th>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://chicago.il.civic.band">Chicago</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">10919</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://oak-park.il.civic.band">Oak Park</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">village</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">3401</td>
+            </tr>
+            
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">KY</th>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://louisville.ky.civic.band">Louisville</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">17498</td>
+            </tr>
+            
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">MA</th>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://boston.ma.civic.band">Boston</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">3346</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://framingham.ma.civic.band">Framingham</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">7732</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://somerville.ma.civic.band">Somerville</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">13745</td>
+            </tr>
+            
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">MD</th>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://baltimore.md.civic.band">Baltimore</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">1731</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://princegeorges-county.md.civic.band">Prince George&#39;s County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">17846</td>
+            </tr>
+            
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">ME</th>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://portland.me.civic.band">Portland</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">8103</td>
+            </tr>
+            
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">MI</th>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://annarbor.mi.civic.band">Ann Arbor</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">33353</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://detroit.mi.civic.band">Detroit</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">16807</td>
+            </tr>
+            
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">MO</th>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://kansascity.mo.civic.band">Kansas City</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">5761</td>
+            </tr>
+            
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">MT</th>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://missoula-county.mt.civic.band">Missoula County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">11911</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://missoula.mt.civic.band">Missoula</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">31323</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://park-county.mt.civic.band">Park County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">1365</td>
+            </tr>
+            
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">NC</th>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://charlotte.nc.civic.band">Charlotte</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">10158</td>
+            </tr>
+            
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">NH</th>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://keene.nh.civic.band">Keene</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">39</td>
+            </tr>
+            
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">NM</th>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://albuquerque.nm.civic.band">Albuquerque</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">4813</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://losalamos-county.nm.civic.band">Los Alamos County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">13900</td>
+            </tr>
+            
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">NV</th>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://clark-county.nv.civic.band">Clark County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">11996</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://lasvegas.nv.civic.band">Las Vegas</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">9924</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://northlasvegas.nv.civic.band">North Las Vegas</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">13152</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://reno.nv.civic.band">Reno</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">11742</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://washoe-county.nv.civic.band">Washoe County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">1572</td>
+            </tr>
+            
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">OH</th>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://cleveland.oh.civic.band">Cleveland</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">3639</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://columbus.oh.civic.band">Columbus</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">17979</td>
+            </tr>
+            
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">OK</th>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://okc.ok.civic.band">Oklahoma City</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">41720</td>
+            </tr>
+            
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">OR</th>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://beaverton.or.civic.band">Beaverton</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">4075</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://bend.or.civic.band">Bend</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">2651</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://gresham.or.civic.band">Gresham</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">1847</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://multnomah-county.or.civic.band">Multnomah County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">0</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://oregon-metro.or.civic.band">Oregon Metro</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">metro</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">5803</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://salem.or.civic.band">Salem</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">3493</td>
+            </tr>
+            
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">PA</th>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://pittsburgh.pa.civic.band">Pittsburgh</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">17951</td>
+            </tr>
+            
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">RI</th>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://providence.ri.civic.band">Providence</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">104166</td>
+            </tr>
+            
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">TN</th>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://memphis.tn.civic.band">Memphis</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">7111</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://nashville.tn.civic.band">Nashvill</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">5911</td>
+            </tr>
+            
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">TX</th>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://austin.tx.civic.band">Austin</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">26</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://dallas.tx.civic.band">Dallas</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">0</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://elpaso.tx.civic.band">El Paso</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">3306</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://farmersbranch.tx.civic.band">Farmers Branch</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">1330</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://fortworth.tx.civic.band">Fort Worth</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">3426</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://houston-isd.tx.civic.band">Houston Independent School District</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">school_district</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">265</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://houston.tx.civic.band">Houston</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">16763</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://sanantonio.tx.civic.band">San Antonio</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">20762</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://travis-county.tx.civic.band">Travis County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">16725</td>
+            </tr>
+            
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">UT</th>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://salt-lake-county.ut.civic.band">Salt Lake County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">30262</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://slc.ut.civic.band">Salt Lake City</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">1564</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://westjordan.ut.civic.band">West Jordan</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">1642</td>
+            </tr>
+            
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">VA</th>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://fallschurch.va.civic.band">Falls Church</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">6990</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://richmond.va.civic.band">Richmond</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">7204</td>
+            </tr>
+            
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">WA</th>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://kirkland.wa.civic.band">Kirkland</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">6707</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://olympia.wa.civic.band">Olympia</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">9848</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://redmond.wa.civic.band">Redmond</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">3795</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://sanjuan-county.wa.civic.band">San Juan County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">5859</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://seattle.wa.civic.band">Seattle</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">7488</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://snohomish-county.wa.civic.band">Snohomish County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">3087</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://spokane-county.wa.civic.band">Spokane County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">0</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://vancouver.wa.civic.band">Vancouver</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">7738</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://whatcom-county.wa.civic.band">Whatcom County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">6236</td>
+            </tr>
+            
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">WI</th>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://greenbay.wi.civic.band">Green Bay</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">76400</td>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://milwaukee.wi.civic.band">Milwaukee</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">city</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">19982</td>
+            </tr>
+            
+            <tr class="border-t border-gray-200">
+              <th colspan="5" scope="colgroup" class="bg-gray-50 py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">WY</th>
+            </tr>
+            
+            <tr class="border-t border-gray-300">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://laramie-county.wy.civic.band">Laramie County</a></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">county</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">6217</td>
+            </tr>
+            
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+  </body>
+</html>
+
+

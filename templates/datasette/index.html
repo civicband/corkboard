@@ -1,0 +1,24 @@
+{% extends "default:index.html" %}
+
+{% block description_source_license %}
+<div class="metadata-description">
+    <div class="message-info">
+    <p>This is a fully searchable and queryable collection of minutes and agendas from {{ name }}</a>!</p>
+    <ul class="bullets">
+    <li><strong>See what's available here: <a href="/-/dashboards/meetings-stats">Meetings Statistics</a></strong></li>
+    <li>Search agendas directly on the <a href="/meetings/agendas">agendas collection</a></li>
+    <li>Search minutes directly on the <a href="/meetings/minutes">minutes collection</a></li>
+    <li> Or search both below. If you need help, reach out to <a href="mailto:hello@civic.band">hello@civic.band</a>
+    </ul>
+    </div>
+</div>
+{% if searchable_tables %}
+    <form action="{{ urls.path("/-/search") }}" method="get">
+        <p>
+            <input type="search" name="q" value="{{ q }}" placeholder="Search for records across {{ searchable_tables|length }} table{% if searchable_tables|length > 1 %}s{% endif %}" id="search-all-q">
+            <input type="submit" value="Search">
+        </p>
+    </form>
+{% endif %}
+{{ super() }}
+{% endblock %}

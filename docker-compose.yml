@@ -55,4 +55,4 @@ services:
       --setting sql_time_limit_ms 3000
       --setting num_sql_threads 5
       --setting allow_download off
-      --setting allow_csv_stream offbreak
+      --setting allow_csv_stream off

@@ -1,18 +1,18 @@
 {% import "_crumbs.html" as crumbs with context %}<!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>{% block title %}{% endblock %} - {{ title }}</title>
+    <title>{% block title %}{% endblock %}</title>
     <link rel="stylesheet" href="{{ urls.static('app.css') }}?{{ app_css_hash }}">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="{{ title }} -- Meeting minutes, agendas, and civic transparency">
+    <meta name="description" content="{{ instance_metadata.title }} -- Meeting minutes, agendas, and civic transparency">
     <meta property="og:url" content="https:{{ subdomain }}.civic.band"/>
-    <meta property="og:title" content="{{ title }}"/>
-    <meta property="og:description" content="{{ title }} -- Meeting minutes, agendas, and civic transparency"/>
-    <meta property="og:site_name" content="{{ title }} on CivicBand"/>
+    <meta property="og:title" content="{{ instance_metadata.title }}"/>
+    <meta property="og:description" content="{{ instance_metadata.title }} -- Meeting minutes, agendas, and civic transparency"/>
+    <meta property="og:site_name" content="{{ instance_metadata.title }} on CivicBand"/>
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:domain" value="{{ subdomain }}.civic.band" />
-    <meta name="twitter:title" value="{{ title }} on CivicBand" />
-    <meta name="twitter:description" value="{{ title }} -- Meeting minutes, agendas, and civic transparency" />
+    <meta name="twitter:title" value="{{ instance_metadata.title }} on CivicBand" />
+    <meta name="twitter:description" value="{{ instance_metadata.title }} -- Meeting minutes, agendas, and civic transparency" />
     <meta name="twitter:url" value="https://{{ subdomain}}.civic.band/" />
     <meta name="fediverse:creator" content="@civicband@sfba.social" />
 {% for url in extra_css_urls %}
@@ -30,7 +30,7 @@
 </head>
 <body class="{% block body_class %}{% endblock %}">
 <div class="not-footer">
-<header><nav>{% block nav %}{% block crumbs %}{{ crumbs.nav(request=request) }}{% endblock %}
+<header class="hd"><nav>{% block nav %}{% block crumbs %}{{ crumbs.nav(request=request) }}{% endblock %}
     {% set links = menu_links() %}{% if links or show_logout %}
     <details class="nav-menu details-menu">
         <summary><svg aria-labelledby="nav-menu-svg-title" role="img"
@@ -81,11 +81,11 @@
 {% for body_script in body_scripts %}
     <script{% if body_script.module %} type="module"{% endif %}>{{ body_script.script }}</script>
 {% endfor %}
-    <script>
-        let url = new URL(window.location);
-        let built_url = "/{{ subdomain }}" + url.pathname + url.search;
-        umami.track(props => ({ ...props, url: built_url }));
-    </script>
+<script>
+    let url = new URL(window.location);
+    let built_url = "/{{ subdomain }}" + url.pathname + url.search;
+    umami.track(props => ({ ...props, url: built_url }));
+</script>
 
 {% if select_templates %}<!-- Templates considered: {{ select_templates|join(", ") }} -->{% endif %}
 </body>

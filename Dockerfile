@@ -1,4 +1,4 @@
-FROM python:3.11.0-slim-bullseye AS build
+FROM python:3.12-slim-bullseye AS build
 
 # Version of Datasette to install, e.g. 0.55
 #   docker build . -t datasette --build-arg VERSION=0.55
@@ -11,7 +11,6 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends libsqlite3-mod-spatialite && \
     apt clean && \
     rm -rf /var/lib/apt && \
     rm -rf /var/lib/dpkg/info/*

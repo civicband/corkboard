@@ -30,9 +30,10 @@ services:
     ports:
       - 40001:8001
     volumes:
-      - ".:/app"
+      - .:/app
+      - ../civic-band:/civic-band/
     command: >
-      datasette -h 0.0.0.0 /app/sites.db 
+      datasette -h 0.0.0.0 /civic-band/sites.db 
       --metadata /app/metadata.json 
       --template-dir /app/templates/sites-database
       --setting default_page_size 1000
@@ -46,9 +47,10 @@ services:
     ports:
       - 40002:8001
     volumes:
-      - ".:/app"
+      - .:/app
+      - ../civic-band:/civic-band/
     command: >
-      datasette -h 0.0.0.0 /app/sites.db 
+      datasette -h 0.0.0.0 /civic-band/sites.db 
       --metadata /app/metadata.json 
       --template-dir /app/templates/sites-database
       --setting default_page_size 1000

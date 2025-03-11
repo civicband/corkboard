@@ -7,4 +7,4 @@ cd ../civic-band/ && \
     cd ../civic-band/ && \
     /usr/bin/docker compose down sites_datasette_green && \
     cd ../corkboard/ && \
-    /usr/bin/docker compose up sites_datasette_green -d --remove-orphans && \
+    /usr/bin/docker compose up sites_datasette_green -d --remove-orphans

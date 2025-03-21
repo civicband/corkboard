@@ -25,7 +25,7 @@ async def datasette_hello_world_wrapper(scope, receive, send, app):
                 break
         if host.split(":")[0] in ("localhost", "127.0.0.1", "0.0.0.0"):
             await app(scope, receive, send)
-        db = sqlite_utils.Database("../civic-band/sites.db")
+        db = sqlite_utils.Database("sites.db")
 
         subdomain = ".".join(host.split(".")[:-2])
         # try:

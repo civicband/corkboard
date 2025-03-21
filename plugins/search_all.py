@@ -32,15 +32,15 @@ async def search_all(datasette, request):
         for database, table in searchable_tables
     ]
 
-    async def metadata():
-        return await datasette.get_instance_metadata()
+    # async def metadata():
+    #     return await datasette.get_instance_metadata()
 
     return Response.html(
         await datasette.render_template(
             "search_all.html",
             {
                 "q": request.args.get("q") or "",
-                "metadata": metadata(),
+                # "metadata": metadata(),
                 "searchable_tables": tables,
                 "searchable_tables_json": json.dumps(tables, indent=4),
             },

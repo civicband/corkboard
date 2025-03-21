@@ -5,3 +5,4 @@ whitenoise
 https://github.com/simonw/datasette/archive/refs/tags/1.0a17.zip
 uvicorn
 datasette-template-sql==1.0.2
+datasette-dashboards

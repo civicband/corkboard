@@ -4,8 +4,11 @@
     "about_url": "https://civic.band/",
     "name": "{{ site.name }}",
     "plugins": {
-        "umami": {
-            "subdomain": "{{ site.subdomain }}"
+        "corkboard": {
+            "subdomain": "{{ site.subdomain }}",
+            "site_title": "{{ site.name }} Civic Data",
+            "site_name": "{{ site.name }}",
+            "site_description_html": "A fully-searchable database of {{ site.name }}, {{ site.state }} civic meeting minutes and agendas. Last processed: {{ site.last_updated }}. See the full list at <a href=\"https://civic.band\">Civic Band</a>."
         },
         "datasette-dashboards": {
             "meetings-stats": {
@@ -460,17 +463,14 @@
         }
     },
     "databases": {
-        "civic_minutes": {
-            "tables": {
-                "pages": {
-                    "sort_desc": "date",
-                    "facets": [
-                        "meeting"
-                    ]
-                }
-            }
-        },
         "meetings": {
+            "queries": {
+                "upcoming": {
+                    "sql": "select meeting, date, count(page) as pages from agendas where date >= current_date group by date, meeting order by date desc",
+                    "title": "Upcoming agendas",
+                    "hide_sql": true
+                }
+            },
             "tables": {
                 "agendas": {
                     "sort_desc": "date",

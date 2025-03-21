@@ -4,16 +4,16 @@
     <title>{% block title %}{% endblock %}</title>
     <link rel="stylesheet" href="{{ urls.static('app.css') }}?{{ app_css_hash }}">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="{{ instance_metadata.title }} -- Meeting minutes, agendas, and civic transparency">
+    <meta name="description" content="{{ site_title }} -- Meeting minutes, agendas, and civic transparency">
     <meta property="og:url" content="https:{{ subdomain }}.civic.band"/>
-    <meta property="og:title" content="{{ instance_metadata.title }}"/>
-    <meta property="og:description" content="{{ instance_metadata.title }} -- Meeting minutes, agendas, and civic transparency"/>
-    <meta property="og:site_name" content="{{ instance_metadata.title }} on CivicBand"/>
+    <meta property="og:title" content="{{ site_title }}"/>
+    <meta property="og:description" content="{{ site_title }} -- Meeting minutes, agendas, and civic transparency"/>
+    <meta property="og:site_name" content="{{ site_title }} on CivicBand"/>
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:domain" value="{{ subdomain }}.civic.band" />
-    <meta name="twitter:title" value="{{ instance_metadata.title }} on CivicBand" />
-    <meta name="twitter:description" value="{{ instance_metadata.title }} -- Meeting minutes, agendas, and civic transparency" />
-    <meta name="twitter:url" value="https://{{ subdomain}}.civic.band/" />
+    <meta name="twitter:title" value="{{ site_title }} on CivicBand" />
+    <meta name="twitter:description" value="{{ site_title }} -- Meeting minutes, agendas, and civic transparency" />
+    <meta name="twitter:url" value="https://{{ subdomain }}.civic.band/" />
     <meta name="fediverse:creator" content="@civicband@sfba.social" />
 {% for url in extra_css_urls %}
     <link rel="stylesheet" href="{{ url.url }}"{% if url.get("sri") %} integrity="{{ url.sri }}" crossorigin="anonymous"{% endif %}>

@@ -5,6 +5,7 @@ services:
       - 8000:8000
     volumes:
       - .:/app/
+      # - ../sites:/sites/
       - ../civic-band/sites:/sites/
     environment:
       - DJP_PLUGINS_DIR=django_plugins
@@ -17,6 +18,7 @@ services:
       - 8001:8000
     volumes:
       - .:/app/
+      # - ../sites:/sites/
       - ../civic-band/sites:/sites/
     environment:
       - DJP_PLUGINS_DIR=django_plugins

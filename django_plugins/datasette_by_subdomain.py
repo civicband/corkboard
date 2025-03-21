@@ -38,7 +38,7 @@ async def datasette_hello_world_wrapper(scope, receive, send, app):
         )
         metadata = json.loads(jinja_env.get_template("metadata.json").render(site=site))
         ds = Datasette(
-            [f"/sites/{subdomain}/meetings.db"],
+            [f"../civic-band/sites/{subdomain}/meetings.db"],
             config=metadata,
             plugins_dir="plugins",
             template_dir="templates/datasette",

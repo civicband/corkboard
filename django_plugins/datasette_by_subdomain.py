@@ -41,7 +41,7 @@ async def datasette_hello_world_wrapper(scope, receive, send, app):
             )
             ds = Datasette(
                 [f"/sites/{subdomain}/meetings.db"],
-                metadata=metadata,
+                config=metadata,
                 plugins_dir="plugins",
                 template_dir="templates/datasette",
                 settings={

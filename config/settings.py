@@ -217,4 +217,3 @@ DJP_PLUGINS_DIR = [BASE_DIR / "django_plugins"]
 
 
 djp.settings(globals())
-print("Got here")

@@ -2,11 +2,11 @@
 <div class="above-table-panel"> </div>
 {% if display_rows %}
 <div class="table-wrapper">
-    <table class="rows-and-columns">
+    <table class="rows-and-columns" style="width:100%">
         <thead>
             <tr>
                 {% for column in display_columns %}
-                    {% if column.name == 'popup' %}
+                    {% if column.name in ('popup', "lat", "lng") %}
                         <th style="display: none" {% if column.description %}data-column-description="{{ column.description }}" {% endif %}class="col-{{ column.name|to_css_class }}" scope="col" data-column="{{ column.name }}" data-column-type="{{ column.type.lower() }}" data-column-not-null="{{ column.notnull }}">{{ column.name }}</th>
                     {% else %}
                         <th {% if column.description %}data-column-description="{{ column.description }}" {% endif %}class="col-{{ column.name|to_css_class }}" scope="col" data-column="{{ column.name }}" data-column-type="{{ column.type.lower() }}" data-column-not-null="{{ column.notnull }}" data-is-pk="{% if column.is_pk %}1{% else %}0{% endif %}">
@@ -30,7 +30,7 @@
                 {% for cell in row %}
                     {% if cell.column == 'subdomain'%}
                     <td class="col-{{ cell.column|to_css_class }} type-{{ cell.value_type }}"><a href="https://{{cell.raw}}.civic.band">{{ cell.raw }}</a></td>
-                    {% elif cell.column == 'popup' %}
+                    {% elif cell.column in ('popup', "lat", "lng") %}
                     <td style="display: none" class="col-{{ cell.column|to_css_class }} type-{{ cell.value_type }}"><a href="https://{{cell.raw}}.civic.band">{{ cell.raw }}</a></td>
                     {% else %}
                     <td class="col-{{ cell.column|to_css_class }} type-{{ cell.value_type }}">{{ cell.value }}</td>

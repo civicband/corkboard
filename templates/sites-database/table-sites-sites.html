@@ -28,22 +28,25 @@
 
 {% block body_class %}table db-{{ database|to_css_class }} table-{{ table|to_css_class }}{% endblock %}
 
+{% block nav %}
+<p>
+<a href="/how.html">How it works</a>
+* <a href="/why.html">Why?</a>
+* <a href="/rss.xml">RSS Feed</a>
+* <a rel="me" href="https://sfba.social/@civicband">Mastodon</a>
+* <a rel="me" href="https://bsky.app/profile/civic.band">Bluesky</a>
+* <a href="https://opencollective.com/civicband">Support!</a>
+</p>
+{% endblock %}
+
 {% block content %}
 <div class="page-header">
     <h1>CivicBand</h1>
 </div>
 <div class="metadata-description">
     <div class="message-info">
-    <p>This is a slowly growing collection of databases of the minutes from civic governments. A project from <a href="https://galaxybrain.co">Galaxy Brain</a>. Email hello @ civic dot band with questions.</p>
-    <p>
-        <a href="/how.html">How it works <span aria-hidden="true">&rarr;</span></a>
-        <a href="/why.html">Why? <span aria-hidden="true">&rarr;</span></a>
-        <a href="/rss.xml">RSS Feed <span aria-hidden="true">&rarr;</span></a>
-        <a rel="me" href="https://sfba.social/@civicband">Mastodon <span aria-hidden="true">&rarr;</span></a>
-        <a rel="me" href="https://bsky.app/profile/civic.band">Bluesky <span aria-hidden="true">&rarr;</span></a>
-        <a href="https://donate.stripe.com/3cs3dN5Ki0BRgzSeUX">Support! <span aria-hidden="true">&rarr;</span></a>
-    </p>
-    <form class="w-full max-w-md lg:col-span-5 lg:pt-2" action="https://buttondown.com/api/emails/embed-subscribe/civicband"
+    <p>The largest collection of civic meeting data in the United States and Canada. A project from the <a href="https://raft.foundation">Raft Foundation</a>. Email hello @ civic dot band with questions.</p>
+    <p><form class= action="https://buttondown.com/api/emails/embed-subscribe/civicband"
         method="post"
         target="popupwindow"
         onsubmit="window.open('https://buttondown.com/civicband', 'popupwindow')"
@@ -55,14 +58,17 @@
           </div>
           <p class="mt-4 text-sm/6 text-gray-300">We care about your data. Read our <a href="/privacy.html" class="font-semibold text-white">privacy&nbsp;policy</a>.</p>
         </form>
+    </p>
     
         <h3>Tracking {% for row in sql('select printf("%,d", sum(pages)) as page_count from sites')%}{{ row.page_count }}{% endfor %} pages across {% for row in sql('select printf("%,d", count(subdomain)) as site_count from sites')%}{{ row.site_count }}{% endfor %} municipalites</h3>
     </div>
 </div>
 {% set action_links, action_title = actions(), "View actions" if is_view else "Table actions" %}
-{# {% include "_action_menu.html" %} 
 
 {{ top_table() }}
+
+{# {% include "_action_menu.html" %} 
+
 
 {% block description_source_license %}{% include "_description_source_license.html" %}{% endblock %} 
 
@@ -79,6 +85,17 @@
         {% if human_description_en %}{{ human_description_en }}{% endif %}
     </h3>
 {% endif %}#}
+
+{% if extra_wheres_for_ui %}
+<div class="extra-wheres">
+    <h3>{{ extra_wheres_for_ui|length }} extra where clause{% if extra_wheres_for_ui|length != 1 %}s{% endif %}</h3>
+    <ul>
+    {% for extra_where in extra_wheres_for_ui %}
+        <li><code>{{ extra_where.text }}</code> [<a href="{{ extra_where.remove_url }}">remove</a>]</li>
+    {% endfor %}
+    </ul>
+</div>
+{% endif %}
 
 <form class="filters" action="{{ urls.table(database, table) }}" method="get">
     {% if supports_search %}
@@ -138,17 +155,6 @@
         <input type="submit" value="Apply">
     </div>
 </form>
-
-{% if extra_wheres_for_ui %}
-<div class="extra-wheres">
-    <h3>{{ extra_wheres_for_ui|length }} extra where clause{% if extra_wheres_for_ui|length != 1 %}s{% endif %}</h3>
-    <ul>
-    {% for extra_where in extra_wheres_for_ui %}
-        <li><code>{{ extra_where.text }}</code> [<a href="{{ extra_where.remove_url }}">remove</a>]</li>
-    {% endfor %}
-    </ul>
-</div>
-{% endif %}
 
 {% include custom_table_templates %}
 

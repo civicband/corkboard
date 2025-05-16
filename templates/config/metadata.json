@@ -11,7 +11,7 @@
             "site_description_html": "A fully-searchable database of {{ site.name }}, {{ site.state }} civic meeting minutes and agendas. Last processed: {{ site.last_updated }}. See the full list at <a href=\"https://civic.band\">Civic Band</a>."
         },
         "datasette-sentry": {
-            "dsn": "http://f9d8a6bb2260416bbe5a2838a4158cb9@andromeda.nebulosa-moth.ts.net/2"
+            "dsn": "http://f9d8a6bb2260416bbe5a2838a4158cb9@andromeda.nebulosa-moth.ts.net/2",
             "sample_rate": 0.25,
             "enable_tracing": true,
             "traces_sample_rate": 0.1

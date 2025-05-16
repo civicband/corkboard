@@ -8,6 +8,7 @@ services:
       TARGET: "http://django_blue:8010"
       OG_PASSTHROUGH: "true"
       OG_EXPIRY_TIME: "24h"
+      USE_REMOTE_ADDRESS: "true"
     ports:
       - 8000:8000
     volumes:
@@ -34,6 +35,7 @@ services:
       TARGET: "http://django_green:8020"
       OG_PASSTHROUGH: "true"
       OG_EXPIRY_TIME: "24h"
+      USE_REMOTE_ADDRESS: "true"
     ports:
       - 8001:8001
     volumes:

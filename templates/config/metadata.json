@@ -15,7 +15,7 @@
             "sample_rate": 0.25,
             "enable_tracing": true,
             "traces_sample_rate": 0.1
-        }
+        },
         "datasette-dashboards": {
             "meetings-stats": {
                 "title": "{{ site.name }} Meeting Statistics",

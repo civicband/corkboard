@@ -4,9 +4,9 @@ services:
     ports:
       - 8000:8000
     volumes:
-      - .:/app/
+      - ${PWD}:/app/
       # - ../sites:/sites/
-      - ../civic-band/sites:/sites/
+      - ${PWD}/../civic-band/sites:/sites/
     environment:
       - DJP_PLUGINS_DIR=django_plugins
       - WEB_CONCURRENCY=4
@@ -17,9 +17,9 @@ services:
     ports:
       - 8001:8000
     volumes:
-      - .:/app/
+      - ${PWD}:/app/
       # - ../sites:/sites/
-      - ../civic-band/sites:/sites/
+      - ${PWD}/../civic-band/sites:/sites/
     environment:
       - DJP_PLUGINS_DIR=django_plugins
       - WEB_CONCURRENCY=4
@@ -32,8 +32,8 @@ services:
     ports:
       - 40001:8001
     volumes:
-      - .:/app
-      - ../civic-band:/civic-band/
+      - ${PWD}:/app
+      - ${PWD}/../civic-band:/civic-band/
     command: >
       datasette -h 0.0.0.0 /civic-band/sites.db 
       --metadata /app/metadata.json 
@@ -49,8 +49,8 @@ services:
     ports:
       - 40002:8001
     volumes:
-      - .:/app
-      - ../civic-band:/civic-band/
+      - ${PWD}:/app
+      - ${PWD}/../civic-band:/civic-band/
     command: >
       datasette -h 0.0.0.0 /civic-band/sites.db 
       --metadata /app/metadata.json 

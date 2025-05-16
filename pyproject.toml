@@ -1,0 +1,84 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "corkboard"
+version = "0.1.0"
+description = "CivicBand - Government and Municipality Meeting Data"
+requires-python = ">=3.11"
+authors = [
+    {name = "CivicBand Team", email = "hello@civic.band"},
+]
+readme = "README.md"
+license = {file = "LICENSE"}
+
+dependencies = [
+    "Django>=4.2.0",
+    "datasette>=0.64.0",
+    "djp>=0.0.6",
+    "jinja2>=3.0.0",
+    "sqlite-utils>=3.30.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+]
+lint = [
+    "ruff>=0.1.0",
+]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "ruff>=0.1.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+pythonpath = ["."]
+asyncio_mode = "auto"
+
+[tool.pytest]
+addopts = "--strict-markers -v"
+markers = [
+    "unit: Unit tests (default)",
+    "integration: Integration tests",
+]
+
+[tool.ruff]
+# Enable pycodestyle (E), Pyflakes (F), isort (I), and more
+line-length = 88
+target-version = "py311"
+select = ["E", "F", "I", "B", "C4", "ARG", "SIM", "TID", "PL"]
+ignore = []
+
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".tox",
+    ".venv",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+]
+
+[tool.ruff.isort]
+known-first-party = ["corkboard", "config", "django_plugins", "pages", "plugins"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+
+[tool.uv]
+pip = { extra-index-url = [] }

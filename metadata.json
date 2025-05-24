@@ -14,6 +14,12 @@
             "database": "sites",
             "table": "sites"
         },
+        "datasette-sentry": {
+            "dsn": "https://f9d8a6bb2260416bbe5a2838a4158cb9@andromeda.nebulosa-moth.ts.net/2",
+            "sample_rate": 0.25,
+            "enable_tracing": false,
+            "traces_sample_rate": 0
+        },
         "umami": {
             "subdomain": "home"
         }

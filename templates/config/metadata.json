@@ -10,12 +10,12 @@
             "site_name": "{{ site.name }}",
             "site_description_html": "A fully-searchable database of {{ site.name }}, {{ site.state }} civic meeting minutes and agendas. Last processed: {{ site.last_updated }}. See the full list at <a href=\"https://civic.band\">Civic Band</a>."
         },
-        "datasette-sentry": {
+        {% comment %} "datasette-sentry": {
             "dsn": "https://f9d8a6bb2260416bbe5a2838a4158cb9@andromeda.nebulosa-moth.ts.net/2",
             "sample_rate": 0.25,
             "enable_tracing": false,
             "traces_sample_rate": 0
-        },
+        }, {% endcomment %}
         "datasette-dashboards": {
             "meetings-stats": {
                 "title": "{{ site.name }} Meeting Statistics",

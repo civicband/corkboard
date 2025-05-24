@@ -29,6 +29,7 @@ async def robots_txt(datasette, request):
         "User-agent: ImagesiftBot",
         "User-agent: cohere-ai",
         "User-agent: SplitSignalBot",
+        "User-agent: SemrushBot",
         "User-agent: SemrushBot-OCOB",
         "User-agent: SemrushBot-FT",
         "User-agent: SemrushBot-SWA",

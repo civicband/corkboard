@@ -14,12 +14,9 @@ services:
       - "./botPolicy.yaml:/data/cfg/botPolicy.yaml:ro"
   django_blue:
     build: .
-#    ports:
-#      - 8010:8000
     volumes:
       - .:/app/
-      # - ../sites:/sites/
-      - ../civic-band/sites:/sites/
+      - ../sites:/sites/
     environment:
       - DJP_PLUGINS_DIR=django_plugins
       - WEB_CONCURRENCY=4
@@ -40,12 +37,9 @@ services:
       - "./botPolicy.yaml:/data/cfg/botPolicy.yaml:ro"
   django_green:
     build: .
-#    ports:
-#      - 8020:8000
     volumes:
       - .:/app/
-      # - ../sites:/sites/
-      - ../civic-band/sites:/sites/
+      - ../sites:/sites/
     environment:
       - DJP_PLUGINS_DIR=django_plugins
       - WEB_CONCURRENCY=4

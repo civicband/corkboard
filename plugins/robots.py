@@ -1,5 +1,4 @@
 from datasette import hookimpl
-from datasette.utils import await_me_maybe
 from datasette.utils.asgi import Response
 
 

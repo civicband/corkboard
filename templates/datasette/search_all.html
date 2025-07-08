@@ -25,29 +25,149 @@
         transform: rotate(360deg);
     }
 }
+
+/* Match standard datasette search form styling */
+.filters {
+    margin-bottom: 1rem;
+}
+
+.search-row {
+    margin-bottom: 0.5rem;
+}
+
+.search-row label {
+    display: inline-block;
+    width: 4rem;
+    text-align: right;
+    margin-right: 0.5rem;
+    font-weight: bold;
+}
+
+.search-row input[type="search"] {
+    width: 20rem;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+.search-row input[type="submit"] {
+    margin-left: 0.5rem;
+    padding: 0.25rem 1rem;
+    background: #4f46e5;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.search-row input[type="submit"]:hover {
+    background: #3730a3;
+}
+
+/* Style search result sections to match datasette */
+.search-result-section {
+    margin-bottom: 2rem;
+}
+
+.search-result-section h3 {
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.search-result-section h3 a {
+    text-decoration: none;
+    color: #4f46e5;
+}
+
+.search-result-section h3 a:hover {
+    text-decoration: underline;
+}
+
+/* No results styling */
+.no-results {
+    color: #666;
+    font-style: italic;
+    margin: 1rem 0;
+}
+
+/* Additional table styling to match datasette */
+.table-wrapper {
+    overflow-x: auto;
+    margin-bottom: 1rem;
+}
+
+.rows-and-columns {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 0.5rem;
+}
+
+.rows-and-columns th {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    padding: 0.5rem;
+    text-align: left;
+    font-weight: 600;
+}
+
+.rows-and-columns td {
+    border: 1px solid #dee2e6;
+    padding: 0.5rem;
+    vertical-align: top;
+}
+
+.rows-and-columns tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+.rows-and-columns tr:hover {
+    background-color: #e9ecef;
+}
+
+/* Style for null values */
+.null {
+    color: #6c757d;
+    font-style: italic;
+}
+
+/* Style for links */
+.rows-and-columns a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.rows-and-columns a:hover {
+    text-decoration: underline;
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<h1>Search all tables</h1>
+<div class="page-header">
+    <h1>Search all tables</h1>
+</div>
 
 {% if not searchable_tables %}
     <p>There are no tables that have been configured for search.</p>
 {% else %}
-    <form action="{{ urls.path("/-/search") }}" method="get">
-        <p>
+    <form class="filters" action="{{ urls.path("/-/search") }}" method="get">
+        <div class="search-row">
+            <label for="search-all-q">Search:</label>
             <input type="search" name="q" value="{{ q }}" id="search-all-q">
-            <input type="submit" value="Search">
-        </p>
+            <input type="submit" value="Apply">
+        </div>
     </form>
 {% endif %}
-<div id="search-all-results" style="margin-top: 1em;">
+
+<div id="search-all-results">
 {% if q and searchable_tables %}
-    <ul>
+    <div style="display: none;">
     {% for searchable_table in searchable_tables %}
-        <li data-searchable-url="{{ searchable_table.url }}"><a href="{{ searchable_table.url }}?_search={{ q|urlencode }}">Search {{ searchable_table.database }}: {{ searchable_table.table }} for "{{ q }}"</a></li>
+        <div data-searchable-url="{{ searchable_table.url }}" class="search-all-loading">
+            <p>Searching {{ searchable_table.database }}: {{ searchable_table.table }}...</p>
+        </div>
     {% endfor %}
-    </ul>
+    </div>
 {% endif %}
 </div>
 <div id="search-all-no-results"></div>
@@ -104,7 +224,7 @@ var autoescape = (fragments, ...inserts) => safe(fragments.map(
   }
 ).join(''));
 
-function displayCell(cell) {
+function displayCell(cell, columnName) {
     // cell is either a value or a {"value:", "label": } object
     let value;
     if (cell && typeof(cell.label) !== "undefined") {
@@ -112,13 +232,43 @@ function displayCell(cell) {
     } else {
         value = cell;
     }
+    
+    // Handle null/undefined values
+    if (value === null || value === undefined) {
+        return safe('<em class="null">null</em>');
+    }
+    
+    // Handle URLs
     if (isUrl(value)) {
-      return safe(`<a href="${htmlEscape(value)}">${htmlEscape(value)}</a>`);
+        return safe(`<a href="${htmlEscape(value)}" target="_blank">${htmlEscape(value)}</a>`);
     }
+    
+    // Handle images
     if (typeof(value) == "string" && value.endsWith('.png')){
-      return safe(`<img src="https://cdn.civic.band/{{ subdomain }}${value}?width=800">`);
+        var subdomain = window.location.hostname.split('.')[0];
+        return safe(`<img src="https://cdn.civic.band/{{subdomain}}${value}?width=600" style="max-width: 600px; height: auto;">`);
     }
-    return value;
+    
+    // Handle numbers - format them nicely
+    if (typeof(value) === 'number') {
+        if (columnName && columnName.toLowerCase().includes('date')) {
+            // If it's a date column, treat as timestamp
+            return new Date(value * 1000).toLocaleDateString();
+        }
+        return Number(value).toLocaleString();
+    }
+    
+    // Handle dates in string format
+    if (typeof(value) === 'string' && value.match(/^\d{4}-\d{2}-\d{2}/)) {
+        return value.split('T')[0]; // Just show the date part
+    }
+    
+    // Truncate very long text
+    if (typeof(value) === 'string' && value.length > 100) {
+        return htmlEscape(value.substring(0, 100) + '...');
+    }
+    
+    return htmlEscape(value);
 }
 
 function displayResults(data, base_url) {
@@ -130,24 +280,41 @@ function displayResults(data, base_url) {
         columns = Object.keys(data.rows[0]);
     }
     var count = data.filtered_table_rows_count || data.count;
-    var ths = safe(columns.map(c => autoescape`<th>${c}</th>`).join(""));
-    var tr_rows = safe(rows.map(row => autoescape`<tr>${safe(columns.map(column => autoescape`<td>${displayCell(row[column])}</td>`).join(""))}</tr>`).join(""));
+    
+    // Generate datasette-style table headers with proper CSS classes
+    var ths = safe(columns.map(c => autoescape`<th class="col-${c}" scope="col" data-column="${c}">${c}</th>`).join(""));
+    
+    // Generate table rows with proper datasette CSS classes
+    var tr_rows = safe(rows.map(row => autoescape`<tr>${safe(columns.map(column => {
+        var cellValue = displayCell(row[column], column);
+        var cellClass = `col-${column.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+        return autoescape`<td class="${cellClass}">${cellValue}</td>`;
+    }).join(""))}</tr>`).join(""));
+    
     var view_more = '';
     var search_url = `${base_url}?_search=${encodeURIComponent(q.value)}`;
     if (count > NUM_RESULTS) {
         var more_count = count - NUM_RESULTS;
         view_more = autoescape`<p><a href="${search_url}">${Number(more_count).toLocaleString()} more result${more_count == 1 ? '' : 's'}</a></p>`;
     }
+    
     var html, div;
     if (count) {
+        // Use datasette-style markup and CSS classes
         html = autoescape`
-            <h2><a href="${search_url}">${Number(count).toLocaleString()} result${count == 1 ? '' : 's'}</a> in ${database}: ${table}</h2>
-            <div style="overflow: auto">
-            <table>
-                <tr>${ths}</tr>
-                ${tr_rows}
-            </table>
-            ${view_more}
+            <div class="search-result-section">
+                <h3><a href="${search_url}">${Number(count).toLocaleString()} result${count == 1 ? '' : 's'}</a> in ${database}: ${table}</h3>
+                <div class="table-wrapper">
+                    <table class="rows-and-columns">
+                        <thead>
+                            <tr>${ths}</tr>
+                        </thead>
+                        <tbody>
+                            ${tr_rows}
+                        </tbody>
+                    </table>
+                </div>
+                ${view_more}
             </div>
         `;
         div = document.createElement('div');
@@ -155,20 +322,30 @@ function displayResults(data, base_url) {
         search_results.appendChild(div);
     } else {
         search_no_results.innerHTML += autoescape`
-            <p>No results in <a href="${base_url}">${database}: ${table}</a></p>
+            <p class="no-results">No results in <a href="${base_url}">${database}: ${table}</a></p>
         `;
     }
 }
 
 if (q.value) {
+    // Show loading indicators
+    document.querySelector('#search-all-results > div').style.display = 'block';
+    
     searchable_tables.forEach(item => {
         var base_url = item.url;
-        var li = document.querySelector(`[data-searchable-url="${base_url}"]`);
-        li.classList.add('search-all-loading');
+        var loadingEl = document.querySelector(`[data-searchable-url="${base_url}"]`);
         var json_url = `${item.url_json}?_shape=objects&_labels=on&_extra=count&_extra=database&_extra=table&_size=${NUM_RESULTS}&_search=${encodeURIComponent(q.value)}`;
+        
         fetch(json_url).then(r => r.json()).then((data) => {
-            li.style.display = 'none';
+            if (loadingEl) {
+                loadingEl.style.display = 'none';
+            }
             displayResults(data, base_url);
+        }).catch((error) => {
+            console.error('Search error:', error);
+            if (loadingEl) {
+                loadingEl.innerHTML = `<p class="no-results">Error searching ${item.database}: ${item.table}</p>`;
+            }
         });
     });
 }

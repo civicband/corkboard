@@ -479,6 +479,12 @@
                         "meeting"
                     ]
                 },
+                "agendas_fts": {
+                    "hidden": true
+                },
+                "minutes_fts": {
+                    "hidden": true
+                },
                 "minutes": {
                     "sort_desc": "date",
                     "sort_asc": "page",

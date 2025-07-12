@@ -3,174 +3,435 @@
 
 {% block extra_head %}
 <style type="text/css">
-.search-all-loading a {
-    padding-left: 0.5em;
+/* Modern search page styling consistent with site design */
+
+/* Page container and spacing */
+.page-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0.75rem;
 }
-.search-all-loading:before {
-    content: " ";
-    opacity: 0.5;
-    display: inline-block;
-    width: 0.4em;
-    height: 0.4em;
-    border-radius: 50%;
-    border: 4px solid black;
-    border-color: black transparent black transparent;
-    animation: rotate-360 1.2s linear infinite;
-}
-@keyframes rotate-360 {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
+
+@media (min-width: 768px) {
+    .page-container {
+        padding: 1rem;
     }
 }
 
-/* Match standard datasette search form styling */
+/* Page header */
+.page-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.page-header h1 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #1a365d;
+    margin: 0;
+}
+
+@media (min-width: 768px) {
+    .page-header h1 {
+        font-size: 2rem;
+    }
+}
+
+/* Search form section */
+.search-form-section {
+    background: #ffffff;
+    border: 1px solid #e1ecf4;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 0.75rem 0 1.5rem 0;
+    box-shadow: 0 2px 6px rgba(0, 123, 255, 0.08);
+}
+
+@media (min-width: 768px) {
+    .search-form-section {
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin: 1rem 0 2rem 0;
+    }
+}
+
 .filters {
-    margin-bottom: 1rem;
+    margin: 0;
 }
 
 .search-row {
-    margin-bottom: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+}
+
+@media (min-width: 600px) {
+    .search-row {
+        flex-direction: row;
+        align-items: center;
+        gap: 1rem;
+    }
 }
 
 .search-row label {
-    display: inline-block;
-    width: 4rem;
-    text-align: right;
-    margin-right: 0.5rem;
-    font-weight: bold;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0;
+}
+
+@media (min-width: 600px) {
+    .search-row label {
+        min-width: 5rem;
+        text-align: right;
+    }
+}
+
+.search-input-container {
+    display: flex;
+    gap: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border-radius: 6px;
+    overflow: hidden;
+    flex: 1;
+}
+
+@media (min-width: 768px) {
+    .search-input-container {
+        border-radius: 8px;
+        max-width: 400px;
+    }
 }
 
 .search-row input[type="search"] {
-    width: 20rem;
-    padding: 0.25rem 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 3px;
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: 2px solid #007bff;
+    border-right: none;
+    border-radius: 6px 0 0 6px;
+    font-size: 1rem;
+    background: #ffffff;
+    transition: all 0.2s ease;
+}
+
+@media (min-width: 768px) {
+    .search-row input[type="search"] {
+        padding: 1rem 1.25rem;
+        border-radius: 8px 0 0 8px;
+    }
+}
+
+.search-row input[type="search"]:focus {
+    outline: none;
+    border-color: #0056b3;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 
 .search-row input[type="submit"] {
-    margin-left: 0.5rem;
-    padding: 0.25rem 1rem;
-    background: #4f46e5;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, #007bff, #0056b3);
     color: white;
-    border: none;
-    border-radius: 3px;
+    border: 2px solid #007bff;
+    border-left: none;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.9rem;
+    font-weight: 600;
     cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+@media (min-width: 768px) {
+    .search-row input[type="submit"] {
+        padding: 1rem 1.5rem;
+        border-radius: 0 8px 8px 0;
+        font-size: 1rem;
+    }
 }
 
 .search-row input[type="submit"]:hover {
-    background: #3730a3;
+    background: linear-gradient(135deg, #0056b3, #004085);
+    border-color: #0056b3;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
 }
 
-/* Style search result sections to match datasette */
+.search-row input[type="submit"]:active {
+    transform: translateY(0);
+}
+
+/* Loading animations */
+.search-all-loading {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.search-all-loading:before {
+    content: " ";
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    border: 2px solid #007bff;
+    border-color: #007bff transparent #007bff transparent;
+    animation: rotate-360 1.2s linear infinite;
+    flex-shrink: 0;
+}
+
+@keyframes rotate-360 {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.search-all-loading p {
+    margin: 0;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+/* Search result sections */
 .search-result-section {
-    margin-bottom: 2rem;
+    background: #ffffff;
+    border: 1px solid #e1ecf4;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 6px rgba(0, 123, 255, 0.08);
+}
+
+@media (min-width: 768px) {
+    .search-result-section {
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin-bottom: 1.5rem;
+    }
 }
 
 .search-result-section h3 {
-    margin-bottom: 0.5rem;
-    font-size: 1.1rem;
+    margin: 0 0 1rem 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #1a365d;
+}
+
+@media (min-width: 768px) {
+    .search-result-section h3 {
+        font-size: 1.3rem;
+    }
 }
 
 .search-result-section h3 a {
     text-decoration: none;
-    color: #4f46e5;
+    color: #007bff;
+    transition: color 0.2s ease;
 }
 
 .search-result-section h3 a:hover {
+    color: #0056b3;
     text-decoration: underline;
 }
 
-/* No results styling */
-.no-results {
-    color: #666;
-    font-style: italic;
-    margin: 1rem 0;
-}
-
-/* Additional table styling to match datasette */
+/* Table styling */
 .table-wrapper {
     overflow-x: auto;
     margin-bottom: 1rem;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+@media (min-width: 768px) {
+    .table-wrapper {
+        border-radius: 8px;
+    }
 }
 
 .rows-and-columns {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 0.5rem;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+@media (min-width: 768px) {
+    .rows-and-columns {
+        font-size: 1rem;
+    }
 }
 
 .rows-and-columns th {
-    background-color: #f8f9fa;
-    border: 1px solid #dee2e6;
-    padding: 0.5rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: none;
+    border-bottom: 2px solid #007bff;
+    padding: 0.75rem 0.5rem;
     text-align: left;
     font-weight: 600;
+    color: #2c3e50;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+@media (min-width: 768px) {
+    .rows-and-columns th {
+        padding: 1rem 0.75rem;
+        font-size: 0.9rem;
+    }
 }
 
 .rows-and-columns td {
-    border: 1px solid #dee2e6;
-    padding: 0.5rem;
+    border: none;
+    border-bottom: 1px solid #f1f3f4;
+    padding: 0.75rem 0.5rem;
     vertical-align: top;
+    line-height: 1.4;
 }
 
-.rows-and-columns tr:nth-child(even) {
-    background-color: #f8f9fa;
+@media (min-width: 768px) {
+    .rows-and-columns td {
+        padding: 1rem 0.75rem;
+    }
 }
 
 .rows-and-columns tr:hover {
-    background-color: #e9ecef;
+    background-color: #f8f9fa;
 }
 
-/* Style for null values */
-.null {
-    color: #6c757d;
-    font-style: italic;
+.rows-and-columns tr:hover td {
+    border-bottom-color: #dee2e6;
 }
 
-/* Style for links */
+/* Links in tables */
 .rows-and-columns a {
     color: #007bff;
     text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s ease;
 }
 
 .rows-and-columns a:hover {
+    color: #0056b3;
     text-decoration: underline;
+}
+
+/* Special styling for ID and date links */
+.col-id a, .col-date a {
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    background: rgba(0, 123, 255, 0.1);
+    border: 1px solid rgba(0, 123, 255, 0.2);
+}
+
+.col-id a:hover, .col-date a:hover {
+    background: rgba(0, 123, 255, 0.2);
+    border-color: #007bff;
+    text-decoration: none;
+}
+
+/* Null values */
+.null {
+    color: #6c757d;
+    font-style: italic;
+    opacity: 0.7;
+}
+
+/* No results styling */
+.no-results {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 6px;
+    padding: 1rem;
+    color: #856404;
+    margin: 1rem 0;
+    text-align: center;
+}
+
+@media (min-width: 768px) {
+    .no-results {
+        border-radius: 8px;
+        padding: 1.5rem;
+    }
+}
+
+.no-results a {
+    color: #007bff;
+    font-weight: 600;
+}
+
+/* View more link styling */
+.search-result-section p a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(0, 123, 255, 0.1);
+    border: 1px solid rgba(0, 123, 255, 0.3);
+    border-radius: 6px;
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.search-result-section p a:hover {
+    background: rgba(0, 123, 255, 0.2);
+    border-color: #007bff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
+}
+
+@media (min-width: 768px) {
+    .search-result-section p a {
+        border-radius: 8px;
+    }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <h1>Search all tables</h1>
-</div>
-
-{% if not searchable_tables %}
-    <p>There are no tables that have been configured for search.</p>
-{% else %}
-    <form class="filters" action="{{ urls.path("/-/search") }}" method="get">
-        <div class="search-row">
-            <label for="search-all-q">Search:</label>
-            <input type="search" name="q" value="{{ q }}" id="search-all-q">
-            <input type="submit" value="Apply">
-        </div>
-    </form>
-{% endif %}
-
-<div id="search-all-results">
-{% if q and searchable_tables %}
-    <div style="display: none;">
-    {% for searchable_table in searchable_tables %}
-        <div data-searchable-url="{{ searchable_table.url }}" class="search-all-loading">
-            <p>Searching {{ searchable_table.database }}: {{ searchable_table.table }}...</p>
-        </div>
-    {% endfor %}
+<div class="page-container">
+    <div class="page-header">
+        <h1>Search all tables</h1>
     </div>
-{% endif %}
-</div>
-<div id="search-all-no-results"></div>
+
+    {% if not searchable_tables %}
+        <div class="no-results">
+            <p>There are no tables that have been configured for search.</p>
+        </div>
+    {% else %}
+        <div class="search-form-section">
+            <form class="filters" action="{{ urls.path("/-/search") }}" method="get">
+                <div class="search-row">
+                    <label for="search-all-q">Search:</label>
+                    <div class="search-input-container">
+                        <input type="search" name="q" value="{{ q }}" id="search-all-q" placeholder="Search across all meeting data...">
+                        <input type="submit" value="Search">
+                    </div>
+                </div>
+            </form>
+        </div>
+    {% endif %}
+
+    <div id="search-all-results">
+    {% if q and searchable_tables %}
+        <div style="display: none;">
+        {% for searchable_table in searchable_tables %}
+            <div data-searchable-url="{{ searchable_table.url }}" class="search-all-loading">
+                <p>Searching {{ searchable_table.database }}: {{ searchable_table.table }}...</p>
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+    </div>
+    <div id="search-all-no-results"></div>
+
+</div> <!-- Close page-container -->
 
 <script>
 var NUM_RESULTS = 5;
@@ -224,7 +485,7 @@ var autoescape = (fragments, ...inserts) => safe(fragments.map(
   }
 ).join(''));
 
-function displayCell(cell, columnName) {
+function displayCell(cell, columnName, row, database, table) {
     // cell is either a value or a {"value:", "label": } object
     let value;
     if (cell && typeof(cell.label) !== "undefined") {
@@ -236,6 +497,28 @@ function displayCell(cell, columnName) {
     // Handle null/undefined values
     if (value === null || value === undefined) {
         return safe('<em class="null">null</em>');
+    }
+    
+    // Handle special column linking for id and date
+    if (columnName && columnName.toLowerCase() === 'id' && value) {
+        // Link to the specific page/row by ID
+        var idUrl = `/${database}/${table}/${encodeURIComponent(value)}`;
+        return safe(`<a href="${idUrl}">${htmlEscape(value)}</a>`);
+    }
+    
+    if (columnName && columnName.toLowerCase() === 'date' && value) {
+        // Link to query page filtered by meeting and date, ordered by page asc
+        var queryUrl = `/${database}/${table}?`;
+        
+        // Try different possible field names for the meeting/body identifier
+        var meetingField = row.meeting || row.body || row.title;
+        if (meetingField) {
+            queryUrl += `meeting__exact=${encodeURIComponent(meetingField)}&date__exact=${encodeURIComponent(value)}&_sort=page`;
+        } else {
+            queryUrl += `date__exact=${encodeURIComponent(value)}&_sort=page`;
+        }
+        
+        return safe(`<a href="${queryUrl}">${htmlEscape(value)}</a>`);
     }
     
     // Handle URLs
@@ -286,7 +569,7 @@ function displayResults(data, base_url) {
     
     // Generate table rows with proper datasette CSS classes
     var tr_rows = safe(rows.map(row => autoescape`<tr>${safe(columns.map(column => {
-        var cellValue = displayCell(row[column], column);
+        var cellValue = displayCell(row[column], column, row, database, table);
         var cellClass = `col-${column.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
         return autoescape`<td class="${cellClass}">${cellValue}</td>`;
     }).join(""))}</tr>`).join(""));

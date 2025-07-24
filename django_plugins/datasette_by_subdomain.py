@@ -30,11 +30,10 @@ async def datasette_hello_world_wrapper(scope, receive, send, app):
 
         subdomain = ".".join(host.split(".")[:-2])
         site = db["sites"].get(subdomain)
-        from datasette.app import Datasette
+        from datasette.app import Datasette  # noqa: PLC0415
 
         jinja_env = Environment(
             loader=FileSystemLoader("templates/config"),
-            autoescape=select_autoescape(),
         )
         metadata = json.loads(jinja_env.get_template("metadata.json").render(site=site))
         ds = Datasette(

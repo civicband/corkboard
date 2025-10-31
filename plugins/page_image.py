@@ -7,7 +7,10 @@ def render_cell(row, value, column, table, database, datasette):
     # Render {"href": "...", "label": "..."} as link
     if not column == "page_image":
         return None
-    subdomain = datasette.plugin_config("corkboard").get("subdomain")
+    try:
+        subdomain = row["subdomain"]
+    except IndexError:
+        subdomain = datasette.plugin_config("corkboard").get("subdomain")
     if not value.startswith("/"):
         value = f"/{value}"
     return markupsafe.Markup(

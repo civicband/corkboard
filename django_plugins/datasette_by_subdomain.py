@@ -27,17 +27,44 @@ async def datasette_hello_world_wrapper(scope, receive, send, app):
             await app(scope, receive, send)
             return  # Early return for localhost to avoid unnecessary processing
         db = sqlite_utils.Database("sites.db")
-
-        subdomain = ".".join(host.split(".")[:-2])
-        site = db["sites"].get(subdomain)
-        from datasette.app import Datasette  # noqa: PLC0415
+        parts = host.split(("."))
+        subdomain = parts[0] if parts[0] == "everybody" else ".".join(parts[:-2])
 
         jinja_env = Environment(
             loader=FileSystemLoader("templates/config"),
         )
-        metadata = json.loads(jinja_env.get_template("metadata.json").render(site=site))
+
+        if parts[0] == "everybody":
+            subdomain = "everybody"
+            context_blob = {
+                "name": "Everything",
+                "state": "Everywhere",
+                "subdomain": "everybody",
+                "last_updated": "all at once",
+            }
+            metadata = json.loads(
+                jinja_env.get_template("metadata.json").render(context=context_blob)
+            )
+            db_list = ["../sites/meetings.db"]
+        else:
+            subdomain = ".".join(parts[:-2])
+            site = db["sites"].get(subdomain)
+            context_blob = {
+                "name": site["name"],
+                "state": site["state"],
+                "subdomain": site["subdomain"],
+                "last_updated": site["last_updated"],
+            }
+            metadata = json.loads(
+                jinja_env.get_template("metadata.json").render(context=context_blob)
+            )
+
+            db_list = [f"../sites/{subdomain}/meetings.db"]
+
+        from datasette.app import Datasette  # noqa: PLC0415
+
         ds = Datasette(
-            [f"../sites/{subdomain}/meetings.db"],
+            db_list,
             config=metadata,
             plugins_dir="plugins",
             template_dir="templates/datasette",

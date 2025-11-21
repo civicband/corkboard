@@ -11,12 +11,12 @@ def asgi_wrapper():
 
 def wrap(app):
     async def wrapper(scope, receive, send):
-        await datasette_hello_world_wrapper(scope, receive, send, app)
+        await datasette_by_subdomain_wrapper(scope, receive, send, app)
 
     return wrapper
 
 
-async def datasette_hello_world_wrapper(scope, receive, send, app):
+async def datasette_by_subdomain_wrapper(scope, receive, send, app):
     if scope["type"] == "http":
         headers = scope["headers"]
         for header, value in headers:
@@ -28,38 +28,25 @@ async def datasette_hello_world_wrapper(scope, receive, send, app):
             return  # Early return for localhost to avoid unnecessary processing
         db = sqlite_utils.Database("sites.db")
         parts = host.split(("."))
-        subdomain = parts[0] if parts[0] == "everybody" else ".".join(parts[:-2])
+        subdomain = ".".join(parts[:-2])
 
         jinja_env = Environment(
             loader=FileSystemLoader("templates/config"),
         )
 
-        if parts[0] == "everybody":
-            subdomain = "everybody"
-            context_blob = {
-                "name": "Everything",
-                "state": "Everywhere",
-                "subdomain": "everybody",
-                "last_updated": "all at once",
-            }
-            metadata = json.loads(
-                jinja_env.get_template("metadata.json").render(context=context_blob)
-            )
-            db_list = ["../sites/meetings.db"]
-        else:
-            subdomain = ".".join(parts[:-2])
-            site = db["sites"].get(subdomain)
-            context_blob = {
-                "name": site["name"],
-                "state": site["state"],
-                "subdomain": site["subdomain"],
-                "last_updated": site["last_updated"],
-            }
-            metadata = json.loads(
-                jinja_env.get_template("metadata.json").render(context=context_blob)
-            )
+        subdomain = ".".join(parts[:-2])
+        site = db["sites"].get(subdomain)
+        context_blob = {
+            "name": site["name"],
+            "state": site["state"],
+            "subdomain": site["subdomain"],
+            "last_updated": site["last_updated"],
+        }
+        metadata = json.loads(
+            jinja_env.get_template("metadata.json").render(context=context_blob)
+        )
 
-            db_list = [f"../sites/{subdomain}/meetings.db"]
+        db_list = [f"../sites/{subdomain}/meetings.db"]
 
         from datasette.app import Datasette  # noqa: PLC0415
 

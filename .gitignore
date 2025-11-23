@@ -172,3 +172,7 @@ cython_debug/
 
 .DS_Store
 *.db
+
+# Analytics data
+analytics/umami_events.db
+analytics/summary_*.json

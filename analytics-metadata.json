@@ -1,0 +1,91 @@
+{
+  "title": "CivicBand Analytics",
+  "description": "Analytics data retrieved from Umami for CivicBand searches and user activity",
+  "databases": {
+    "umami_events": {
+      "title": "Umami Events Database",
+      "description": "Search queries, page views, and user activity events",
+      "tables": {
+        "website_stats": {
+          "title": "Website Statistics",
+          "description": "Overall website statistics for time periods",
+          "label_column": "start_date",
+          "sort_desc": "retrieved_at"
+        },
+        "events": {
+          "title": "Event Records",
+          "description": "Individual events tracked (searches, views, etc.)",
+          "label_column": "event_name",
+          "sort_desc": "event_timestamp",
+          "facets": ["event_name"],
+          "columns": {
+            "event_name": {
+              "description": "Type of event (search_query, table_view, row_view)"
+            },
+            "event_url": {
+              "description": "URL where the event occurred"
+            },
+            "event_hostname": {
+              "description": "Hostname (subdomain) where event occurred"
+            },
+            "event_data": {
+              "description": "JSON data with event details (search terms, filters, etc.)"
+            },
+            "event_timestamp": {
+              "description": "Unix timestamp (milliseconds) when event occurred"
+            },
+            "retrieved_at": {
+              "description": "When this data was retrieved from Umami"
+            }
+          }
+        },
+        "url_metrics": {
+          "title": "URL Metrics",
+          "description": "Visit counts by URL",
+          "label_column": "url",
+          "sort_desc": "visits"
+        },
+        "event_metrics": {
+          "title": "Event Metrics",
+          "description": "Event counts by type",
+          "label_column": "event_name",
+          "sort_desc": "event_count"
+        }
+      },
+      "queries": {
+        "top_searches": {
+          "title": "Top Search Queries",
+          "sql": "SELECT json_extract(event_data, '$.query_text') as search_term, json_extract(event_data, '$.subdomain') as municipality, COUNT(*) as count FROM events WHERE event_name = 'search_query' AND json_extract(event_data, '$.query_text') IS NOT NULL GROUP BY search_term, municipality ORDER BY count DESC LIMIT 50"
+        },
+        "searches_by_municipality": {
+          "title": "Searches by Municipality",
+          "sql": "SELECT json_extract(event_data, '$.subdomain') as municipality, COUNT(*) as search_count, COUNT(DISTINCT json_extract(event_data, '$.query_text')) as unique_queries FROM events WHERE event_name = 'search_query' GROUP BY municipality ORDER BY search_count DESC"
+        },
+        "popular_tables": {
+          "title": "Most Viewed Tables",
+          "sql": "SELECT json_extract(event_data, '$.subdomain') as municipality, json_extract(event_data, '$.table') as table_name, COUNT(*) as views FROM events WHERE event_name = 'table_view' GROUP BY municipality, table_name ORDER BY views DESC LIMIT 50"
+        },
+        "search_performance": {
+          "title": "Search Performance Metrics",
+          "sql": "SELECT json_extract(event_data, '$.subdomain') as municipality, AVG(CAST(json_extract(event_data, '$.results_count') AS INTEGER)) as avg_results, AVG(CAST(json_extract(event_data, '$.execution_time_ms') AS REAL)) as avg_time_ms FROM events WHERE event_name = 'search_query' AND json_extract(event_data, '$.results_count') IS NOT NULL GROUP BY municipality"
+        },
+        "zero_result_searches": {
+          "title": "Searches with No Results",
+          "sql": "SELECT json_extract(event_data, '$.query_text') as search_term, json_extract(event_data, '$.subdomain') as municipality, COUNT(*) as count FROM events WHERE event_name = 'search_query' AND CAST(json_extract(event_data, '$.results_count') AS INTEGER) = 0 GROUP BY search_term, municipality ORDER BY count DESC LIMIT 50"
+        },
+        "recent_searches": {
+          "title": "Recent Search Queries",
+          "sql": "SELECT datetime(event_timestamp / 1000, 'unixepoch') as time, json_extract(event_data, '$.subdomain') as municipality, json_extract(event_data, '$.query_text') as search_term, json_extract(event_data, '$.results_count') as results FROM events WHERE event_name = 'search_query' ORDER BY event_timestamp DESC LIMIT 100"
+        },
+        "activity_by_hour": {
+          "title": "Activity by Hour of Day",
+          "sql": "SELECT strftime('%H', datetime(event_timestamp / 1000, 'unixepoch')) as hour, COUNT(*) as event_count, COUNT(DISTINCT CASE WHEN event_name = 'search_query' THEN event_timestamp END) as searches FROM events GROUP BY hour ORDER BY hour"
+        },
+        "municipality_comparison": {
+          "title": "Municipality Activity Comparison",
+          "sql": "SELECT json_extract(event_data, '$.subdomain') as municipality, SUM(CASE WHEN event_name = 'search_query' THEN 1 ELSE 0 END) as searches, SUM(CASE WHEN event_name = 'table_view' THEN 1 ELSE 0 END) as table_views, SUM(CASE WHEN event_name = 'row_view' THEN 1 ELSE 0 END) as row_views, COUNT(*) as total_events FROM events WHERE json_extract(event_data, '$.subdomain') IS NOT NULL GROUP BY municipality ORDER BY total_events DESC"
+        }
+      }
+    }
+  }
+}

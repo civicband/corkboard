@@ -1,28 +1,30 @@
 # CivicBand Analytics Implementation Guide
 
-This guide explains the Umami Analytics integration for tracking searches and queries in CivicBand.
+This guide explains the Umami Analytics integration for tracking searches and SQL queries in CivicBand.
 
 ## Overview
 
 The analytics system consists of two main components:
 
-1. **Server-Side Event Tracking** (`plugins/civic_analytics.py`) - Sends detailed events to Umami in real-time
+1. **Server-Side Event Tracking** (`plugins/civic_analytics.py`) - Sends detailed search and SQL query events to Umami in real-time
 2. **Data Retrieval Cron Job** (`scripts/retrieve_umami_analytics.py`) - Pulls data from Umami into SQLite for analysis
+
+**Note:** Table views and row views are already tracked by the existing client-side Umami integration. This server-side plugin specifically tracks search queries and SQL queries with detailed metadata.
 
 ## Architecture
 
 ```
 ┌─────────────────┐
-│ User Search     │
+│ User Search/SQL │
 └────────┬────────┘
          │
          ▼
 ┌──────────────────────────────────┐
 │  civic_analytics.py Plugin       │
 │  (ASGI Middleware - Read Only)   │
-│  - Intercepts requests            │
-│  - Extracts event data            │
-│  - Sends to Umami API             │
+│  - Intercepts HTTP requests      │
+│  - Extracts search/SQL queries   │
+│  - Sends to Umami API            │
 └────────┬────────────────┬─────────┘
          │                │
          ▼                ▼
@@ -72,19 +74,25 @@ cp .env.example .env
 Edit `.env` and set:
 
 ```bash
-# Umami URL and Website ID (already configured)
+# Umami Analytics Configuration
 UMAMI_URL=https://analytics.civic.band
 UMAMI_WEBSITE_ID=6250918b-6a0c-4c05-a6cb-ec8f86349e1a
 
-# Enable analytics tracking
+# API Key for server-side tracking (REQUIRED for event tracking)
+UMAMI_API_KEY=your_api_key_here
+
+# Enable/disable analytics tracking
 UMAMI_ANALYTICS_ENABLED=true
 
-# Umami API credentials (for data retrieval only)
+# Umami API credentials (for data retrieval script only)
 UMAMI_USERNAME=your_username
 UMAMI_PASSWORD=your_password
 ```
 
-**Note:** `UMAMI_USERNAME` and `UMAMI_PASSWORD` are ONLY needed for the data retrieval script. The event tracking plugin does NOT require authentication.
+**Important:**
+- `UMAMI_API_KEY` is **required** for server-side event tracking to bypass bot detection
+- `UMAMI_USERNAME` and `UMAMI_PASSWORD` are only needed for the data retrieval cron job
+- Get your API key from Umami: Settings → Profile → Generate API Key
 
 ### 3. Test Event Tracking
 
@@ -94,7 +102,7 @@ Start your development server and perform a search:
 python manage.py runserver
 ```
 
-Visit `http://alameda.localhost:8000/meetings/agendas?_search=council` and the search event should be sent to Umami.
+Visit `http://alameda.ca.localhost:8000/meetings/agendas?_search=council` and the search event should be sent to Umami.
 
 Check the Umami dashboard at `https://analytics.civic.band` to verify events are being received.
 
@@ -146,71 +154,102 @@ Add these entries:
 
 ### 1. Search Query Events (`search_query`)
 
-Tracked when users perform full-text searches.
+Tracked when users perform full-text searches via the `?_search=` parameter.
 
 **Event Data:**
-- `subdomain` - Municipality (e.g., "alameda")
+- `subdomain` - Full municipality subdomain (e.g., "alameda.ca", "vancouver.bc.canada")
 - `query_text` - Search term (max 500 chars)
 - `query_length` - Length of search query
-- `results_count` - Number of results found
-- `has_results` - Boolean (true/false)
-- `search_type` - "full_text"
+- `search_type` - Always "full_text_search"
 - `database` - Database name (e.g., "meetings")
-- `table` - Table name (e.g., "agendas")
-- `has_where_filter` - Boolean if WHERE filters applied
-- `sort_column` - Column being sorted by
-- `facets` - Facets applied
+- `table` - Table name (e.g., "agendas", "minutes")
+- `has_where_filter` - Boolean if WHERE filters applied (optional)
+- `sort_column` - Column being sorted by (optional)
+- `facets` - Comma-separated facets applied (optional)
 
 **Example:**
 ```json
 {
   "event_name": "search_query",
   "event_data": {
-    "subdomain": "alameda",
+    "subdomain": "alameda.ca",
     "query_text": "city council meeting",
     "query_length": 21,
-    "results_count": 42,
-    "has_results": true,
-    "search_type": "full_text",
+    "search_type": "full_text_search",
     "database": "meetings",
-    "table": "agendas"
+    "table": "agendas",
+    "has_where_filter": true,
+    "sort_column": "date",
+    "facets": "meeting,date"
   }
 }
 ```
 
-### 2. Table View Events (`table_view`)
+### 2. SQL Query Events (`sql_query`)
 
-Tracked when users view a specific table (e.g., agendas, minutes).
-
-**Event Data:**
-- `subdomain` - Municipality
-- `database` - Database name
-- `table` - Table name
-- `has_filters` - Boolean if filters applied
-- `sorted_by` - Sort column if sorted
-
-### 3. Row View Events (`row_view`)
-
-Tracked when users view a specific row (individual agenda/minute page).
+Tracked when users execute custom SQL queries via the `?sql=` parameter.
 
 **Event Data:**
-- `subdomain` - Municipality
-- `database` - Database name
-- `table` - Table name
-- `row_id` - Primary key of the row
+- `subdomain` - Full municipality subdomain (e.g., "alameda.ca")
+- `query_text` - SQL query text (max 500 chars)
+- `query_length` - Length of SQL query string
+- `query_type` - Always "custom_sql"
+- `database` - Database being queried
+- `sql_operation` - Type of SQL operation: "select", "write", or "ddl"
+- `page_size` - Result page size if specified (optional)
+- `sort_column` - Sort column if specified (optional)
+
+**SQL Operation Detection:**
+- `select` - Query starts with SELECT
+- `write` - Query starts with INSERT, UPDATE, or DELETE
+- `ddl` - Query starts with CREATE, DROP, or ALTER
+
+**Example:**
+```json
+{
+  "event_name": "sql_query",
+  "event_data": {
+    "subdomain": "alameda.ca",
+    "query_text": "SELECT * FROM agendas WHERE date > '2024-01-01'",
+    "query_length": 52,
+    "query_type": "custom_sql",
+    "database": "meetings",
+    "sql_operation": "select",
+    "page_size": "100"
+  }
+}
+```
+
+## Subdomain Extraction
+
+The plugin uses the **same subdomain extraction logic** as `datasette_by_subdomain.py`:
+
+```python
+# Split host by dots and take everything except last 2 parts (base domain)
+parts = host.split(".")
+subdomain = ".".join(parts[:-2])
+```
+
+**Examples:**
+- `alameda.ca.civic.org` → `alameda.ca`
+- `vancouver.bc.canada.civic.org` → `vancouver.bc.canada`
+- `alameda.civic.org` → `alameda`
+- `civic.org` → `None` (no subdomain)
+
+This works for any base domain (civic.org, civic.band, etc.) without requiring configuration.
 
 ## Analytics Queries
 
 The `analytics-metadata.json` file includes pre-configured queries:
 
-1. **Top Search Queries** - Most common searches
+1. **Top Search Queries** - Most common searches across all municipalities
 2. **Searches by Municipality** - Search activity per municipality
-3. **Most Viewed Tables** - Popular tables and content
+3. **Popular Tables** - Most viewed tables
 4. **Search Performance** - Average results and execution time
 5. **Zero Result Searches** - Searches that returned no results (for improvement)
 6. **Recent Searches** - Latest search activity
 7. **Activity by Hour** - Hourly usage patterns
-8. **Municipality Comparison** - Comparative activity across municipalities
+8. **Municipality Comparison** - Comparative activity (searches vs SQL queries)
 
 Access these in Datasette at the "Queries" section.
 
@@ -219,9 +258,10 @@ Access these in Datasette at the "Queries" section.
 ### Privacy Measures
 
 - **No IP Storage:** IP addresses are never sent to Umami or stored
-- **No Cookies:** Client-side tracking uses localStorage, no cookies
+- **No Cookies:** Server-side tracking doesn't use cookies
 - **No PII:** No personally identifiable information is collected
-- **Anonymous:** All data is aggregated and anonymous
+- **Anonymous:** All data is aggregated by municipality only
+- **Read-Only:** Never modifies meeting databases
 
 ### Data Retention
 
@@ -237,26 +277,16 @@ DELETE FROM website_stats WHERE datetime(retrieved_at) < datetime('now', '-90 da
 
 ### Events Not Appearing in Umami
 
-1. Check that `UMAMI_ANALYTICS_ENABLED=true` in `.env`
-2. Verify the Umami URL is correct: `https://analytics.civic.band`
-3. Check the Website ID matches: `6250918b-6a0c-4c05-a6cb-ec8f86349e1a`
-4. Look for errors in application logs
-5. Test with `curl`:
+1. **Check API Key:** Verify `UMAMI_API_KEY` is set correctly in `.env`
+2. **Check Response:** If getting `{"beep":"boop"}`, the API key is missing or invalid
+3. **Verify Umami URL:** Should be `https://analytics.civic.band`
+4. **Check Website ID:** Should match your Umami dashboard
+5. **Check Logs:** Look for errors in application logs
 
-```bash
-curl -X POST https://analytics.civic.band/api/send \
-  -H "Content-Type: application/json" \
-  -H "User-Agent: Test/1.0" \
-  -d '{
-    "type": "event",
-    "payload": {
-      "hostname": "test.civic.band",
-      "url": "/test",
-      "website": "6250918b-6a0c-4c05-a6cb-ec8f86349e1a",
-      "name": "test_event"
-    }
-  }'
-```
+**Common Issues:**
+- **Missing API Key:** Events return 200 but show `{"beep":"boop"}` (bot protection)
+- **Wrong Website ID:** Events accepted but don't appear in dashboard
+- **UMAMI_ANALYTICS_ENABLED=false:** Tracking is disabled
 
 ### Data Retrieval Script Fails
 
@@ -277,13 +307,12 @@ print(r.status_code, r.json())
 3. Check for network connectivity to Umami instance
 4. Verify the website ID is accessible to your user account
 
-### Database Locked Errors
+### No Subdomain Extracted
 
-If you get "database is locked" errors:
-
-1. Close any open Datasette instances viewing `umami_events.db`
-2. Ensure cron job isn't running multiple times
-3. Check file permissions on `analytics/` directory
+If subdomain is showing as `None`:
+- Check that host has more than 2 parts (e.g., `alameda.ca.civic.org` not just `civic.org`)
+- For localhost testing, use format like `alameda.ca.localhost:8000`
+- Verify host header is being passed correctly in your deployment
 
 ## Deployment Considerations
 
@@ -336,19 +365,20 @@ sqlite3 analytics/umami_events.db \
 
 ## Next Steps
 
-1. **Customize Event Tracking** - Add more event types or data fields in `plugins/civic_analytics.py`
-2. **Create Dashboards** - Use Metabase or another BI tool for executive dashboards
-3. **Set Up Alerts** - Monitor for unusual patterns (spike in searches, zero-result searches)
-4. **Optimize Searches** - Use zero-result search data to improve search functionality
-5. **A/B Testing** - Use events to measure feature adoption
+1. **Analyze Search Patterns** - Use zero-result searches to improve search functionality
+2. **Monitor Popular Queries** - Understand what users are looking for
+3. **Track Municipality Engagement** - See which municipalities are most active
+4. **Set Up Alerts** - Monitor for unusual patterns or errors
+5. **Create Custom Dashboards** - Use Metabase or another BI tool for executive reports
 
 ## Support
 
 For issues or questions:
 
 - Check application logs for event tracking errors
-- Verify Umami dashboard shows events
+- Verify Umami dashboard shows events with correct data
 - Review SQLite database for retrieved data
+- Check that API key has proper permissions
 - Open an issue in the repository
 
 ## License

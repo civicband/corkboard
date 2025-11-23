@@ -245,12 +245,39 @@ def asgi_wrapper(datasette):
                 path_info = parse_datasette_path(path)
                 database = path_info.get("database")
 
+                # Extract SQL parameter values from query string
+                # Exclude known Datasette system parameters
+                system_params = {
+                    "sql",
+                    "_search",
+                    "_size",
+                    "_sort",
+                    "_facet",
+                    "_where",
+                    "_shape",
+                    "_labels",
+                    "_extra",
+                    "_col",
+                    "_nocol",
+                    "_trace",
+                    "_timelimit",
+                    "_ttl",
+                    "_next",
+                }
+
+                sql_params = {}
+                for key, values in query_params.items():
+                    if key not in system_params:
+                        sql_params[key] = values[0] if values else None
+
                 event_data.update(
                     {
                         "query_text": sql_text[:500],
                         "query_length": len(sql_text),
                         "query_type": "custom_sql",
                         "database": database,
+                        "sql_params": json.dumps(sql_params) if sql_params else None,
+                        "param_count": len(sql_params),
                     }
                 )
 

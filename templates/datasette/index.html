@@ -20,19 +20,19 @@
         <p class="intro-description">A fully searchable collection of meeting minutes and agendas from {{ site_name }}. Access public records, track government decisions, and stay informed about your community.</p>
         
         <div class="quick-links">
-            <a href="/-/dashboards/meetings-stats" class="quick-link primary">
+            <a href="/-/dashboards/meetings-stats" class="quick-link primary" data-umami-event="Dashboard button click">
                 <span class="link-icon">📊</span>
                 <span class="link-text">View Statistics</span>
             </a>
-            <a href="/meetings/upcoming" class="quick-link">
+            <a href="/meetings/upcoming" class="quick-link" data-umami-event="Upcoming meetings button click">
                 <span class="link-icon">📅</span>
                 <span class="link-text">Upcoming Meetings</span>
             </a>
-            <a href="/meetings/agendas" class="quick-link">
+            <a href="/meetings/agendas" class="quick-link" data-umami-event="Browse agendas button click">
                 <span class="link-icon">📋</span>
                 <span class="link-text">Browse Agendas</span>
             </a>
-            <a href="/meetings/minutes" class="quick-link">
+            <a href="/meetings/minutes" class="quick-link" data-umami-event="Browse minutes button click">
                 <span class="link-icon">📝</span>
                 <span class="link-text">Browse Minutes</span>
             </a>
@@ -47,7 +47,7 @@
         <form action="{{ urls.path("/-/search") }}" method="get" class="search-form">
             <div class="search-input-group">
                 <input type="search" name="q" value="{{ q }}" placeholder="Search agendas and minutes..." id="search-all-q" class="search-input">
-                <button type="submit" class="search-button">
+                <button type="submit" class="search-button" data-umami-event="Muni site search button click">
                     <span class="search-icon">🔍</span>
                     Search
                 </button>

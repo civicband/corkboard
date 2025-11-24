@@ -82,7 +82,7 @@
                 {% for cell in row %}
                     {% if cell.column == 'subdomain'%}
                     <td class="col-{{ cell.column|to_css_class }} type-{{ cell.value_type }}">
-                      <a href="https://{{cell.raw}}.civic.band" class="site-link">
+                      <a href="https://{{cell.raw}}.civic.band" class="site-link" data-umami-event="Site link click">
                         {{ cell.raw }}
                       </a>
                     </td>

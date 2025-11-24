@@ -304,7 +304,7 @@ def asgi_wrapper(datasette):
             if event_name and subdomain:
                 await tracker.track_event(
                     event_name=event_name,
-                    url=f"/{subdomain}{path}",
+                    url=f"{path}",
                     title=f"{event_name.replace('_', ' ').title()} - {subdomain}",
                     referrer=headers.get("referer"),
                     hostname=f"{subdomain}.civic.band",

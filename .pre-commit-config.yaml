@@ -1,0 +1,39 @@
+# Pre-commit hooks for CivicBand
+# See https://pre-commit.com for more information
+
+repos:
+  # Ruff - Fast Python linter and formatter
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.4
+    hooks:
+      # Run the linter
+      - id: ruff
+        args: [--fix]
+      # Run the formatter
+      - id: ruff-format
+
+  # Basic file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: [--unsafe]  # Allow custom YAML tags in docker-compose
+      - id: check-added-large-files
+        args: [--maxkb=1000]
+      - id: check-json
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: detect-private-key
+
+  # Run tests before push
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest
+        entry: python -m pytest
+        language: system
+        types: [python]
+        pass_filenames: false
+        stages: [pre-push]

@@ -8,57 +8,126 @@ CivicBand is a Django + Datasette hybrid application that provides government an
 
 ## Development Commands
 
+We use `just` as our command runner. Run `just` without arguments to see all available commands.
+
 ### Environment Setup
 ```bash
-# Install dependencies using uv
-./uv_install.sh
+# Full development setup (install dependencies, run migrations, install hooks)
+just setup
 
-# Install development dependencies
-./install_dev.sh
+# Install dependencies only
+just install
+
+# Install pre-commit hooks
+just hooks
 ```
 
 ### Testing
 ```bash
 # Run all tests
-python -m pytest
+just test
 
-# Run tests with coverage
-python -m pytest --cov=django_plugins
+# Run tests with coverage report
+just test-cov
 
 # Run specific test file
-python -m pytest tests/test_datasette_by_subdomain.py
+just test-file tests/test_datasette_by_subdomain.py
+
+# Run tests matching a pattern
+just test-match "subdomain"
 ```
 
 ### Code Quality
 ```bash
+# Run all quality checks (lint, format check, tests)
+just check
+
 # Run linting
-ruff check .
+just lint
+
+# Auto-fix linting issues
+just lint-fix
 
 # Format code
-ruff format .
+just format
 
-# Type checking - not configured (no mypy/pyright in dependencies)
+# Check formatting without changes
+just format-check
+
+# Run pre-commit hooks on all files
+just hooks-run
 ```
 
 ### Development Server
 ```bash
 # Django development server
-python manage.py runserver
+just serve
+
+# Django development server on custom port
+just serve-port 8080
 
 # Docker development environment
-docker-compose up
+just docker-up
+
+# Docker in detached mode
+just docker-up-d
+
+# View Docker logs
+just docker-logs
+
+# Stop Docker containers
+just docker-down
+```
+
+### Database Management
+```bash
+# Run Django migrations
+just migrate
+
+# Create Django migrations
+just makemigrations
+
+# Open Django shell
+just shell
+```
+
+### Analytics
+```bash
+# Retrieve analytics data (last 7 days)
+just analytics-retrieve
+
+# Retrieve analytics with summary
+just analytics-summary
+
+# View analytics database
+just analytics-view
+```
+
+### Maintenance
+```bash
+# Clean Python cache files
+just clean
+
+# Deep clean (includes .venv)
+just clean-all
+
+# Update dependencies
+just update
+
+# Check for outdated dependencies
+just outdated
 ```
 
 ### Production Deployment
 ```bash
+# Blue/green deployment changeover
+just deploy
+
 # Build and run production containers
 docker-compose up django_blue django_green
 
 # Run datasette services
 docker-compose up sites_datasette_blue sites_datasette_green
-
-# Changeover script for blue/green deployment
-./changeover.sh
 ```
 
 ## Architecture
@@ -115,12 +184,21 @@ docker-compose up sites_datasette_blue sites_datasette_green
 
 ## Development Workflow
 
-1. Use `uv` for dependency management
-2. Test changes with `python -m pytest`
-3. Format code with `ruff format .`
-4. Run linting with `ruff check .`
-5. For subdomain testing, use localhost (bypasses subdomain routing)
-6. Use Docker compose for full environment testing
+1. **Setup:** Run `just setup` to initialize development environment
+2. **Make changes:** Edit code and write tests for new functionality
+3. **Quality checks:** Run `just check` to lint, format-check, and test
+4. **Manual testing:** Use `just serve` for local development server
+5. **Commit:** Git hooks automatically run linting and formatting checks
+6. **Push:** GitHub Actions runs full test suite with coverage verification
+
+### Key Commands
+
+- `just test` - Run test suite
+- `just check` - Run all quality checks
+- `just serve` - Start development server
+- `just format` - Auto-format code
+- For subdomain testing, use localhost (bypasses subdomain routing)
+- Use Docker compose for full environment testing
 
 ## Notes
 

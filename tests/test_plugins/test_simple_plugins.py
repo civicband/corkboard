@@ -187,7 +187,10 @@ class TestPageImage:
         )
 
         assert isinstance(result, markupsafe.Markup)
-        assert '<img src="https://cdn.civic.band/alameda.ca/meetings/2024/page1.jpg?width=800">' in str(result)
+        assert (
+            '<img src="https://cdn.civic.band/alameda.ca/meetings/2024/page1.jpg?width=800">'
+            in str(result)
+        )
 
     def test_render_with_leading_slash(self):
         """Handle value with leading slash."""
@@ -353,5 +356,7 @@ class TestUmami:
 
         assert "script" in result
         assert "analytics.civic.band/sunshine" in result["script"]
-        assert 'data-website-id="6250918b-6a0c-4c05-a6cb-ec8f86349e1a"' in result["script"]
+        assert (
+            'data-website-id="6250918b-6a0c-4c05-a6cb-ec8f86349e1a"' in result["script"]
+        )
         assert 'data-auto-track="false"' in result["script"]

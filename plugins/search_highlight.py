@@ -1,4 +1,3 @@
-
 import markupsafe
 from datasette import hookimpl
 

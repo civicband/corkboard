@@ -12,7 +12,7 @@ def extra_template_vars(template, datasette, request):
                 "site_description_html"
             ),
         }
-    
+
     # For index.html, add recent content data
     async def inner():
         base_vars = {
@@ -23,13 +23,13 @@ def extra_template_vars(template, datasette, request):
                 "site_description_html"
             ),
         }
-        
+
         # Get recent content data
         recent_content = await get_recent_content(datasette, request)
         base_vars.update(recent_content)
-        
+
         return base_vars
-    
+
     return inner
 
 
@@ -39,7 +39,7 @@ async def get_recent_content(datasette, request):
     try:
         # Get the main database (assume 'meetings' is the database name)
         db = datasette.get_database("meetings")
-        
+
         # Query for upcoming agendas
         upcoming_agendas_sql = """
             SELECT meeting, date, count(page) as pages 
@@ -49,7 +49,7 @@ async def get_recent_content(datasette, request):
             ORDER BY date ASC 
             LIMIT 5
         """
-        
+
         # Query for recent minutes
         recent_minutes_sql = """
             SELECT meeting, date, count(page) as pages,
@@ -60,7 +60,7 @@ async def get_recent_content(datasette, request):
             ORDER BY date DESC 
             LIMIT 5
         """
-        
+
         # Query for recent activity summary
         recent_activity_sql = """
             SELECT 
@@ -88,36 +88,36 @@ async def get_recent_content(datasette, request):
             ORDER BY date DESC
             LIMIT 10
         """
-        
+
         upcoming_agendas = []
         recent_minutes = []
         recent_activity = []
-        
+
         # Execute queries
         try:
             upcoming_result = await db.execute(upcoming_agendas_sql)
             upcoming_agendas = [dict(row) for row in upcoming_result.rows]
         except Exception:
             pass  # Table might not exist or other error
-            
+
         try:
             minutes_result = await db.execute(recent_minutes_sql)
             recent_minutes = [dict(row) for row in minutes_result.rows]
         except Exception:
             pass
-            
+
         try:
             activity_result = await db.execute(recent_activity_sql)
             recent_activity = [dict(row) for row in activity_result.rows]
         except Exception:
             pass
-        
+
         return {
             "upcoming_agendas": upcoming_agendas,
             "recent_minutes": recent_minutes,
             "recent_activity": recent_activity,
         }
-        
+
     except Exception:
         # Return empty data if there's any error
         return {

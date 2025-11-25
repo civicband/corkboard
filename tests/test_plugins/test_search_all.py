@@ -108,7 +108,9 @@ class TestSearchAll:
         mock_datasette.urls.table.side_effect = lambda db, table, format=None: (
             f"/{db}/{table}" if not format else f"/{db}/{table}.{format}"
         )
-        mock_datasette.render_template = AsyncMock(return_value="<html>Search Page</html>")
+        mock_datasette.render_template = AsyncMock(
+            return_value="<html>Search Page</html>"
+        )
 
         mock_request = MagicMock()
         mock_request.args.get.return_value = "test query"
@@ -143,8 +145,12 @@ class TestSearchAll:
     async def test_empty_query(self):
         """Handle empty search query."""
         mock_datasette = MagicMock()
-        mock_datasette.urls.table.side_effect = lambda db, table, _format=None: f"/{db}/{table}"
-        mock_datasette.render_template = AsyncMock(return_value="<html>Search Page</html>")
+        mock_datasette.urls.table.side_effect = (
+            lambda db, table, _format=None: f"/{db}/{table}"
+        )
+        mock_datasette.render_template = AsyncMock(
+            return_value="<html>Search Page</html>"
+        )
 
         mock_request = MagicMock()
         mock_request.args.get.return_value = None

@@ -192,9 +192,7 @@ def asgi_wrapper(datasette):
             path = scope.get("path", "")
             query_string = scope.get("query_string", b"").decode("utf-8")
             headers_list = scope.get("headers", [])
-            headers = {
-                k.decode("utf-8"): v.decode("utf-8") for k, v in headers_list
-            }
+            headers = {k.decode("utf-8"): v.decode("utf-8") for k, v in headers_list}
 
             # Parse query parameters
             query_params = parse_qs(query_string)

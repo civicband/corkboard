@@ -269,7 +269,10 @@ class TestAnalyticsDatabase:
                 "event_name": "sql_query",
                 "url": "/meetings",
                 "hostname": "vancouver.bc.civic.band",
-                "data": {"query_text": "SELECT * FROM agendas", "subdomain": "vancouver.bc"},
+                "data": {
+                    "query_text": "SELECT * FROM agendas",
+                    "subdomain": "vancouver.bc",
+                },
                 "created_at": "2024-01-15T11:00:00Z",
             },
         ]
@@ -321,9 +324,7 @@ class TestAnalyticsDatabase:
         assert count == 1
 
         # Verify stats data
-        cursor.execute(
-            "SELECT pageviews, visitors, visits, bounces FROM website_stats"
-        )
+        cursor.execute("SELECT pageviews, visitors, visits, bounces FROM website_stats")
         row = cursor.fetchone()
 
         assert row[0] == 1000  # pageviews

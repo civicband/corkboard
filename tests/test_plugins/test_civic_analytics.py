@@ -31,7 +31,9 @@ class TestSubdomainExtraction:
     def test_multi_level_subdomain(self):
         """Extract multi-level subdomain."""
         assert extract_subdomain("alameda.ca.civic.org") == "alameda.ca"
-        assert extract_subdomain("vancouver.bc.canada.civic.org") == "vancouver.bc.canada"
+        assert (
+            extract_subdomain("vancouver.bc.canada.civic.org") == "vancouver.bc.canada"
+        )
 
     def test_no_subdomain(self):
         """Return None when no subdomain present."""
@@ -106,13 +108,12 @@ class TestUmamiEventTracker:
         with patch.dict(os.environ, {"UMAMI_ANALYTICS_ENABLED": "false"}):
             # Re-import to get updated env var
             from plugins import civic_analytics
+
             tracker = civic_analytics.UmamiEventTracker("https://test.com", "test-id")
 
             with patch("httpx.AsyncClient") as mock_client:
                 await tracker.track_event(
-                    event_name="test",
-                    url="/test",
-                    hostname="test.civic.band"
+                    event_name="test", url="/test", hostname="test.civic.band"
                 )
                 # Should not call httpx when disabled
                 mock_client.assert_not_called()
@@ -120,8 +121,11 @@ class TestUmamiEventTracker:
     @pytest.mark.asyncio
     async def test_track_event_success(self):
         """Successfully track event."""
-        with patch.dict(os.environ, {"UMAMI_ANALYTICS_ENABLED": "true", "UMAMI_API_KEY": "test-key"}):
+        with patch.dict(
+            os.environ, {"UMAMI_ANALYTICS_ENABLED": "true", "UMAMI_API_KEY": "test-key"}
+        ):
             from plugins import civic_analytics
+
             tracker = civic_analytics.UmamiEventTracker("https://test.com", "test-id")
 
             mock_response = MagicMock()
@@ -139,7 +143,7 @@ class TestUmamiEventTracker:
                     title="Search Query - alameda.ca",
                     referrer="https://google.com",
                     hostname="alameda.ca.civic.band",
-                    event_data={"query_text": "council", "subdomain": "alameda.ca"}
+                    event_data={"query_text": "council", "subdomain": "alameda.ca"},
                 )
 
             # Verify API call was made
@@ -166,6 +170,7 @@ class TestUmamiEventTracker:
         """Handle tracking failure gracefully."""
         with patch.dict(os.environ, {"UMAMI_ANALYTICS_ENABLED": "true"}):
             from plugins import civic_analytics
+
             tracker = civic_analytics.UmamiEventTracker("https://test.com", "test-id")
 
             mock_response = MagicMock()
@@ -179,9 +184,7 @@ class TestUmamiEventTracker:
             with patch("httpx.AsyncClient", return_value=mock_client):
                 # Should not raise exception
                 await tracker.track_event(
-                    event_name="test",
-                    url="/test",
-                    hostname="test.civic.band"
+                    event_name="test", url="/test", hostname="test.civic.band"
                 )
 
     @pytest.mark.asyncio
@@ -189,14 +192,13 @@ class TestUmamiEventTracker:
         """Handle exceptions during tracking."""
         with patch.dict(os.environ, {"UMAMI_ANALYTICS_ENABLED": "true"}):
             from plugins import civic_analytics
+
             tracker = civic_analytics.UmamiEventTracker("https://test.com", "test-id")
 
             with patch("httpx.AsyncClient", side_effect=Exception("Network error")):
                 # Should not raise exception
                 await tracker.track_event(
-                    event_name="test",
-                    url="/test",
-                    hostname="test.civic.band"
+                    event_name="test", url="/test", hostname="test.civic.band"
                 )
 
     def test_clean_event_data_strings(self):

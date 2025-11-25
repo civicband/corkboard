@@ -63,12 +63,8 @@ async def test_asgi_wrapper_fully_mocked():
         ) as mock_sqlite_utils,
         patch("datasette.app.Datasette") as mock_datasette,
         patch("django_plugins.datasette_by_subdomain.Environment") as mock_environment,
-        patch(
-            "django_plugins.datasette_by_subdomain.FileSystemLoader"
-        ),
-        patch(
-            "django_plugins.datasette_by_subdomain.select_autoescape"
-        ),
+        patch("django_plugins.datasette_by_subdomain.FileSystemLoader"),
+        patch("django_plugins.datasette_by_subdomain.select_autoescape"),
     ):
         # Setup mocks
         mock_app = AsyncMock()

@@ -86,16 +86,12 @@ async def datasette_instance(temp_db: Path) -> AsyncGenerator[Datasette, None]:
             "databases": {
                 temp_db.stem: {
                     "tables": {
-                        "agendas": {
-                            "title": "Meeting Agendas"
-                        },
-                        "minutes": {
-                            "title": "Meeting Minutes"
-                        }
+                        "agendas": {"title": "Meeting Agendas"},
+                        "minutes": {"title": "Meeting Minutes"},
                     }
                 }
             }
-        }
+        },
     )
 
     yield ds
@@ -141,8 +137,10 @@ def asgi_scope():
 @pytest.fixture
 def asgi_receive():
     """Create a basic ASGI receive callable."""
+
     async def receive():
         return {"type": "http.request", "body": b""}
+
     return receive
 
 

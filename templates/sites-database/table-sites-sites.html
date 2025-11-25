@@ -82,12 +82,12 @@
 {% block nav %}
 <nav class="header-nav">
   <ul>
-    <li><a href="/how.html" data-umami-event="How click">How it works</a></li>
-    <li><a href="/why.html" data-umami-event="Why click">Why?</a></li>
-    <li><a href="/rss.xml">RSS Feed</a></li>
-    <li><a rel="me" href="https://sfba.social/@civicband" data-umami-event="Mastodon click">Mastodon</a></li>
-    <li><a rel="me" href="https://bsky.app/profile/civic.band" data-umami-event="Bluesky Click">Bluesky</a></li>
-    <li><a href="https://opencollective.com/civicband" class="support-link" data-umami-event="Support Click">Support!</a></li>
+    <li><a href="/how.html" data-umami-event="sites_nav" data-umami-event-target="how">How it works</a></li>
+    <li><a href="/why.html" data-umami-event="sites_nav" data-umami-event-target="why">Why?</a></li>
+    <li><a href="/rss.xml" data-umami-event="sites_nav" data-umami-event-target="rss">RSS Feed</a></li>
+    <li><a rel="me" href="https://sfba.social/@civicband" data-umami-event="sites_social" data-umami-event-platform="mastodon">Mastodon</a></li>
+    <li><a rel="me" href="https://bsky.app/profile/civic.band" data-umami-event="sites_social" data-umami-event-platform="bluesky">Bluesky</a></li>
+    <li><a href="https://opencollective.com/civicband" class="support-link" data-umami-event="sites_support">Support!</a></li>
   </ul>
 </nav>
 {% endblock %}
@@ -98,7 +98,7 @@
 </div>
 <div class="metadata-description">
     <div class="message-info">
-    <p>The largest collection of civic meeting data in the United States and Canada. A project from the <a href="https://raft.foundation">Raft Foundation</a>. Email hello @ civic dot band with questions.</p>
+    <p>The largest collection of civic meeting data in the United States and Canada. A project from the <a href="https://raft.foundation" data-umami-event="sites_external" data-umami-event-target="raft-foundation">Raft Foundation</a>. Email hello @ civic dot band with questions.</p>
     <p><form class= action="https://buttondown.com/api/emails/embed-subscribe/civicband"
         method="post"
         target="popupwindow"
@@ -107,9 +107,9 @@
           <div class="flex gap-x-4" >
             <label for="bd-email" class="sr-only">Subscribe to our newsletter: </label>
             <input id="bd-email" name="email" type="email" autocomplete="email" required class="min-w-0 flex-auto rounded-md border-0 bg-white/5 px-3.5 py-2 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm/6" placeholder="Enter your email">
-            <button type="submit" class="flex-none rounded-md bg-indigo-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">Subscribe</button>
+            <button type="submit" class="flex-none rounded-md bg-indigo-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500" data-umami-event="sites_newsletter">Subscribe</button>
           </div>
-          <p class="mt-4 text-sm/6 text-gray-300">We care about your data. Read our <a href="/privacy.html" class="font-semibold text-white">privacy&nbsp;policy</a>.</p>
+          <p class="mt-4 text-sm/6 text-gray-300">We care about your data. Read our <a href="/privacy.html" class="font-semibold text-white" data-umami-event="sites_nav" data-umami-event-target="privacy">privacy&nbsp;policy</a>.</p>
         </form>
     </p>
     

@@ -20,25 +20,25 @@
         <p class="intro-description">A fully searchable collection of meeting minutes and agendas from {{ site_name }}. Access public records, track government decisions, and stay informed about your community.</p>
         
         <div class="quick-links">
-            <a href="/-/dashboards/meetings-stats" class="quick-link primary" data-umami-event="Dashboard button click">
+            <a href="/-/dashboards/meetings-stats" class="quick-link primary" data-umami-event="muni_quicklink" data-umami-event-target="dashboard">
                 <span class="link-icon">📊</span>
                 <span class="link-text">View Statistics</span>
             </a>
-            <a href="/meetings/upcoming" class="quick-link" data-umami-event="Upcoming meetings button click">
+            <a href="/meetings/upcoming" class="quick-link" data-umami-event="muni_quicklink" data-umami-event-target="upcoming">
                 <span class="link-icon">📅</span>
                 <span class="link-text">Upcoming Meetings</span>
             </a>
-            <a href="/meetings/agendas" class="quick-link" data-umami-event="Browse agendas button click">
+            <a href="/meetings/agendas" class="quick-link" data-umami-event="muni_quicklink" data-umami-event-target="agendas">
                 <span class="link-icon">📋</span>
                 <span class="link-text">Browse Agendas</span>
             </a>
-            <a href="/meetings/minutes" class="quick-link" data-umami-event="Browse minutes button click">
+            <a href="/meetings/minutes" class="quick-link" data-umami-event="muni_quicklink" data-umami-event-target="minutes">
                 <span class="link-icon">📝</span>
                 <span class="link-text">Browse Minutes</span>
             </a>
         </div>
-        
-        <p class="help-text">Need help? Contact us at <a href="mailto:hello@civic.band">hello@civic.band</a></p>
+
+        <p class="help-text">Need help? Contact us at <a href="mailto:hello@civic.band" data-umami-event="muni_contact">hello@civic.band</a></p>
     </div>
 </div>
 
@@ -47,7 +47,7 @@
         <form action="{{ urls.path("/-/search") }}" method="get" class="search-form">
             <div class="search-input-group">
                 <input type="search" name="q" value="{{ q }}" placeholder="Search agendas and minutes..." id="search-all-q" class="search-input">
-                <button type="submit" class="search-button" data-umami-event="Muni site search button click">
+                <button type="submit" class="search-button" data-umami-event="muni_search">
                     <span class="search-icon">🔍</span>
                     Search
                 </button>
@@ -66,7 +66,7 @@
         <ul class="meeting-list">
         {% for agenda in upcoming_agendas %}
             <li class="meeting-item">
-                <a href="/meetings/agendas?meeting__exact={{ agenda.meeting|urlencode }}&date__exact={{ agenda.date|urlencode }}" class="meeting-link">
+                <a href="/meetings/agendas?meeting__exact={{ agenda.meeting|urlencode }}&date__exact={{ agenda.date|urlencode }}" class="meeting-link" data-umami-event="muni_upcoming" data-umami-event-meeting="{{ agenda.meeting }}">
                     <strong>{{ agenda.meeting.replace('Committee', ' Committee').replace('Council', ' Council') }}</strong>
                     <span class="meeting-date">{{ agenda.date }}</span>
                     <span class="meeting-pages">({{ agenda.pages }} pages)</span>
@@ -83,7 +83,7 @@
         <ul class="meeting-list">
         {% for minutes in recent_minutes %}
             <li class="meeting-item">
-                <a href="/meetings/minutes?meeting__exact={{ minutes.meeting|urlencode }}&date__exact={{ minutes.date|urlencode }}" class="meeting-link">
+                <a href="/meetings/minutes?meeting__exact={{ minutes.meeting|urlencode }}&date__exact={{ minutes.date|urlencode }}" class="meeting-link" data-umami-event="muni_recent_minutes" data-umami-event-meeting="{{ minutes.meeting }}">
                     <strong>{{ minutes.meeting.replace('Committee', ' Committee').replace('Council', ' Council') }}</strong>
                     <span class="meeting-date">{{ minutes.date }}</span>
                     <span class="meeting-pages">({{ minutes.pages }} pages)</span>
@@ -103,7 +103,7 @@
         <ul class="activity-list">
         {% for activity in recent_activity %}
             <li class="activity-item">
-                <a href="/meetings/{{ activity.type }}s?meeting__exact={{ activity.meeting|urlencode }}&date__exact={{ activity.date|urlencode }}" class="meeting-link">
+                <a href="/meetings/{{ activity.type }}s?meeting__exact={{ activity.meeting|urlencode }}&date__exact={{ activity.date|urlencode }}" class="meeting-link" data-umami-event="muni_recent_activity" data-umami-event-type="{{ activity.type }}" data-umami-event-meeting="{{ activity.meeting }}">
                     <span class="activity-type">{{ activity.type|title }}</span>
                     <strong>{{ activity.meeting.replace('Committee', ' Committee').replace('Council', ' Council') }}</strong>
                     <span class="meeting-date">{{ activity.date }}</span>
@@ -116,11 +116,11 @@
         </ul>
     </div>
     {% endif %}
-    
+
     <div class="view-all-link">
-        <a href="/meetings/agendas">View All Agendas</a> | 
-        <a href="/meetings/minutes">View All Minutes</a> | 
-        <a href="/-/dashboards/meetings-stats">Meeting Statistics</a>
+        <a href="/meetings/agendas" data-umami-event="muni_viewall" data-umami-event-target="agendas">View All Agendas</a> |
+        <a href="/meetings/minutes" data-umami-event="muni_viewall" data-umami-event-target="minutes">View All Minutes</a> |
+        <a href="/-/dashboards/meetings-stats" data-umami-event="muni_viewall" data-umami-event-target="stats">Meeting Statistics</a>
     </div>
 </div>
 

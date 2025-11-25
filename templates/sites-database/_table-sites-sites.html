@@ -18,9 +18,9 @@
     <div class="control-group">
       <label class="control-label">Quick filters:</label>
       <div class="filter-buttons">
-        <a href="{{ base_table_url }}?_sort_desc=pages" class="filter-btn {% if not request.args.get('_filter_column') %}active{% endif %}">All</a>
-        <a href="{{ base_table_url }}?_filter_column=kind&_filter_op=exact&_filter_value=city&_sort_desc=pages" class="filter-btn {% if request.args.get('_filter_value') == 'city' and request.args.get('_filter_column') == 'kind' %}active{% endif %}">Cities</a>
-        <a href="{{ base_table_url }}?_filter_column=kind&_filter_op=exact&_filter_value=county&_sort_desc=pages" class="filter-btn {% if request.args.get('_filter_value') == 'county' and request.args.get('_filter_column') == 'kind' %}active{% endif %}">Counties</a>
+        <a href="{{ base_table_url }}?_sort_desc=pages" class="filter-btn {% if not request.args.get('_filter_column') %}active{% endif %}" data-umami-event="sites_filter" data-umami-event-filter="all">All</a>
+        <a href="{{ base_table_url }}?_filter_column=kind&_filter_op=exact&_filter_value=city&_sort_desc=pages" class="filter-btn {% if request.args.get('_filter_value') == 'city' and request.args.get('_filter_column') == 'kind' %}active{% endif %}" data-umami-event="sites_filter" data-umami-event-filter="cities">Cities</a>
+        <a href="{{ base_table_url }}?_filter_column=kind&_filter_op=exact&_filter_value=county&_sort_desc=pages" class="filter-btn {% if request.args.get('_filter_value') == 'county' and request.args.get('_filter_column') == 'kind' %}active{% endif %}" data-umami-event="sites_filter" data-umami-event-filter="counties">Counties</a>
       </div>
     </div>
     
@@ -45,8 +45,8 @@
           {% set sort_date_url = base_table_url ~ "?_sort_desc=last_updated" %}
         {% endif %}
         
-        <a href="{{ sort_pages_url }}" class="sort-btn {% if request.args.get('_sort_desc') == 'pages' %}active{% endif %}" title="Sort by most pages">Most pages</a>
-        <a href="{{ sort_date_url }}" class="sort-btn {% if request.args.get('_sort_desc') == 'last_updated' %}active{% endif %}" title="Sort by recently updated">Recently updated</a>
+        <a href="{{ sort_pages_url }}" class="sort-btn {% if request.args.get('_sort_desc') == 'pages' %}active{% endif %}" title="Sort by most pages" data-umami-event="sites_sort" data-umami-event-sort="pages">Most pages</a>
+        <a href="{{ sort_date_url }}" class="sort-btn {% if request.args.get('_sort_desc') == 'last_updated' %}active{% endif %}" title="Sort by recently updated" data-umami-event="sites_sort" data-umami-event-sort="last_updated">Recently updated</a>
       </div>
     </div>
   </div>
@@ -82,7 +82,7 @@
                 {% for cell in row %}
                     {% if cell.column == 'subdomain'%}
                     <td class="col-{{ cell.column|to_css_class }} type-{{ cell.value_type }}">
-                      <a href="https://{{cell.raw}}.civic.band" class="site-link" data-umami-event="Site link click">
+                      <a href="https://{{cell.raw}}.civic.band" class="site-link" data-umami-event="sites_muni" data-umami-event-subdomain="{{ cell.raw }}">
                         {{ cell.raw }}
                       </a>
                     </td>
@@ -368,7 +368,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('fuzzy-search');
     const tableRows = document.querySelectorAll('.site-row');
-    
+
     // Simple fuzzy search function
     function fuzzyMatch(query, text) {
         query = query.toLowerCase();
@@ -461,7 +461,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 filterTable(this.value);
             }, 150);
         });
-        
+
         // Handle ESC key to clear search
         searchInput.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {

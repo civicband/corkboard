@@ -11,12 +11,12 @@ Events tracked:
 Note: Table views and row views are already tracked by client-side Umami integration.
 """
 
-import os
 import json
-import time
 import logging
-from urllib.parse import parse_qs
+import os
+import time
 from typing import Dict, Optional
+from urllib.parse import parse_qs
 
 import httpx
 from datasette import hookimpl
@@ -192,9 +192,7 @@ def asgi_wrapper(datasette):
             path = scope.get("path", "")
             query_string = scope.get("query_string", b"").decode("utf-8")
             headers_list = scope.get("headers", [])
-            headers = dict(
-                (k.decode("utf-8"), v.decode("utf-8")) for k, v in headers_list
-            )
+            headers = {k.decode("utf-8"): v.decode("utf-8") for k, v in headers_list}
 
             # Parse query parameters
             query_params = parse_qs(query_string)

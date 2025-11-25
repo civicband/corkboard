@@ -1,11 +1,12 @@
+from urllib.parse import urlparse
+
 import markupsafe
-from urllib.parse import urlparse, parse_qs
 from datasette import hookimpl
 
 
 @hookimpl
 def render_cell(row, value, column, table, database, datasette, request):
-    if not column == "date":
+    if column != "date":
         return None
     parts = urlparse(request.url)
     path = parts.path

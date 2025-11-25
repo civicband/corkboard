@@ -17,23 +17,21 @@ Environment Variables Required:
     UMAMI_WEBSITE_ID - Website ID to query (default: 6250918b-...)
 """
 
-import os
-import sys
-import json
-import time
 import argparse
+import json
+import logging
+import os
 import sqlite3
+import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional
-import logging
 
 import requests
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -42,7 +40,7 @@ class UmamiClient:
     """Client for Umami Analytics API."""
 
     def __init__(self, url: str, username: str, password: str, website_id: str):
-        self.url = url.rstrip('/')
+        self.url = url.rstrip("/")
         self.username = username
         self.password = password
         self.website_id = website_id
@@ -54,14 +52,14 @@ class UmamiClient:
             logger.info("Authenticating with Umami...")
             response = requests.post(
                 f"{self.url}/api/auth/login",
-                headers={'Content-Type': 'application/json'},
+                headers={"Content-Type": "application/json"},
                 json={"username": self.username, "password": self.password},
-                timeout=10
+                timeout=10,
             )
             response.raise_for_status()
 
             data = response.json()
-            self.token = data.get('token')
+            self.token = data.get("token")
 
             if not self.token:
                 logger.error("No token in authentication response")
@@ -76,15 +74,10 @@ class UmamiClient:
 
     def _get_headers(self) -> Dict[str, str]:
         """Get authorization headers."""
-        return {
-            'Authorization': f'Bearer {self.token}',
-            'Accept': 'application/json'
-        }
+        return {"Authorization": f"Bearer {self.token}", "Accept": "application/json"}
 
     def get_website_stats(
-        self,
-        start_date: datetime,
-        end_date: datetime
+        self, start_date: datetime, end_date: datetime
     ) -> Optional[Dict]:
         """Get website statistics for date range."""
         try:
@@ -94,8 +87,8 @@ class UmamiClient:
             response = requests.get(
                 f"{self.url}/api/websites/{self.website_id}/stats",
                 headers=self._get_headers(),
-                params={'startAt': start_ms, 'endAt': end_ms},
-                timeout=30
+                params={"startAt": start_ms, "endAt": end_ms},
+                timeout=30,
             )
             response.raise_for_status()
             return response.json()
@@ -105,10 +98,7 @@ class UmamiClient:
             return None
 
     def get_metrics(
-        self,
-        start_date: datetime,
-        end_date: datetime,
-        metric_type: str = 'url'
+        self, start_date: datetime, end_date: datetime, metric_type: str = "url"
     ) -> Optional[List[Dict]]:
         """Get metrics data (URLs, events, etc.)."""
         try:
@@ -118,12 +108,8 @@ class UmamiClient:
             response = requests.get(
                 f"{self.url}/api/websites/{self.website_id}/metrics",
                 headers=self._get_headers(),
-                params={
-                    'startAt': start_ms,
-                    'endAt': end_ms,
-                    'type': metric_type
-                },
-                timeout=30
+                params={"startAt": start_ms, "endAt": end_ms, "type": metric_type},
+                timeout=30,
             )
             response.raise_for_status()
             return response.json()
@@ -133,9 +119,7 @@ class UmamiClient:
             return None
 
     def get_events(
-        self,
-        start_date: datetime,
-        end_date: datetime
+        self, start_date: datetime, end_date: datetime
     ) -> Optional[List[Dict]]:
         """Get all events for date range."""
         try:
@@ -145,8 +129,8 @@ class UmamiClient:
             response = requests.get(
                 f"{self.url}/api/websites/{self.website_id}/events",
                 headers=self._get_headers(),
-                params={'startAt': start_ms, 'endAt': end_ms},
-                timeout=30
+                params={"startAt": start_ms, "endAt": end_ms},
+                timeout=30,
             )
             response.raise_for_status()
             return response.json()
@@ -161,11 +145,11 @@ class UmamiClient:
             response = requests.get(
                 f"{self.url}/api/websites/{self.website_id}/active",
                 headers=self._get_headers(),
-                timeout=10
+                timeout=10,
             )
             response.raise_for_status()
             data = response.json()
-            return data.get('x', 0)
+            return data.get("x", 0)
 
         except requests.exceptions.RequestException as e:
             logger.error(f"Failed to get active users: {e}")
@@ -176,7 +160,8 @@ class AnalyticsDatabase:
     """SQLite database for storing analytics data."""
 
     def __init__(self, db_path: Path):
-        self.db_path = db_path
+        # Accept both str and Path
+        self.db_path = Path(db_path) if isinstance(db_path, str) else db_path
         self.conn = None
         self._init_database()
 
@@ -238,31 +223,31 @@ class AnalyticsDatabase:
         logger.info(f"Database initialized at {self.db_path}")
 
     def insert_website_stats(
-        self,
-        start_date: datetime,
-        end_date: datetime,
-        stats: Dict
+        self, start_date: datetime, end_date: datetime, stats: Dict
     ):
         """Insert website statistics."""
         retrieved_at = datetime.now().isoformat()
 
-        self.conn.execute("""
+        self.conn.execute(
+            """
             INSERT INTO website_stats (
                 retrieved_at, start_date, end_date,
                 pageviews, unique_visitors, visits, bounces, total_time,
                 stats_json
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            retrieved_at,
-            start_date.isoformat(),
-            end_date.isoformat(),
-            stats.get('pageviews', {}).get('value', 0),
-            stats.get('visitors', {}).get('value', 0),
-            stats.get('visits', {}).get('value', 0),
-            stats.get('bounces', {}).get('value', 0),
-            stats.get('totaltime', {}).get('value', 0),
-            json.dumps(stats)
-        ))
+        """,
+            (
+                retrieved_at,
+                start_date.isoformat(),
+                end_date.isoformat(),
+                stats.get("pageviews", {}).get("value", 0),
+                stats.get("visitors", {}).get("value", 0),
+                stats.get("visits", {}).get("value", 0),
+                stats.get("bounces", {}).get("value", 0),
+                stats.get("totaltime", {}).get("value", 0),
+                json.dumps(stats),
+            ),
+        )
         self.conn.commit()
 
     def insert_events(self, events: List[Dict]):
@@ -270,19 +255,22 @@ class AnalyticsDatabase:
         retrieved_at = datetime.now().isoformat()
 
         for event in events:
-            self.conn.execute("""
+            self.conn.execute(
+                """
                 INSERT INTO events (
                     retrieved_at, event_name, event_url, event_hostname,
                     event_data, event_timestamp
                 ) VALUES (?, ?, ?, ?, ?, ?)
-            """, (
-                retrieved_at,
-                event.get('name'),
-                event.get('url'),
-                event.get('hostname'),
-                json.dumps(event.get('data', {})),
-                event.get('timestamp')
-            ))
+            """,
+                (
+                    retrieved_at,
+                    event.get("name"),
+                    event.get("url"),
+                    event.get("hostname"),
+                    json.dumps(event.get("data", {})),
+                    event.get("timestamp"),
+                ),
+            )
         self.conn.commit()
 
     def insert_metrics(
@@ -290,41 +278,47 @@ class AnalyticsDatabase:
         start_date: datetime,
         end_date: datetime,
         metrics: List[Dict],
-        metric_type: str
+        metric_type: str,
     ):
         """Insert metrics data."""
         retrieved_at = datetime.now().isoformat()
-        table = 'url_metrics' if metric_type == 'url' else 'event_metrics'
+        table = "url_metrics" if metric_type == "url" else "event_metrics"
 
         for metric in metrics:
-            if metric_type == 'url':
-                self.conn.execute(f"""
+            if metric_type == "url":
+                self.conn.execute(
+                    f"""
                     INSERT INTO {table} (
                         retrieved_at, start_date, end_date,
                         url, visits, metric_data
                     ) VALUES (?, ?, ?, ?, ?, ?)
-                """, (
-                    retrieved_at,
-                    start_date.isoformat(),
-                    end_date.isoformat(),
-                    metric.get('x'),
-                    metric.get('y'),
-                    json.dumps(metric)
-                ))
+                """,
+                    (
+                        retrieved_at,
+                        start_date.isoformat(),
+                        end_date.isoformat(),
+                        metric.get("x"),
+                        metric.get("y"),
+                        json.dumps(metric),
+                    ),
+                )
             else:  # event metrics
-                self.conn.execute(f"""
+                self.conn.execute(
+                    f"""
                     INSERT INTO {table} (
                         retrieved_at, start_date, end_date,
                         event_name, event_count, metric_data
                     ) VALUES (?, ?, ?, ?, ?, ?)
-                """, (
-                    retrieved_at,
-                    start_date.isoformat(),
-                    end_date.isoformat(),
-                    metric.get('x'),
-                    metric.get('y'),
-                    json.dumps(metric)
-                ))
+                """,
+                    (
+                        retrieved_at,
+                        start_date.isoformat(),
+                        end_date.isoformat(),
+                        metric.get("x"),
+                        metric.get("y"),
+                        json.dumps(metric),
+                    ),
+                )
         self.conn.commit()
 
     def close(self):
@@ -334,96 +328,89 @@ class AnalyticsDatabase:
 
 
 def generate_summary_report(
-    stats: Dict,
-    events: List[Dict],
-    start_date: datetime,
-    end_date: datetime
+    stats: Dict, events: List[Dict], start_date: datetime, end_date: datetime
 ) -> Dict:
     """Generate summary report from analytics data."""
     event_counts = {}
     subdomain_counts = {}
 
     for event in events:
-        event_name = event.get('name', 'unknown')
+        event_name = event.get("name", "unknown")
         event_counts[event_name] = event_counts.get(event_name, 0) + 1
 
         # Extract subdomain from event data
-        event_data = event.get('data', {})
+        event_data = event.get("data", {})
         if isinstance(event_data, dict):
-            subdomain = event_data.get('subdomain')
+            subdomain = event_data.get("subdomain")
             if subdomain:
                 subdomain_counts[subdomain] = subdomain_counts.get(subdomain, 0) + 1
 
     return {
-        'period': {
-            'start': start_date.isoformat(),
-            'end': end_date.isoformat(),
-            'days': (end_date - start_date).days
+        "period": {
+            "start": start_date.isoformat(),
+            "end": end_date.isoformat(),
+            "days": (end_date - start_date).days,
         },
-        'overview': {
-            'pageviews': stats.get('pageviews', {}).get('value', 0),
-            'unique_visitors': stats.get('visitors', {}).get('value', 0),
-            'visits': stats.get('visits', {}).get('value', 0),
-            'bounce_rate': stats.get('bounces', {}).get('value', 0),
-            'total_time_seconds': stats.get('totaltime', {}).get('value', 0)
+        "overview": {
+            "pageviews": stats.get("pageviews", {}).get("value", 0),
+            "unique_visitors": stats.get("visitors", {}).get("value", 0),
+            "visits": stats.get("visits", {}).get("value", 0),
+            "bounce_rate": stats.get("bounces", {}).get("value", 0),
+            "total_time_seconds": stats.get("totaltime", {}).get("value", 0),
         },
-        'events': {
-            'total_events': len(events),
-            'event_breakdown': event_counts,
-            'top_events': sorted(
-                event_counts.items(),
-                key=lambda x: x[1],
-                reverse=True
-            )[:10]
+        "events": {
+            "total_events": len(events),
+            "event_breakdown": event_counts,
+            "top_events": sorted(
+                event_counts.items(), key=lambda x: x[1], reverse=True
+            )[:10],
         },
-        'municipalities': {
-            'total_municipalities': len(subdomain_counts),
-            'municipality_breakdown': subdomain_counts,
-            'top_municipalities': sorted(
-                subdomain_counts.items(),
-                key=lambda x: x[1],
-                reverse=True
-            )[:10]
+        "municipalities": {
+            "total_municipalities": len(subdomain_counts),
+            "municipality_breakdown": subdomain_counts,
+            "top_municipalities": sorted(
+                subdomain_counts.items(), key=lambda x: x[1], reverse=True
+            )[:10],
         },
-        'generated_at': datetime.now().isoformat()
+        "generated_at": datetime.now().isoformat(),
     }
 
 
 def main():
     """Main execution function."""
     parser = argparse.ArgumentParser(
-        description='Retrieve Umami analytics data for CivicBand'
+        description="Retrieve Umami analytics data for CivicBand"
     )
     parser.add_argument(
-        '--days',
+        "--days",
         type=int,
         default=7,
-        help='Number of days of data to retrieve (default: 7)'
+        help="Number of days of data to retrieve (default: 7)",
     )
     parser.add_argument(
-        '--output',
+        "--output",
         type=Path,
-        default=Path('./analytics'),
-        help='Output directory for analytics data (default: ./analytics)'
+        default=Path("./analytics"),
+        help="Output directory for analytics data (default: ./analytics)",
     )
     parser.add_argument(
-        '--events',
-        action='store_true',
-        help='Retrieve detailed event data'
+        "--events", action="store_true", help="Retrieve detailed event data"
     )
     parser.add_argument(
-        '--summary',
-        action='store_true',
-        help='Generate and save summary report as JSON'
+        "--summary",
+        action="store_true",
+        help="Generate and save summary report as JSON",
     )
 
     args = parser.parse_args()
 
     # Get configuration from environment
-    umami_url = os.getenv('UMAMI_URL', 'https://analytics.civic.band')
-    umami_username = os.getenv('UMAMI_USERNAME')
-    umami_password = os.getenv('UMAMI_PASSWORD')
-    umami_website_id = os.getenv('UMAMI_WEBSITE_ID', '6250918b-6a0c-4c05-a6cb-ec8f86349e1a')
+    umami_url = os.getenv("UMAMI_URL", "https://analytics.civic.band")
+    umami_username = os.getenv("UMAMI_USERNAME")
+    umami_password = os.getenv("UMAMI_PASSWORD")
+    umami_website_id = os.getenv(
+        "UMAMI_WEBSITE_ID", "6250918b-6a0c-4c05-a6cb-ec8f86349e1a"
+    )
 
     if not all([umami_username, umami_password]):
         logger.error("Missing required environment variables")
@@ -445,7 +432,7 @@ def main():
     logger.info(f"Retrieving data from {start_date.date()} to {end_date.date()}")
 
     # Initialize database
-    db_path = args.output / 'umami_events.db'
+    db_path = args.output / "umami_events.db"
     db = AnalyticsDatabase(db_path)
 
     # Get website stats
@@ -454,8 +441,10 @@ def main():
 
     if stats:
         db.insert_website_stats(start_date, end_date, stats)
-        logger.info(f"Stats: {stats.get('pageviews', {}).get('value', 0)} pageviews, "
-                   f"{stats.get('visitors', {}).get('value', 0)} unique visitors")
+        logger.info(
+            f"Stats: {stats.get('pageviews', {}).get('value', 0)} pageviews, "
+            f"{stats.get('visitors', {}).get('value', 0)} unique visitors"
+        )
     else:
         logger.warning("No stats data retrieved")
         stats = {}
@@ -474,16 +463,16 @@ def main():
 
         # Get event metrics
         logger.info("Retrieving event metrics...")
-        event_metrics = client.get_metrics(start_date, end_date, 'event') or []
+        event_metrics = client.get_metrics(start_date, end_date, "event") or []
         if event_metrics:
-            db.insert_metrics(start_date, end_date, event_metrics, 'event')
+            db.insert_metrics(start_date, end_date, event_metrics, "event")
             logger.info(f"Retrieved metrics for {len(event_metrics)} event types")
 
     # Get URL metrics
     logger.info("Retrieving URL metrics...")
-    url_metrics = client.get_metrics(start_date, end_date, 'url') or []
+    url_metrics = client.get_metrics(start_date, end_date, "url") or []
     if url_metrics:
-        db.insert_metrics(start_date, end_date, url_metrics, 'url')
+        db.insert_metrics(start_date, end_date, url_metrics, "url")
         logger.info(f"Retrieved metrics for {len(url_metrics)} URLs")
 
     # Generate summary if requested
@@ -491,32 +480,38 @@ def main():
         logger.info("Generating summary report...")
         summary = generate_summary_report(stats, events, start_date, end_date)
 
-        summary_path = args.output / f'summary_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json'
-        with open(summary_path, 'w') as f:
+        summary_path = (
+            args.output / f"summary_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        )
+        with open(summary_path, "w") as f:
             json.dump(summary, f, indent=2, default=str)
 
         logger.info(f"Summary saved to {summary_path}")
 
         # Print summary to console
         print("\n=== Analytics Summary ===")
-        print(f"Period: {summary['period']['start']} to {summary['period']['end']} ({summary['period']['days']} days)")
-        print(f"\nOverview:")
+        print(
+            f"Period: {summary['period']['start']} to {summary['period']['end']} ({summary['period']['days']} days)"
+        )
+        print("\nOverview:")
         print(f"  Pageviews: {summary['overview']['pageviews']:,}")
         print(f"  Unique Visitors: {summary['overview']['unique_visitors']:,}")
         print(f"  Total Visits: {summary['overview']['visits']:,}")
 
-        if summary['events']['total_events'] > 0:
-            print(f"\nEvents:")
+        if summary["events"]["total_events"] > 0:
+            print("\nEvents:")
             print(f"  Total Events: {summary['events']['total_events']:,}")
-            print(f"  Top Event Types:")
-            for event_name, count in summary['events']['top_events']:
+            print("  Top Event Types:")
+            for event_name, count in summary["events"]["top_events"]:
                 print(f"    - {event_name}: {count:,}")
 
-        if summary['municipalities']['total_municipalities'] > 0:
-            print(f"\nMunicipalities:")
-            print(f"  Total Municipalities: {summary['municipalities']['total_municipalities']}")
-            print(f"  Top Municipalities:")
-            for subdomain, count in summary['municipalities']['top_municipalities']:
+        if summary["municipalities"]["total_municipalities"] > 0:
+            print("\nMunicipalities:")
+            print(
+                f"  Total Municipalities: {summary['municipalities']['total_municipalities']}"
+            )
+            print("  Top Municipalities:")
+            for subdomain, count in summary["municipalities"]["top_municipalities"]:
                 print(f"    - {subdomain}: {count:,} events")
 
     # Close database
@@ -526,5 +521,5 @@ def main():
     logger.info(f"Data stored in {db_path}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

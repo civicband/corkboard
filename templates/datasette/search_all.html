@@ -411,7 +411,7 @@
                     <label for="search-all-q">Search:</label>
                     <div class="search-input-container">
                         <input type="search" name="q" value="{{ q }}" id="search-all-q" placeholder="Search across all meeting data...">
-                        <input type="submit" value="Search">
+                        <input type="submit" value="Search" data-umami-event="search_submit">
                     </div>
                 </div>
             </form>
@@ -566,14 +566,14 @@ function displayResults(data, base_url) {
     
     // Generate datasette-style table headers with proper CSS classes
     var ths = safe(columns.map(c => autoescape`<th class="col-${c}" scope="col" data-column="${c}">${c}</th>`).join(""));
-    
+
     // Generate table rows with proper datasette CSS classes
     var tr_rows = safe(rows.map(row => autoescape`<tr>${safe(columns.map(column => {
         var cellValue = displayCell(row[column], column, row, database, table);
         var cellClass = `col-${column.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
         return autoescape`<td class="${cellClass}">${cellValue}</td>`;
     }).join(""))}</tr>`).join(""));
-    
+
     var view_more = '';
     var search_url = `${base_url}?_search=${encodeURIComponent(q.value)}`;
     if (count > NUM_RESULTS) {
@@ -613,12 +613,12 @@ function displayResults(data, base_url) {
 if (q.value) {
     // Show loading indicators
     document.querySelector('#search-all-results > div').style.display = 'block';
-    
+
     searchable_tables.forEach(item => {
         var base_url = item.url;
         var loadingEl = document.querySelector(`[data-searchable-url="${base_url}"]`);
         var json_url = `${item.url_json}?_shape=objects&_labels=on&_extra=count&_extra=database&_extra=table&_size=${NUM_RESULTS}&_search=${encodeURIComponent(q.value)}`;
-        
+
         fetch(json_url).then(r => r.json()).then((data) => {
             if (loadingEl) {
                 loadingEl.style.display = 'none';

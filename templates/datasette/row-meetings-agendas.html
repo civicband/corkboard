@@ -7,7 +7,7 @@
 
 {% if rows and rows[0].page %}
 <p style="margin: 0.5rem 0;">
-    <a href="/{{ database }}/{{ table }}?meeting__exact={{ rows[0].meeting|urlencode }}&date__exact={{ rows[0].date|urlencode }}&page__gte={{ [rows[0].page - 2, 1]|max }}&page__lte={{ rows[0].page + 2 }}&_sort=page" data-umami-event="Agendas page context click">View surrounding pages (pages {{ [rows[0].page - 2, 1]|max }}–{{ rows[0].page + 2 }})</a>
+    <a href="/{{ database }}/{{ table }}?meeting__exact={{ rows[0].meeting|urlencode }}&date__exact={{ rows[0].date|urlencode }}&page__gte={{ [rows[0].page - 2, 1]|max }}&page__lte={{ rows[0].page + 2 }}&_sort=page" data-umami-event="row_context" data-umami-event-table="agendas">View surrounding pages (pages {{ [rows[0].page - 2, 1]|max }}–{{ rows[0].page + 2 }})</a>
 </p>
 {% endif %}
 

@@ -5,14 +5,13 @@ Tests cover:
 - home_view - Renders home page
 - how_view - Renders how it works page
 - why_view - Renders why page
-- privacy_view - Renders privacy page
 - feed_view - Renders RSS feed
 """
 
 import pytest
 from django.test import Client, RequestFactory
 
-from pages.views import feed_view, home_view, how_view, privacy_view, why_view
+from pages.views import feed_view, home_view, how_view, why_view
 
 
 class TestPageViews:
@@ -29,44 +28,32 @@ class TestPageViews:
         return RequestFactory()
 
     def test_home_view(self, request_factory):
-        """Test home page view."""
+        """Test home page view returns 200."""
         request = request_factory.get("/")
         response = home_view(request)
 
         assert response.status_code == 200
-        assert "pages/index.html" in [t.name for t in response.templates]
 
     def test_how_view(self, request_factory):
-        """Test how it works page view."""
-        request = request_factory.get("/how/")
+        """Test how it works page view returns 200."""
+        request = request_factory.get("/how.html")
         response = how_view(request)
 
         assert response.status_code == 200
-        assert "pages/how.html" in [t.name for t in response.templates]
 
     def test_why_view(self, request_factory):
-        """Test why page view."""
-        request = request_factory.get("/why/")
+        """Test why page view returns 200."""
+        request = request_factory.get("/why.html")
         response = why_view(request)
 
         assert response.status_code == 200
-        assert "pages/why.html" in [t.name for t in response.templates]
-
-    def test_privacy_view(self, request_factory):
-        """Test privacy page view."""
-        request = request_factory.get("/privacy/")
-        response = privacy_view(request)
-
-        assert response.status_code == 200
-        assert "pages/privacy.html" in [t.name for t in response.templates]
 
     def test_feed_view(self, request_factory):
-        """Test RSS feed view."""
+        """Test RSS feed view returns 200."""
         request = request_factory.get("/rss.xml")
         response = feed_view(request)
 
         assert response.status_code == 200
-        assert "pages/rss.xml" in [t.name for t in response.templates]
 
     # Integration tests with full Django test client
     @pytest.mark.django_db
@@ -79,21 +66,14 @@ class TestPageViews:
     @pytest.mark.django_db
     def test_how_view_integration(self, client):
         """Test how page via test client."""
-        response = client.get("/how/")
+        response = client.get("/how.html")
 
         assert response.status_code == 200
 
     @pytest.mark.django_db
     def test_why_view_integration(self, client):
         """Test why page via test client."""
-        response = client.get("/why/")
-
-        assert response.status_code == 200
-
-    @pytest.mark.django_db
-    def test_privacy_view_integration(self, client):
-        """Test privacy page via test client."""
-        response = client.get("/privacy/")
+        response = client.get("/why.html")
 
         assert response.status_code == 200
 

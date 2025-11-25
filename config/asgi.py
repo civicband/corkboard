@@ -8,10 +8,8 @@ https://docs.djangoproject.com/en/5.1/howto/deployment/asgi/
 """
 
 import os
-import djp
-import sentry_sdk
-from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 
+import djp
 from django.core.asgi import get_asgi_application
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")

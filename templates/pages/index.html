@@ -17,15 +17,15 @@
       <div class="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-6 lg:grid-cols-12 lg:gap-8 lg:px-8">
         <div class="lg:col-span-7">
           <h2 class="text-5xl font-semibold tracking-tight text-white sm:text-7xl">Civic Band</h2>
-          <p class="mt-8 text-pretty text-lg font-medium text-gray-300 sm:text-xl/8">This is a slowly growing collection of databases of the minutes from civic governments. A project from <a href="https://galaxybrain.co">Galaxy Brain</a>. Email hello @ civic dot band with questions.</p> 
+          <p class="mt-8 text-pretty text-lg font-medium text-gray-300 sm:text-xl/8">This is a slowly growing collection of databases of the minutes from civic governments. A project from <a href="https://galaxybrain.co" data-umami-event="homepage_external" data-umami-event-target="galaxybrain">Galaxy Brain</a>. Email hello @ civic dot band with questions.</p>
           <div class="mx-auto mt-7 max-w-2xl lg:mx-0 lg:max-w-none">
             <div class="grid grid-cols-1 gap-x-8 gap-y-6 text-base/7 font-semibold text-white sm:grid-cols-2 md:flex lg:gap-x-10">
-              <a href="/how.html">How it works <span aria-hidden="true">&rarr;</span></a>
-              <a href="/why.html">Why? <span aria-hidden="true">&rarr;</span></a>
-              <a href="/rss.xml">RSS Feed <span aria-hidden="true">&rarr;</span></a>
-              <a rel="me" href="https://sfba.social/@civicband">Mastodon <span aria-hidden="true">&rarr;</span></a>
-              <a rel="me" href="https://bsky.app/profile/civic.band">Bluesky <span aria-hidden="true">&rarr;</span></a>
-              <a href="https://donate.stripe.com/3cs3dN5Ki0BRgzSeUX">Support! <span aria-hidden="true">&rarr;</span></a>
+              <a href="/how.html" data-umami-event="homepage_nav" data-umami-event-target="how">How it works <span aria-hidden="true">&rarr;</span></a>
+              <a href="/why.html" data-umami-event="homepage_nav" data-umami-event-target="why">Why? <span aria-hidden="true">&rarr;</span></a>
+              <a href="/rss.xml" data-umami-event="homepage_nav" data-umami-event-target="rss">RSS Feed <span aria-hidden="true">&rarr;</span></a>
+              <a rel="me" href="https://sfba.social/@civicband" data-umami-event="homepage_social" data-umami-event-platform="mastodon">Mastodon <span aria-hidden="true">&rarr;</span></a>
+              <a rel="me" href="https://bsky.app/profile/civic.band" data-umami-event="homepage_social" data-umami-event-platform="bluesky">Bluesky <span aria-hidden="true">&rarr;</span></a>
+              <a href="https://donate.stripe.com/3cs3dN5Ki0BRgzSeUX" data-umami-event="homepage_support">Support! <span aria-hidden="true">&rarr;</span></a>
             </div>
             <dl class="mt-7 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
               <div class="flex flex-col-reverse gap-1">
@@ -47,9 +47,9 @@
           <div class="flex gap-x-4" >
             <label for="bd-email" class="sr-only">Email address</label>
             <input id="bd-email" name="email" type="email" autocomplete="email" required class="min-w-0 flex-auto rounded-md border-0 bg-white/5 px-3.5 py-2 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm/6" placeholder="Enter your email">
-            <button type="submit" class="flex-none rounded-md bg-indigo-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">Subscribe</button>
+            <button type="submit" class="flex-none rounded-md bg-indigo-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500" data-umami-event="homepage_newsletter">Subscribe</button>
           </div>
-          <p class="mt-4 text-sm/6 text-gray-300">We care about your data. Read our <a href="/privacy.html" class="font-semibold text-white">privacy&nbsp;policy</a>.</p>
+          <p class="mt-4 text-sm/6 text-gray-300">We care about your data. Read our <a href="/privacy.html" class="font-semibold text-white" data-umami-event="homepage_nav" data-umami-event-target="privacy">privacy&nbsp;policy</a>.</p>
         </form>
       </div>
     </div>
@@ -79,7 +79,7 @@
             </tr>
             {% for site in sites %}
             <tr class="border-t border-gray-300">
-              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://{{ site.subdomain }}.civic.band">{{ site.name }}</a></td>
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-3"><a href="https://{{ site.subdomain }}.civic.band" data-umami-event="homepage_muni" data-umami-event-subdomain="{{ site.subdomain }}">{{ site.name }}</a></td>
               <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ site.kind }}</td>
               <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ site.pages }}</td>
             </tr>

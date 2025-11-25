@@ -10,13 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
-import djp
-
-from pathlib import Path
-
 import os
 import warnings
+from pathlib import Path
 
+import djp
 from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -37,7 +35,7 @@ def get_env_variable(var_name, default=None):
     except KeyError as exc:
         error_msg = f"Set the {var_name} env variable"
         if DEBUG or default:
-            warnings.warn(error_msg)
+            warnings.warn(error_msg, stacklevel=2)
             return default
         else:
             raise ImproperlyConfigured(error_msg) from exc
@@ -166,7 +164,7 @@ STATICFILES_FINDERS = (
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 import logging.config
-import os
+
 from django.utils.log import DEFAULT_LOGGING
 
 # Disable Django's logging setup

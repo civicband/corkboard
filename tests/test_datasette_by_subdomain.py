@@ -14,6 +14,8 @@ import pytest
 # but we don't want to block all imports
 mock_djp = MagicMock()
 mock_djp.hookimpl = MagicMock()
+# urlpatterns() must return a list for Django URL concatenation to work
+mock_djp.urlpatterns = MagicMock(return_value=[])
 sys.modules["djp"] = mock_djp
 
 # Now import the module under test
@@ -63,12 +65,7 @@ async def test_asgi_wrapper_fully_mocked():
         ) as mock_sqlite_utils,
         patch("datasette.app.Datasette") as mock_datasette,
         patch("django_plugins.datasette_by_subdomain.Environment") as mock_environment,
-        patch(
-            "django_plugins.datasette_by_subdomain.FileSystemLoader"
-        ) as mock_fs_loader,
-        patch(
-            "django_plugins.datasette_by_subdomain.select_autoescape"
-        ) as mock_autoescape,
+        patch("django_plugins.datasette_by_subdomain.FileSystemLoader"),
     ):
         # Setup mocks
         mock_app = AsyncMock()
@@ -88,7 +85,12 @@ async def test_asgi_wrapper_fully_mocked():
         mock_sqlite_utils.Database.return_value = mock_db_instance
 
         # Mock site data
-        mock_site = {"name": "Test City", "subdomain": "testcity", "state": "CA"}
+        mock_site = {
+            "name": "Test City",
+            "subdomain": "testcity",
+            "state": "CA",
+            "last_updated": "2024-01-01",
+        }
         mock_sites_table.get.return_value = mock_site
 
         # Mock jinja
@@ -162,6 +164,7 @@ async def test_metadata_template_rendering():
             "country": "USA",
             "population": 50000,
             "pages": 1000,
+            "last_updated": "2024-01-01",
         }
         mock_sites_table.get.return_value = mock_site
 

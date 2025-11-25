@@ -1,7 +1,8 @@
 import json
+
 import djp
-from jinja2 import Environment, FileSystemLoader, select_autoescape
 import sqlite_utils
+from jinja2 import Environment, FileSystemLoader
 
 
 @djp.hookimpl
@@ -35,7 +36,12 @@ async def datasette_by_subdomain_wrapper(scope, receive, send, app):
         )
 
         subdomain = ".".join(parts[:-2])
-        site = db["sites"].get(subdomain)
+        try:
+            site = db["sites"].get(subdomain)
+        except Exception:
+            # Site not found, fall back to Django app
+            await app(scope, receive, send)
+            return
         context_blob = {
             "name": site["name"],
             "state": site["state"],

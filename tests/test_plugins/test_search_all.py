@@ -124,7 +124,7 @@ class TestSearchAll:
         mock_datasette.databases = {"meetings": mock_db}
         mock_datasette.ensure_permissions = AsyncMock()
 
-        response = await search_all(mock_datasette, mock_request)
+        await search_all(mock_datasette, mock_request)
 
         # Verify template was rendered
         mock_datasette.render_template.assert_called_once()
@@ -143,7 +143,7 @@ class TestSearchAll:
     async def test_empty_query(self):
         """Handle empty search query."""
         mock_datasette = MagicMock()
-        mock_datasette.urls.table.side_effect = lambda db, table, format=None: f"/{db}/{table}"
+        mock_datasette.urls.table.side_effect = lambda db, table, _format=None: f"/{db}/{table}"
         mock_datasette.render_template = AsyncMock(return_value="<html>Search Page</html>")
 
         mock_request = MagicMock()
@@ -157,7 +157,7 @@ class TestSearchAll:
 
         mock_datasette.databases = {"meetings": mock_db}
 
-        response = await search_all(mock_datasette, mock_request)
+        await search_all(mock_datasette, mock_request)
 
         call_args = mock_datasette.render_template.call_args[0]
         context = call_args[1]
@@ -298,9 +298,12 @@ class TestIterateSearchableTables:
         # Forbidden for private_table
         async def mock_ensure_permissions(actor, permissions):
             for perm in permissions:
-                if isinstance(perm, tuple) and perm[0] == "view-table":
-                    if perm[1][1] == "private_table":
-                        raise Forbidden("Access denied")
+                if (
+                    isinstance(perm, tuple)
+                    and perm[0] == "view-table"
+                    and perm[1][1] == "private_table"
+                ):
+                    raise Forbidden("Access denied")
 
         mock_datasette.databases = {"meetings": mock_db}
         mock_datasette.ensure_permissions = mock_ensure_permissions

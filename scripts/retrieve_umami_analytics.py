@@ -17,16 +17,15 @@ Environment Variables Required:
     UMAMI_WEBSITE_ID - Website ID to query (default: 6250918b-...)
 """
 
-import os
-import sys
-import json
-import time
 import argparse
+import json
+import logging
+import os
 import sqlite3
+import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional
-import logging
 
 import requests
 
@@ -500,22 +499,22 @@ def main():
         # Print summary to console
         print("\n=== Analytics Summary ===")
         print(f"Period: {summary['period']['start']} to {summary['period']['end']} ({summary['period']['days']} days)")
-        print(f"\nOverview:")
+        print("\nOverview:")
         print(f"  Pageviews: {summary['overview']['pageviews']:,}")
         print(f"  Unique Visitors: {summary['overview']['unique_visitors']:,}")
         print(f"  Total Visits: {summary['overview']['visits']:,}")
 
         if summary['events']['total_events'] > 0:
-            print(f"\nEvents:")
+            print("\nEvents:")
             print(f"  Total Events: {summary['events']['total_events']:,}")
-            print(f"  Top Event Types:")
+            print("  Top Event Types:")
             for event_name, count in summary['events']['top_events']:
                 print(f"    - {event_name}: {count:,}")
 
         if summary['municipalities']['total_municipalities'] > 0:
-            print(f"\nMunicipalities:")
+            print("\nMunicipalities:")
             print(f"  Total Municipalities: {summary['municipalities']['total_municipalities']}")
-            print(f"  Top Municipalities:")
+            print("  Top Municipalities:")
             for subdomain, count in summary['municipalities']['top_municipalities']:
                 print(f"    - {subdomain}: {count:,} events")
 

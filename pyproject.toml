@@ -59,11 +59,8 @@ markers = [
 ]
 
 [tool.ruff]
-# Enable pycodestyle (E), Pyflakes (F), isort (I), and more
 line-length = 88
 target-version = "py311"
-select = ["E", "F", "I", "B", "C4", "ARG", "SIM", "TID", "PL"]
-ignore = []
 
 # Exclude a variety of commonly ignored directories.
 exclude = [
@@ -78,7 +75,27 @@ exclude = [
     "dist",
 ]
 
-[tool.ruff.isort]
+[tool.ruff.lint]
+# Enable pycodestyle (E), Pyflakes (F), isort (I), and more
+select = ["E", "F", "I", "B", "C4", "ARG", "SIM", "TID", "PL"]
+ignore = [
+    "PLR2004",  # Magic value comparisons - common in tests and configs
+    "PLR0913",  # Too many arguments - hookimpl functions require specific signatures
+    "PLR0912",  # Too many branches - acceptable for complex ASGI wrappers
+    "PLR0915",  # Too many statements - acceptable for complex functions
+    "ARG001",   # Unused arguments - hookimpl requires specific signatures
+    "E402",     # Module level import not at top - Django settings pattern
+    "F403",     # Star imports - Django settings pattern
+    "F405",     # May be undefined from star import - Django settings pattern
+    "E501",     # Line too long - allow for readability in configs/URLs
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["PLR2004", "ARG001", "E501"]  # Tests can have magic numbers, unused args, long lines
+"config/settings.py" = ["E402", "F811"]    # Django settings has specific import patterns
+"config/prod_settings.py" = ["F403", "F405"]  # Production settings uses star import
+
+[tool.ruff.lint.isort]
 known-first-party = ["corkboard", "config", "django_plugins", "pages", "plugins"]
 
 [tool.ruff.format]

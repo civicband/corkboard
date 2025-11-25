@@ -1,4 +1,3 @@
-import json
 
 import markupsafe
 from datasette import hookimpl
@@ -6,7 +5,7 @@ from datasette import hookimpl
 
 @hookimpl
 def render_cell(row, value, column, table, database, datasette, request):
-    if not column == "text":
+    if column != "text":
         return None
     search_query = request.args.get("_search")
     if not search_query:

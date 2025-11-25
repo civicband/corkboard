@@ -16,11 +16,10 @@ Including another URLconf
 """
 
 import djp
-
 from django.contrib import admin
 from django.urls import path
 
-from pages.views import home_view, why_view, how_view, feed_view
+from pages.views import feed_view, home_view, how_view, why_view
 
 urlpatterns = [
     path("admin/", admin.site.urls),

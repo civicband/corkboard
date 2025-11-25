@@ -54,7 +54,7 @@ class TestExtraTemplateVars:
 
         # Should return async function for index.html
         assert callable(result)
-        assert hasattr(result, "__call__")
+        assert callable(result)
 
     @pytest.mark.asyncio
     async def test_index_template_execution(self):

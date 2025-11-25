@@ -1,7 +1,8 @@
 import json
+
 import djp
-from jinja2 import Environment, FileSystemLoader, select_autoescape
 import sqlite_utils
+from jinja2 import Environment, FileSystemLoader
 
 
 @djp.hookimpl

@@ -5,7 +5,7 @@ from datasette import hookimpl
 @hookimpl
 def render_cell(row, value, column, table, database, datasette):
     # Render {"href": "...", "label": "..."} as link
-    if not column == "page_image":
+    if column != "page_image":
         return None
     try:
         subdomain = row["subdomain"]

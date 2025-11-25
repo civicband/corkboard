@@ -8,6 +8,9 @@ Tests cover:
 """
 
 import sqlite3
+
+# We need to handle the import carefully since it's a script
+import sys
 import tempfile
 from datetime import datetime
 from pathlib import Path
@@ -16,14 +19,11 @@ from unittest.mock import MagicMock, patch
 import pytest
 import requests
 
-
-# We need to handle the import carefully since it's a script
-import sys
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
 # Mock the script execution to avoid running main
 with patch("sys.argv", ["retrieve_umami_analytics.py"]):
-    from retrieve_umami_analytics import UmamiClient, AnalyticsDatabase
+    from retrieve_umami_analytics import AnalyticsDatabase, UmamiClient
 
 
 class TestUmamiClient:
@@ -231,7 +231,7 @@ class TestAnalyticsDatabase:
 
     def test_init_creates_database(self, temp_db_path):
         """Initialize database and create schema."""
-        db = AnalyticsDatabase(str(temp_db_path))
+        AnalyticsDatabase(str(temp_db_path))
 
         assert temp_db_path.exists()
 

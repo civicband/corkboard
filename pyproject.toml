@@ -24,6 +24,7 @@ dependencies = [
     "sqlite-utils>=3.30.0",
     "httpx>=0.24.0",
     "requests>=2.28.0",
+    "whitenoise>=6.0.0",
 ]
 
 [project.optional-dependencies]
@@ -31,6 +32,7 @@ test = [
     "pytest>=7.0.0",
     "pytest-asyncio>=0.21.0",
     "pytest-cov>=4.0.0",
+    "pytest-django>=4.5.0",
 ]
 lint = [
     "ruff>=0.1.0",
@@ -39,6 +41,7 @@ dev = [
     "pytest>=7.0.0",
     "pytest-asyncio>=0.21.0",
     "pytest-cov>=4.0.0",
+    "pytest-django>=4.5.0",
     "ruff>=0.1.0",
     "pre-commit>=3.0.0",
 ]
@@ -50,12 +53,12 @@ python_classes = "Test*"
 python_functions = "test_*"
 pythonpath = ["."]
 asyncio_mode = "auto"
-
-[tool.pytest]
-addopts = "--strict-markers -v"
+DJANGO_SETTINGS_MODULE = "config.settings"
+addopts = "-v"
 markers = [
     "unit: Unit tests (default)",
     "integration: Integration tests",
+    "django_db: Tests that require database access",
 ]
 
 [tool.ruff]

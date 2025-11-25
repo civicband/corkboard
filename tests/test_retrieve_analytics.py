@@ -253,31 +253,32 @@ class TestAnalyticsDatabase:
 
         conn.close()
 
-    def test_save_events(self, temp_db_path):
-        """Save events to database."""
+    def test_insert_events(self, temp_db_path):
+        """Insert events to database."""
         db = AnalyticsDatabase(str(temp_db_path))
 
+        # Events use the structure expected by insert_events
         events = [
             {
-                "event_name": "search_query",
+                "name": "search_query",
                 "url": "/meetings/agendas",
                 "hostname": "alameda.ca.civic.band",
                 "data": {"query_text": "council", "subdomain": "alameda.ca"},
-                "created_at": "2024-01-15T10:00:00Z",
+                "timestamp": "2024-01-15T10:00:00Z",
             },
             {
-                "event_name": "sql_query",
+                "name": "sql_query",
                 "url": "/meetings",
                 "hostname": "vancouver.bc.civic.band",
                 "data": {
                     "query_text": "SELECT * FROM agendas",
                     "subdomain": "vancouver.bc",
                 },
-                "created_at": "2024-01-15T11:00:00Z",
+                "timestamp": "2024-01-15T11:00:00Z",
             },
         ]
 
-        db.save_events(events)
+        db.insert_events(events)
 
         # Verify events were saved
         conn = sqlite3.connect(temp_db_path)
@@ -302,8 +303,8 @@ class TestAnalyticsDatabase:
 
         conn.close()
 
-    def test_save_website_stats(self, temp_db_path):
-        """Save website statistics to database."""
+    def test_insert_website_stats(self, temp_db_path):
+        """Insert website statistics to database."""
         db = AnalyticsDatabase(str(temp_db_path))
 
         stats = {
@@ -313,7 +314,11 @@ class TestAnalyticsDatabase:
             "bounces": {"value": 100},
         }
 
-        db.save_website_stats(stats, "2024-01-01", "2024-01-31")
+        # insert_website_stats expects datetime objects
+        start_date = datetime(2024, 1, 1)
+        end_date = datetime(2024, 1, 31)
+
+        db.insert_website_stats(start_date, end_date, stats)
 
         # Verify stats were saved
         conn = sqlite3.connect(temp_db_path)
@@ -323,59 +328,83 @@ class TestAnalyticsDatabase:
 
         assert count == 1
 
-        # Verify stats data
-        cursor.execute("SELECT pageviews, visitors, visits, bounces FROM website_stats")
+        # Verify stats data - note: visitors column is 'unique_visitors' in schema
+        cursor.execute(
+            "SELECT pageviews, unique_visitors, visits, bounces FROM website_stats"
+        )
         row = cursor.fetchone()
 
         assert row[0] == 1000  # pageviews
-        assert row[1] == 250  # visitors
+        assert row[1] == 250  # unique_visitors (from 'visitors' in stats)
         assert row[2] == 500  # visits
         assert row[3] == 100  # bounces
 
         conn.close()
 
-    def test_get_event_summary(self, temp_db_path):
-        """Get summary of events."""
+    def test_insert_multiple_events(self, temp_db_path):
+        """Insert multiple events and verify counts."""
         db = AnalyticsDatabase(str(temp_db_path))
 
-        # Insert test events
+        # Insert test events using correct structure
         events = [
             {
-                "event_name": "search_query",
+                "name": "search_query",
                 "url": "/meetings/agendas",
                 "hostname": "alameda.ca.civic.band",
                 "data": {"subdomain": "alameda.ca"},
-                "created_at": "2024-01-15T10:00:00Z",
+                "timestamp": "2024-01-15T10:00:00Z",
             },
             {
-                "event_name": "search_query",
+                "name": "search_query",
                 "url": "/meetings/minutes",
                 "hostname": "alameda.ca.civic.band",
                 "data": {"subdomain": "alameda.ca"},
-                "created_at": "2024-01-15T11:00:00Z",
+                "timestamp": "2024-01-15T11:00:00Z",
             },
             {
-                "event_name": "sql_query",
+                "name": "sql_query",
                 "url": "/meetings",
                 "hostname": "vancouver.bc.civic.band",
                 "data": {"subdomain": "vancouver.bc"},
-                "created_at": "2024-01-15T12:00:00Z",
+                "timestamp": "2024-01-15T12:00:00Z",
             },
         ]
 
-        db.save_events(events)
+        db.insert_events(events)
 
-        summary = db.get_event_summary()
+        # Verify event counts by querying directly
+        conn = sqlite3.connect(temp_db_path)
+        cursor = conn.cursor()
 
-        assert summary is not None
-        assert summary["total_events"] == 3
-        assert "event_types" in summary
-        assert "search_query" in str(summary["event_types"])
+        cursor.execute("SELECT COUNT(*) FROM events")
+        total = cursor.fetchone()[0]
+        assert total == 3
+
+        cursor.execute(
+            "SELECT event_name, COUNT(*) FROM events GROUP BY event_name ORDER BY event_name"
+        )
+        rows = cursor.fetchall()
+        assert len(rows) == 2
+        assert rows[0][0] == "search_query"
+        assert rows[0][1] == 2
+        assert rows[1][0] == "sql_query"
+        assert rows[1][1] == 1
+
+        conn.close()
 
     def test_empty_database(self, temp_db_path):
         """Handle empty database gracefully."""
-        db = AnalyticsDatabase(str(temp_db_path))
+        # Initialize database to create schema
+        AnalyticsDatabase(str(temp_db_path))
 
-        summary = db.get_event_summary()
+        # Verify tables exist but are empty
+        conn = sqlite3.connect(temp_db_path)
+        cursor = conn.cursor()
 
-        assert summary["total_events"] == 0
+        cursor.execute("SELECT COUNT(*) FROM events")
+        assert cursor.fetchone()[0] == 0
+
+        cursor.execute("SELECT COUNT(*) FROM website_stats")
+        assert cursor.fetchone()[0] == 0
+
+        conn.close()

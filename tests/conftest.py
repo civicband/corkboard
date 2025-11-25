@@ -188,17 +188,19 @@ def sql_scope(subdomain_scope):
 @pytest.fixture(autouse=True)
 def clean_env():
     """Clean environment variables before each test."""
-    # Save original env
-    original_env = os.environ.copy()
+    # Save original values of test-specific env vars only
+    original_umami = os.environ.get("UMAMI_ANALYTICS_ENABLED")
 
     # Set test defaults
     os.environ["UMAMI_ANALYTICS_ENABLED"] = "false"
 
     yield
 
-    # Restore original env
-    os.environ.clear()
-    os.environ.update(original_env)
+    # Restore original value or remove if it wasn't set
+    if original_umami is not None:
+        os.environ["UMAMI_ANALYTICS_ENABLED"] = original_umami
+    elif "UMAMI_ANALYTICS_ENABLED" in os.environ:
+        del os.environ["UMAMI_ANALYTICS_ENABLED"]
 
 
 @pytest.fixture

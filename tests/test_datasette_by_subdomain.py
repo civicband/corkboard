@@ -14,6 +14,8 @@ import pytest
 # but we don't want to block all imports
 mock_djp = MagicMock()
 mock_djp.hookimpl = MagicMock()
+# urlpatterns() must return a list for Django URL concatenation to work
+mock_djp.urlpatterns = MagicMock(return_value=[])
 sys.modules["djp"] = mock_djp
 
 # Now import the module under test

@@ -135,7 +135,10 @@ class TestRobots:
 
         response = await robots.robots_txt(mock_datasette, mock_request)
 
-        content = response.body.decode("utf-8")
+        # Response.body may be str or bytes depending on datasette version
+        content = response.body
+        if isinstance(content, bytes):
+            content = content.decode("utf-8")
 
         # Should include AI bot user agents
         assert "User-agent: GPTBot" in content
@@ -161,7 +164,10 @@ class TestRobots:
 
         response = await robots.robots_txt(mock_datasette, mock_request)
 
-        content = response.body.decode("utf-8")
+        # Response.body may be str or bytes depending on datasette version
+        content = response.body
+        if isinstance(content, bytes):
+            content = content.decode("utf-8")
 
         # Should disallow both user databases
         assert "Disallow: /meetings" in content
@@ -359,4 +365,5 @@ class TestUmami:
         assert (
             'data-website-id="6250918b-6a0c-4c05-a6cb-ec8f86349e1a"' in result["script"]
         )
-        assert 'data-auto-track="false"' in result["script"]
+        # Auto-track is enabled to track page views automatically
+        assert 'data-auto-track="true"' in result["script"]

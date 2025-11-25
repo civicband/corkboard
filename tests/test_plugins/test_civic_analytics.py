@@ -105,11 +105,9 @@ class TestUmamiEventTracker:
     @pytest.mark.asyncio
     async def test_track_event_disabled(self):
         """Skip tracking when analytics disabled."""
-        with patch.dict(os.environ, {"UMAMI_ANALYTICS_ENABLED": "false"}):
-            # Re-import to get updated env var
-            from plugins import civic_analytics
-
-            tracker = civic_analytics.UmamiEventTracker("https://test.com", "test-id")
+        # Patch module-level constant directly since it's set at import time
+        with patch("plugins.civic_analytics.UMAMI_ENABLED", False):
+            tracker = UmamiEventTracker("https://test.com", "test-id")
 
             with patch("httpx.AsyncClient") as mock_client:
                 await tracker.track_event(
@@ -121,12 +119,12 @@ class TestUmamiEventTracker:
     @pytest.mark.asyncio
     async def test_track_event_success(self):
         """Successfully track event."""
-        with patch.dict(
-            os.environ, {"UMAMI_ANALYTICS_ENABLED": "true", "UMAMI_API_KEY": "test-key"}
+        # Patch module-level constants directly since they're set at import time
+        with (
+            patch("plugins.civic_analytics.UMAMI_ENABLED", True),
+            patch("plugins.civic_analytics.UMAMI_API_KEY", "test-key"),
         ):
-            from plugins import civic_analytics
-
-            tracker = civic_analytics.UmamiEventTracker("https://test.com", "test-id")
+            tracker = UmamiEventTracker("https://test.com", "test-id")
 
             mock_response = MagicMock()
             mock_response.status_code = 200

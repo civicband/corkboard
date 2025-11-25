@@ -160,7 +160,8 @@ class AnalyticsDatabase:
     """SQLite database for storing analytics data."""
 
     def __init__(self, db_path: Path):
-        self.db_path = db_path
+        # Accept both str and Path
+        self.db_path = Path(db_path) if isinstance(db_path, str) else db_path
         self.conn = None
         self._init_database()
 

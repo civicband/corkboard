@@ -19,6 +19,7 @@ import djp
 from django.contrib import admin
 from django.urls import path
 
+from config.views import health_check
 from pages.views import feed_view, home_view, how_view, why_view
 
 urlpatterns = [
@@ -26,5 +27,6 @@ urlpatterns = [
     path("how.html", how_view),
     path("why.html", why_view),
     path("rss.xml", feed_view),
+    path("health/", health_check, name="health_check"),
     path("", home_view),
 ] + djp.urlpatterns()

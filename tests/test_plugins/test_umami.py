@@ -8,7 +8,6 @@ Tests cover:
 - umami.track patching for custom events
 """
 
-import pytest
 from plugins.umami import extra_body_script
 
 

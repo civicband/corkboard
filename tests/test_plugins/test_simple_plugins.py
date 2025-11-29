@@ -365,5 +365,8 @@ class TestUmami:
         assert (
             'data-website-id="6250918b-6a0c-4c05-a6cb-ec8f86349e1a"' in result["script"]
         )
-        # Auto-track is enabled to track page views automatically
-        assert 'data-auto-track="true"' in result["script"]
+        # Auto-track is disabled - we use manual tracking with subdomain
+        assert 'data-auto-track="true"' not in result["script"]
+        # Should include manual pageview tracking and subdomain logic
+        assert "pageview" in result["script"]
+        assert "subdomain" in result["script"]

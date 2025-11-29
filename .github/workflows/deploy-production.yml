@@ -6,6 +6,12 @@ on:
     branches: [main]
     types: [completed]
   workflow_dispatch:
+    inputs:
+      canary_period:
+        description: 'Canary period in seconds'
+        required: false
+        default: '120'
+        type: string
 
 concurrency:
   group: production-deployment
@@ -27,6 +33,8 @@ jobs:
           tags: tag:ci
 
       - name: Build and deploy Django on VPS
+        env:
+          CANARY_PERIOD: ${{ inputs.canary_period || '120' }}
         run: |
           ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
             deploy@${{ env.VPS_HOSTNAME }} "
@@ -35,16 +43,18 @@ jobs:
             git checkout main &&
             git pull origin main &&
             docker build -t corkboard-django:${{ github.sha }} . &&
-            /home/deploy/scripts/deploy.sh corkboard-django ${{ github.sha }}
+            CANARY_PERIOD=$CANARY_PERIOD /home/deploy/scripts/deploy.sh corkboard-django ${{ github.sha }}
           "
 
       - name: Build and deploy Datasette on VPS
+        env:
+          CANARY_PERIOD: ${{ inputs.canary_period || '120' }}
         run: |
           ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
             deploy@${{ env.VPS_HOSTNAME }} "
             cd /home/deploy/corkboard &&
             docker build -f Dockerfile.sites -t corkboard-datasette:${{ github.sha }} . &&
-            /home/deploy/scripts/deploy.sh corkboard-datasette ${{ github.sha }}
+            CANARY_PERIOD=$CANARY_PERIOD /home/deploy/scripts/deploy.sh corkboard-datasette ${{ github.sha }}
           "
 
       - name: Verify Django deployment

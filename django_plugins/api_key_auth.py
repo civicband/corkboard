@@ -11,7 +11,6 @@ from typing import Optional
 from urllib.parse import parse_qs
 
 import redis.asyncio as redis
-
 from django.conf import settings
 
 logger = logging.getLogger(__name__)

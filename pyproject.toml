@@ -100,6 +100,7 @@ ignore = [
 "tests/*" = ["PLR2004", "ARG001", "E501"]  # Tests can have magic numbers, unused args, long lines
 "config/settings.py" = ["E402", "F811"]    # Django settings has specific import patterns
 "config/prod_settings.py" = ["F403", "F405"]  # Production settings uses star import
+"django_plugins/api_key_auth.py" = ["PLW0603"]  # Global statement needed for lazy Redis init
 
 [tool.ruff.lint.isort]
 known-first-party = ["corkboard", "config", "django_plugins", "pages", "plugins"]

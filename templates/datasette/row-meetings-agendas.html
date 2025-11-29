@@ -1,5 +1,18 @@
 {% extends "default:row.html" %}
 
+{% block extra_head %}
+<!-- Dublin Core metadata for citation tools -->
+<meta name="DC.title" content="{{ rows[0].meeting }} {{ table|title }}, {{ rows[0].date }}">
+<meta name="DC.creator" content="{{ site_name }}">
+<meta name="DC.publisher" content="CivicBand Archive">
+<meta name="DC.date" content="{{ rows[0].date }}">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.identifier" content="https://{{ subdomain }}.civic.band{{ request.path }}">
+<meta name="DC.source" content="{{ site_name }}">
+<meta name="DC.language" content="en">
+{% endblock %}
+
 {% block content %}
 <h1 style="padding-left: 10px; border-left: 10px solid #{{ database_color }}">
     {{ table }}: {{ ', '.join(primary_key_values) }}{% if private %} 🔒{% endif %}

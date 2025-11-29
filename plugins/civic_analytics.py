@@ -11,10 +11,13 @@ Events tracked:
 Note: Table views and row views are already tracked by client-side Umami integration.
 """
 
+import hashlib
 import json
 import logging
 import os
+import re
 import time
+from collections import OrderedDict
 from typing import Dict, Optional
 from urllib.parse import parse_qs
 
@@ -28,6 +31,63 @@ UMAMI_URL = os.getenv("UMAMI_URL", "https://analytics.civic.band")
 UMAMI_WEBSITE_ID = os.getenv("UMAMI_WEBSITE_ID", "6250918b-6a0c-4c05-a6cb-ec8f86349e1a")
 UMAMI_API_KEY = os.getenv("UMAMI_API_KEY")  # Optional API key for authentication
 UMAMI_ENABLED = os.getenv("UMAMI_ANALYTICS_ENABLED", "true").lower() == "true"
+
+
+class SQLQueryCache:
+    """LRU cache for SQL query deduplication.
+
+    Tracks queries by (normalized_query, client_ip, subdomain) to prevent
+    duplicate tracking of the same query from the same user.
+    """
+
+    def __init__(self, max_size: int = 1000, ttl_seconds: int = 3600):
+        self.max_size = max_size
+        self.ttl_seconds = ttl_seconds
+        self._cache: OrderedDict[str, float] = OrderedDict()
+
+    def _normalize_query(self, query: str) -> str:
+        """Normalize query for comparison: lowercase, collapse whitespace."""
+        normalized = query.lower().strip()
+        normalized = re.sub(r"\s+", " ", normalized)
+        return normalized
+
+    def _make_key(self, query: str, client_ip: str, subdomain: str) -> str:
+        """Create cache key from query, IP, and subdomain."""
+        normalized = self._normalize_query(query)
+        key_string = f"{normalized}|{client_ip}|{subdomain}"
+        return hashlib.sha256(key_string.encode()).hexdigest()
+
+    def should_track(self, query: str, client_ip: str, subdomain: str) -> bool:
+        """Check if query should be tracked. Returns True if new, False if duplicate.
+
+        Also updates the cache with the query if it should be tracked.
+        """
+        current_time = time.time()
+        key = self._make_key(query, client_ip, subdomain)
+
+        # Check if key exists and is not expired
+        if key in self._cache:
+            timestamp = self._cache[key]
+            if current_time - timestamp < self.ttl_seconds:
+                # Move to end (LRU update) and return False (don't track)
+                self._cache.move_to_end(key)
+                return False
+            else:
+                # Expired, remove it
+                del self._cache[key]
+
+        # Add new entry
+        self._cache[key] = current_time
+
+        # Evict oldest if over max size
+        while len(self._cache) > self.max_size:
+            self._cache.popitem(last=False)
+
+        return True
+
+
+# Global cache instance for SQL query deduplication
+_sql_query_cache = SQLQueryCache(max_size=1000, ttl_seconds=3600)
 
 
 class UmamiEventTracker:

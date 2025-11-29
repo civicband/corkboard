@@ -4,6 +4,13 @@ import djp
 import sqlite_utils
 from jinja2 import Environment, FileSystemLoader
 
+from django_plugins.api_key_auth import (
+    extract_api_key,
+    is_json_endpoint,
+    make_401_response,
+    validate_api_key,
+)
+
 
 @djp.hookimpl
 def asgi_wrapper():
@@ -15,6 +22,21 @@ def wrap(app):
         await datasette_by_subdomain_wrapper(scope, receive, send, app)
 
     return wrapper
+
+
+async def send_401_response(send):
+    """Send a 401 Unauthorized response."""
+    body, headers = make_401_response()
+
+    await send({
+        "type": "http.response.start",
+        "status": 401,
+        "headers": headers,
+    })
+    await send({
+        "type": "http.response.body",
+        "body": body,
+    })
 
 
 async def datasette_by_subdomain_wrapper(scope, receive, send, app):
@@ -48,6 +70,23 @@ async def datasette_by_subdomain_wrapper(scope, receive, send, app):
             "subdomain": site["subdomain"],
             "last_updated": site["last_updated"],
         }
+
+        # Check API key for JSON endpoints
+        path = scope.get("path", "")
+        if is_json_endpoint(path):
+            api_key = extract_api_key(headers, scope.get("query_string", b""))
+
+            # No key = instant 401 (DDoS protection)
+            if not api_key:
+                await send_401_response(send)
+                return
+
+            # Validate key against cache/civic.observer
+            result = await validate_api_key(api_key, subdomain)
+            if not result["valid"]:
+                await send_401_response(send)
+                return
+
         metadata = json.loads(
             jinja_env.get_template("metadata.json").render(context=context_blob)
         )

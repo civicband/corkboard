@@ -214,4 +214,14 @@ logging.config.dictConfig(
 DJP_PLUGINS_DIR = [BASE_DIR / "django_plugins"]
 
 
+# API Key Authentication Settings
+REDIS_URL = get_env_variable("REDIS_URL", "redis://localhost:6379")
+CIVIC_OBSERVER_URL = get_env_variable("CIVIC_OBSERVER_URL", "http://localhost:8080")
+CIVIC_OBSERVER_SECRET = get_env_variable("CIVIC_OBSERVER_SECRET", "dev-secret-change-me")
+
+# Cache TTLs (in seconds)
+API_KEY_VALID_TTL = 7200  # 2 hours for valid keys
+API_KEY_INVALID_TTL = 300  # 5 minutes for invalid keys
+
+
 djp.settings(globals())

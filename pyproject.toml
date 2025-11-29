@@ -25,6 +25,7 @@ dependencies = [
     "httpx>=0.24.0",
     "requests>=2.28.0",
     "whitenoise>=6.0.0",
+    "redis[hiredis]>=5.0.0",
 ]
 
 [project.optional-dependencies]
@@ -33,6 +34,7 @@ test = [
     "pytest-asyncio>=0.21.0",
     "pytest-cov>=4.0.0",
     "pytest-django>=4.5.0",
+    "fakeredis>=2.20.0",
 ]
 lint = [
     "ruff>=0.1.0",
@@ -42,6 +44,7 @@ dev = [
     "pytest-asyncio>=0.21.0",
     "pytest-cov>=4.0.0",
     "pytest-django>=4.5.0",
+    "fakeredis>=2.20.0",
     "ruff>=0.1.0",
     "pre-commit>=3.0.0",
 ]

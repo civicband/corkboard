@@ -24,6 +24,22 @@
 </p>
 {% endif %}
 
+{% if rows and rows[0].meeting and rows[0].date %}
+<details class="cite-this">
+    <summary>Cite this page</summary>
+    <div class="cite-content">
+        <p class="citation-text" id="citation-minutes-{{ primary_key_values[0] }}">
+            {{ site_name }}. "{{ rows[0].meeting }} {{ table|title }}." {{ rows[0].date }}, page {{ rows[0].page }}. CivicBand Archive. Accessed <span class="access-date"></span>. https://{{ subdomain }}.civic.band{{ request.path }}
+        </p>
+        <button class="copy-citation" onclick="navigator.clipboard.writeText(document.getElementById('citation-minutes-{{ primary_key_values[0] }}').textContent.trim()).then(() => { this.textContent = 'Copied!'; setTimeout(() => this.textContent = 'Copy citation', 2000); })">Copy citation</button>
+    </div>
+</details>
+<script>
+document.querySelector('#citation-minutes-{{ primary_key_values[0] }} .access-date').textContent =
+    new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+</script>
+{% endif %}
+
 {% set action_links, action_title = row_actions, "Row actions" %}
 {% include "_action_menu.html" %}
 
@@ -47,4 +63,53 @@
         {% endfor %}
     </ul>
 {% endif %}
+
+<style>
+.cite-this {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    margin: 0.75rem 0;
+    font-size: 0.9rem;
+}
+
+.cite-this summary {
+    cursor: pointer;
+    font-weight: 500;
+    color: #495057;
+}
+
+.cite-this[open] summary {
+    margin-bottom: 0.5rem;
+}
+
+.cite-content {
+    padding: 0.5rem 0;
+}
+
+.citation-text {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 0.75rem;
+    margin: 0 0 0.5rem 0;
+    font-family: Georgia, serif;
+    line-height: 1.5;
+}
+
+.copy-citation {
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.copy-citation:hover {
+    background: #0056b3;
+}
+</style>
 {% endblock %}

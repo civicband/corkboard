@@ -1,0 +1,88 @@
+name: Deploy to Production
+
+on:
+  workflow_run:
+    workflows: ["Test"]
+    branches: [main]
+    types: [completed]
+  workflow_dispatch:
+
+concurrency:
+  group: production-deployment
+  cancel-in-progress: false
+
+env:
+  VPS_HOSTNAME: ${{ secrets.VPS_HOSTNAME }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Setup Tailscale
+        uses: tailscale/github-action@v2
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+
+      - name: Build and deploy Django on VPS
+        run: |
+          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+            deploy@${{ env.VPS_HOSTNAME }} "
+            cd /home/deploy/corkboard &&
+            git fetch origin main &&
+            git checkout main &&
+            git pull origin main &&
+            docker build -t corkboard-django:${{ github.sha }} . &&
+            /home/deploy/scripts/deploy.sh corkboard-django ${{ github.sha }}
+          "
+
+      - name: Build and deploy Datasette on VPS
+        run: |
+          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+            deploy@${{ env.VPS_HOSTNAME }} "
+            cd /home/deploy/corkboard &&
+            docker build -f Dockerfile.sites -t corkboard-datasette:${{ github.sha }} . &&
+            /home/deploy/scripts/deploy.sh corkboard-datasette ${{ github.sha }}
+          "
+
+      - name: Verify Django deployment
+        run: |
+          sleep 30
+          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+            deploy@${{ env.VPS_HOSTNAME }} "curl -f -s http://localhost:8000/health/ || curl -f -s http://localhost:8001/health/"
+
+      - name: Verify Datasette deployment
+        run: |
+          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+            deploy@${{ env.VPS_HOSTNAME }} "curl -f -s http://localhost:40001/-/versions.json || curl -f -s http://localhost:40002/-/versions.json"
+
+      - name: Notify Slack on failure
+        if: failure()
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          curl -s -X POST "$SLACK_WEBHOOK_URL" \
+            -H 'Content-type: application/json' \
+            -d '{
+              "attachments": [{
+                "color": "#e74c3c",
+                "blocks": [
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": ":x: *corkboard* | `deploy failed`\nGitHub Actions workflow failed"
+                    }
+                  },
+                  {
+                    "type": "context",
+                    "elements": [{
+                      "type": "mrkdwn",
+                      "text": "Commit: `${{ github.sha }}` | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View logs>"
+                    }]
+                  }
+                ]
+              }]
+            }'

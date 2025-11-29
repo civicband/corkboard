@@ -448,3 +448,177 @@ class TestASGIWrapper:
                 if expected_op:
                     payload = mock_client.post.call_args[1]["json"]
                     assert payload["payload"]["data"]["sql_operation"] == expected_op
+
+    @pytest.mark.asyncio
+    async def test_sql_query_deduplication(self, asgi_receive, asgi_send):
+        """Duplicate SQL queries should not be tracked."""
+        from plugins.civic_analytics import _sql_query_cache, asgi_wrapper
+
+        # Clear the cache before test
+        _sql_query_cache._cache.clear()
+
+        mock_app = AsyncMock()
+        scope = {
+            "type": "http",
+            "path": "/meetings",
+            "query_string": b"sql=SELECT+*+FROM+agendas",
+            "headers": [
+                (b"host", b"alameda.ca.civic.org"),
+                (b"x-forwarded-for", b"192.168.1.1"),
+            ],
+        }
+
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+
+        mock_client = MagicMock()
+        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+        mock_client.__aexit__ = AsyncMock()
+        mock_client.post = AsyncMock(return_value=mock_response)
+
+        with patch.dict(os.environ, {"UMAMI_ANALYTICS_ENABLED": "true"}):
+            wrapper = asgi_wrapper(None)
+            wrapped_app = wrapper(mock_app)
+
+            with patch("httpx.AsyncClient", return_value=mock_client):
+                # First request - should track
+                await wrapped_app(scope, asgi_receive, asgi_send)
+                assert mock_client.post.call_count == 1
+
+                # Second identical request - should NOT track
+                mock_app.reset_mock()
+                await wrapped_app(scope, asgi_receive, asgi_send)
+                assert mock_client.post.call_count == 1  # Still 1, not 2
+
+
+class TestSQLQueryDeduplication:
+    """Test SQL query deduplication logic."""
+
+    def test_query_cache_exists(self):
+        """SQLQueryCache class should exist."""
+        from plugins.civic_analytics import SQLQueryCache
+
+        cache = SQLQueryCache(max_size=100, ttl_seconds=3600)
+        assert cache is not None
+
+    def test_query_cache_should_track_new_query(self):
+        """New queries should be tracked."""
+        from plugins.civic_analytics import SQLQueryCache
+
+        cache = SQLQueryCache(max_size=100, ttl_seconds=3600)
+
+        result = cache.should_track(
+            "SELECT * FROM agendas", "192.168.1.1", "alameda.ca"
+        )
+        assert result is True
+
+    def test_query_cache_should_not_track_duplicate(self):
+        """Duplicate queries from same IP/subdomain should not be tracked."""
+        from plugins.civic_analytics import SQLQueryCache
+
+        cache = SQLQueryCache(max_size=100, ttl_seconds=3600)
+
+        # First call - should track
+        result1 = cache.should_track(
+            "SELECT * FROM agendas", "192.168.1.1", "alameda.ca"
+        )
+        assert result1 is True
+
+        # Second call - same query, same IP, same subdomain - should not track
+        result2 = cache.should_track(
+            "SELECT * FROM agendas", "192.168.1.1", "alameda.ca"
+        )
+        assert result2 is False
+
+    def test_query_cache_different_ip_should_track(self):
+        """Same query from different IP should be tracked."""
+        from plugins.civic_analytics import SQLQueryCache
+
+        cache = SQLQueryCache(max_size=100, ttl_seconds=3600)
+
+        cache.should_track("SELECT * FROM agendas", "192.168.1.1", "alameda.ca")
+
+        # Different IP - should track
+        result = cache.should_track(
+            "SELECT * FROM agendas", "192.168.1.2", "alameda.ca"
+        )
+        assert result is True
+
+    def test_query_cache_different_subdomain_should_track(self):
+        """Same query from different subdomain should be tracked."""
+        from plugins.civic_analytics import SQLQueryCache
+
+        cache = SQLQueryCache(max_size=100, ttl_seconds=3600)
+
+        cache.should_track("SELECT * FROM agendas", "192.168.1.1", "alameda.ca")
+
+        # Different subdomain - should track
+        result = cache.should_track(
+            "SELECT * FROM agendas", "192.168.1.1", "oakland.ca"
+        )
+        assert result is True
+
+    def test_query_cache_normalizes_whitespace(self):
+        """Queries should be normalized for comparison."""
+        from plugins.civic_analytics import SQLQueryCache
+
+        cache = SQLQueryCache(max_size=100, ttl_seconds=3600)
+
+        cache.should_track("SELECT * FROM agendas", "192.168.1.1", "alameda.ca")
+
+        # Same query with different whitespace - should not track
+        result = cache.should_track(
+            "SELECT  *  FROM  agendas", "192.168.1.1", "alameda.ca"
+        )
+        assert result is False
+
+    def test_query_cache_normalizes_case(self):
+        """Queries should be case-insensitive for comparison."""
+        from plugins.civic_analytics import SQLQueryCache
+
+        cache = SQLQueryCache(max_size=100, ttl_seconds=3600)
+
+        cache.should_track("SELECT * FROM agendas", "192.168.1.1", "alameda.ca")
+
+        # Same query with different case - should not track
+        result = cache.should_track(
+            "select * from agendas", "192.168.1.1", "alameda.ca"
+        )
+        assert result is False
+
+    def test_query_cache_max_size(self):
+        """Cache should respect max size with LRU eviction."""
+        from plugins.civic_analytics import SQLQueryCache
+
+        cache = SQLQueryCache(max_size=3, ttl_seconds=3600)
+
+        # Add 3 entries
+        cache.should_track("query1", "192.168.1.1", "alameda.ca")
+        cache.should_track("query2", "192.168.1.1", "alameda.ca")
+        cache.should_track("query3", "192.168.1.1", "alameda.ca")
+
+        # Add 4th entry - should evict oldest
+        cache.should_track("query4", "192.168.1.1", "alameda.ca")
+
+        # query1 should have been evicted, so it should be tracked again
+        result = cache.should_track("query1", "192.168.1.1", "alameda.ca")
+        assert result is True
+
+    def test_query_cache_ttl_expiry(self):
+        """Entries should expire after TTL."""
+        import time
+
+        from plugins.civic_analytics import SQLQueryCache
+
+        cache = SQLQueryCache(max_size=100, ttl_seconds=1)
+
+        cache.should_track("SELECT * FROM agendas", "192.168.1.1", "alameda.ca")
+
+        # Wait for TTL to expire
+        time.sleep(1.1)
+
+        # Should track again after expiry
+        result = cache.should_track(
+            "SELECT * FROM agendas", "192.168.1.1", "alameda.ca"
+        )
+        assert result is True

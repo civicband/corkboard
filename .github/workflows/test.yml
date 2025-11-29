@@ -67,3 +67,32 @@ jobs:
         with:
           name: coverage-report
           path: htmlcov/
+
+      - name: Notify Slack on failure
+        if: failure() && github.ref == 'refs/heads/main'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          curl -s -X POST "$SLACK_WEBHOOK_URL" \
+            -H 'Content-type: application/json' \
+            -d '{
+              "attachments": [{
+                "color": "#e74c3c",
+                "blocks": [
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": ":x: *corkboard* | `tests failed`\nCI checks failed on main branch"
+                    }
+                  },
+                  {
+                    "type": "context",
+                    "elements": [{
+                      "type": "mrkdwn",
+                      "text": "Commit: `${{ github.sha }}` | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View logs>"
+                    }]
+                  }
+                ]
+              }]
+            }'

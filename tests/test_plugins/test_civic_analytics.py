@@ -449,6 +449,47 @@ class TestASGIWrapper:
                     payload = mock_client.post.call_args[1]["json"]
                     assert payload["payload"]["data"]["sql_operation"] == expected_op
 
+    @pytest.mark.asyncio
+    async def test_sql_query_deduplication(self, asgi_receive, asgi_send):
+        """Duplicate SQL queries should not be tracked."""
+        from plugins.civic_analytics import _sql_query_cache, asgi_wrapper
+
+        # Clear the cache before test
+        _sql_query_cache._cache.clear()
+
+        mock_app = AsyncMock()
+        scope = {
+            "type": "http",
+            "path": "/meetings",
+            "query_string": b"sql=SELECT+*+FROM+agendas",
+            "headers": [
+                (b"host", b"alameda.ca.civic.org"),
+                (b"x-forwarded-for", b"192.168.1.1"),
+            ],
+        }
+
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+
+        mock_client = MagicMock()
+        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+        mock_client.__aexit__ = AsyncMock()
+        mock_client.post = AsyncMock(return_value=mock_response)
+
+        with patch.dict(os.environ, {"UMAMI_ANALYTICS_ENABLED": "true"}):
+            wrapper = asgi_wrapper(None)
+            wrapped_app = wrapper(mock_app)
+
+            with patch("httpx.AsyncClient", return_value=mock_client):
+                # First request - should track
+                await wrapped_app(scope, asgi_receive, asgi_send)
+                assert mock_client.post.call_count == 1
+
+                # Second identical request - should NOT track
+                mock_app.reset_mock()
+                await wrapped_app(scope, asgi_receive, asgi_send)
+                assert mock_client.post.call_count == 1  # Still 1, not 2
+
 
 class TestSQLQueryDeduplication:
     """Test SQL query deduplication logic."""

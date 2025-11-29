@@ -236,6 +236,27 @@ def parse_datasette_path(path: str) -> Dict[str, Optional[str]]:
     return result
 
 
+def get_client_ip(headers: Dict[str, str], scope: Dict) -> str:
+    """Extract client IP from headers or scope."""
+    # Check X-Forwarded-For header first (for proxied requests)
+    forwarded_for = headers.get("x-forwarded-for", "")
+    if forwarded_for:
+        # Take the first IP in the chain
+        return forwarded_for.split(",")[0].strip()
+
+    # Check X-Real-IP header
+    real_ip = headers.get("x-real-ip", "")
+    if real_ip:
+        return real_ip.strip()
+
+    # Fall back to direct connection
+    client = scope.get("client")
+    if client:
+        return client[0]
+
+    return "unknown"
+
+
 @hookimpl
 def asgi_wrapper(datasette):
     """Wrap ASGI application to track analytics events."""
@@ -296,8 +317,16 @@ def asgi_wrapper(datasette):
 
             # Detect and track SQL query events
             elif "sql" in query_params and query_params["sql"]:
-                event_name = "sql_query"
                 sql_text = query_params["sql"][0]
+
+                # Check deduplication cache
+                client_ip = get_client_ip(headers, scope)
+                if not _sql_query_cache.should_track(sql_text, client_ip, subdomain):
+                    # Duplicate query, skip tracking but continue with request
+                    await app(scope, receive, send)
+                    return
+
+                event_name = "sql_query"
 
                 # Extract database from path
                 path_info = parse_datasette_path(path)

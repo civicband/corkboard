@@ -1,28 +1,43 @@
-FROM python:3.12-slim-bullseye AS build
+# ------------------------------------------------------------
+# Base/builder layer
+# ------------------------------------------------------------
 
-# Version of Datasette to install, e.g. 0.55
-#   docker build . -t datasette --build-arg VERSION=0.55
-ARG VERSION
+FROM python:3.12-slim-bullseye AS builder
 
 # Keeps Python from generating .pyc files in the container
 ENV PYTHONDONTWRITEBYTECODE=1
-
 # Turns off buffering for easier container logging
 ENV PYTHONUNBUFFERED=1
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 
 RUN apt-get update && \
     apt clean && \
     rm -rf /var/lib/apt && \
     rm -rf /var/lib/dpkg/info/*
 
-VOLUME .:/app
+COPY pyproject.toml /tmp/pyproject.toml
+
+RUN --mount=type=cache,target=/root/.cache,sharing=locked,id=pip \
+    python -m pip install --upgrade pip uv
+
+RUN --mount=type=cache,target=/root/.cache,sharing=locked,id=pip \
+    python -m uv pip compile /tmp/pyproject.toml -o /tmp/requirements.txt
+
+RUN --mount=type=cache,target=/root/.cache,sharing=locked,id=pip \
+    python -m uv pip install --system --requirement /tmp/requirements.txt
+
+# ------------------------------------------------------------
+# Release layer
+# ------------------------------------------------------------
+
+FROM builder AS release
 
 WORKDIR /app
 
-RUN python -m pip install --upgrade pip
-COPY ./requirements.txt .
-RUN pip install -r requirements.txt
+COPY . /app/
 
 ENV DJP_PLUGINS_DIR=django_plugins
 
 EXPOSE 8000
+
+CMD ["uvicorn", "config.asgi:application", "--host", "0.0.0.0", "--limit-max-requests", "100", "--timeout-graceful-shutdown", "7"]

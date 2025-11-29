@@ -1,5 +1,18 @@
 {% extends "default:row.html" %}
 
+{% block extra_head %}
+<!-- Dublin Core metadata for citation tools -->
+<meta name="DC.title" content="{{ rows[0].meeting }} {{ table|title }}, {{ rows[0].date }}">
+<meta name="DC.creator" content="{{ site_name }}">
+<meta name="DC.publisher" content="CivicBand Archive">
+<meta name="DC.date" content="{{ rows[0].date }}">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.identifier" content="https://{{ subdomain }}.civic.band{{ request.path }}">
+<meta name="DC.source" content="{{ site_name }}">
+<meta name="DC.language" content="en">
+{% endblock %}
+
 {% block content %}
 <h1 style="padding-left: 10px; border-left: 10px solid #{{ database_color }}">
     {{ table }}: {{ ', '.join(primary_key_values) }}{% if private %} 🔒{% endif %}
@@ -9,6 +22,22 @@
 <p style="margin: 0.5rem 0;">
     <a href="/{{ database }}/{{ table }}?meeting__exact={{ rows[0].meeting|urlencode }}&date__exact={{ rows[0].date|urlencode }}&page__gte={{ [rows[0].page - 2, 1]|max }}&page__lte={{ rows[0].page + 2 }}&_sort=page" data-umami-event="row_context" data-umami-event-table="minutes">View surrounding pages (pages {{ [rows[0].page - 2, 1]|max }}–{{ rows[0].page + 2 }})</a>
 </p>
+{% endif %}
+
+{% if rows and rows[0].meeting and rows[0].date %}
+<details class="cite-this">
+    <summary>Cite this page</summary>
+    <div class="cite-content">
+        <p class="citation-text" id="citation-minutes-{{ primary_key_values[0] }}">
+            {{ site_name }}. "{{ rows[0].meeting }} {{ table|title }}." {{ rows[0].date }}, page {{ rows[0].page }}. CivicBand Archive. Accessed <span class="access-date"></span>. https://{{ subdomain }}.civic.band{{ request.path }}
+        </p>
+        <button class="copy-citation" onclick="navigator.clipboard.writeText(document.getElementById('citation-minutes-{{ primary_key_values[0] }}').textContent.trim()).then(() => { this.textContent = 'Copied!'; setTimeout(() => this.textContent = 'Copy citation', 2000); })">Copy citation</button>
+    </div>
+</details>
+<script>
+document.querySelector('#citation-minutes-{{ primary_key_values[0] }} .access-date').textContent =
+    new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+</script>
 {% endif %}
 
 {% set action_links, action_title = row_actions, "Row actions" %}
@@ -34,4 +63,53 @@
         {% endfor %}
     </ul>
 {% endif %}
+
+<style>
+.cite-this {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    margin: 0.75rem 0;
+    font-size: 0.9rem;
+}
+
+.cite-this summary {
+    cursor: pointer;
+    font-weight: 500;
+    color: #495057;
+}
+
+.cite-this[open] summary {
+    margin-bottom: 0.5rem;
+}
+
+.cite-content {
+    padding: 0.5rem 0;
+}
+
+.citation-text {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 0.75rem;
+    margin: 0 0 0.5rem 0;
+    font-family: Georgia, serif;
+    line-height: 1.5;
+}
+
+.copy-citation {
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.copy-citation:hover {
+    background: #0056b3;
+}
+</style>
 {% endblock %}

@@ -89,20 +89,19 @@ shell:
 manage *args:
     uv run python manage.py {{args}}
 
-# Start development environment (Redis + Django dev server)
+# Start development environment (Django + Redis in Docker)
 dev:
-    @echo "Starting development environment..."
-    docker compose up -d redis
-    @echo "Waiting for Redis to be ready..."
-    @sleep 2
-    @echo "Redis ready. Starting Django dev server..."
-    DEBUG=true REDIS_URL=redis://localhost:6379 uv run python manage.py runserver
+    docker compose up django_dev
 
-# Start full Docker stack (all services)
-dev-docker:
+# Start development environment in background
+dev-d:
+    docker compose up -d django_dev
+
+# Start production-like Docker stack (blue)
+prod:
     docker compose up django_blue redis
 
-# Run Docker development environment
+# Run Docker development environment (all services)
 docker-up:
     docker compose up
 
@@ -115,8 +114,12 @@ docker-down:
     docker compose down
 
 # View Docker logs
-docker-logs:
-    docker compose logs -f
+docker-logs *args:
+    docker compose logs -f {{args}}
+
+# Rebuild Docker images
+docker-build:
+    docker compose build
 
 # Start just Redis for local development
 redis:

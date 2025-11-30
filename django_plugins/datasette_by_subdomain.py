@@ -6,6 +6,7 @@ from jinja2 import Environment, FileSystemLoader
 
 from django_plugins.api_key_auth import (
     extract_api_key,
+    is_first_party_request,
     is_json_endpoint,
     make_401_response,
     validate_api_key,
@@ -28,15 +29,19 @@ async def send_401_response(send):
     """Send a 401 Unauthorized response."""
     body, headers = make_401_response()
 
-    await send({
-        "type": "http.response.start",
-        "status": 401,
-        "headers": headers,
-    })
-    await send({
-        "type": "http.response.body",
-        "body": body,
-    })
+    await send(
+        {
+            "type": "http.response.start",
+            "status": 401,
+            "headers": headers,
+        }
+    )
+    await send(
+        {
+            "type": "http.response.body",
+            "body": body,
+        }
+    )
 
 
 async def datasette_by_subdomain_wrapper(scope, receive, send, app):
@@ -71,9 +76,11 @@ async def datasette_by_subdomain_wrapper(scope, receive, send, app):
             "last_updated": site["last_updated"],
         }
 
-        # Check API key for JSON endpoints
+        # Check API key for JSON endpoints (unless first-party browser request)
+        # First-party requests (matching Referer) are allowed without auth
+        # to support datasette-search-all and other browser AJAX calls
         path = scope.get("path", "")
-        if is_json_endpoint(path):
+        if is_json_endpoint(path) and not is_first_party_request(headers, subdomain):
             api_key = extract_api_key(headers, scope.get("query_string", b""))
 
             # No key = instant 401 (DDoS protection)
@@ -107,8 +114,8 @@ async def datasette_by_subdomain_wrapper(scope, receive, send, app):
                 "num_sql_threads": 5,
                 "default_facet_size": 10,
                 "facet_time_limit_ms": 100,
-                "allow_download": "off",
-                "allow_csv_stream": "off",
+                "allow_download": False,
+                "allow_csv_stream": False,
             },
         ).app()
         await ds(scope, receive, send)

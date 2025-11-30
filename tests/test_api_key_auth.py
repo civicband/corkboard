@@ -4,6 +4,7 @@ import pytest
 
 from django_plugins.api_key_auth import (
     extract_api_key,
+    is_first_party_request,
     is_json_endpoint,
     make_401_response,
 )
@@ -26,6 +27,56 @@ class TestIsJsonEndpoint:
 
     def test_json_in_path_but_not_extension(self):
         assert is_json_endpoint("/meetings/json/minutes") is False
+
+
+class TestIsFirstPartyRequest:
+    """Test first-party request detection via Referer header."""
+
+    def test_matching_referer_allowed(self):
+        """Referer from same subdomain should be first-party."""
+        headers = [(b"referer", b"https://alameda.ca.civic.band/meetings/minutes")]
+        assert is_first_party_request(headers, "alameda.ca") is True
+
+    def test_matching_referer_with_query_string(self):
+        """Referer with query string from same subdomain should be first-party."""
+        headers = [(b"referer", b"https://alameda.ca.civic.band/-/search?q=budget")]
+        assert is_first_party_request(headers, "alameda.ca") is True
+
+    def test_different_subdomain_rejected(self):
+        """Referer from different subdomain should not be first-party."""
+        headers = [(b"referer", b"https://oakland.ca.civic.band/meetings/minutes")]
+        assert is_first_party_request(headers, "alameda.ca") is False
+
+    def test_external_referer_rejected(self):
+        """Referer from external site should not be first-party."""
+        headers = [(b"referer", b"https://example.com/scraper")]
+        assert is_first_party_request(headers, "alameda.ca") is False
+
+    def test_no_referer_rejected(self):
+        """Request without Referer should not be first-party."""
+        headers = [(b"content-type", b"application/json")]
+        assert is_first_party_request(headers, "alameda.ca") is False
+
+    def test_empty_headers_rejected(self):
+        """Request with no headers should not be first-party."""
+        assert is_first_party_request([], "alameda.ca") is False
+
+    def test_http_referer_rejected(self):
+        """HTTP (non-HTTPS) referer should not be first-party."""
+        headers = [(b"referer", b"http://alameda.ca.civic.band/meetings")]
+        assert is_first_party_request(headers, "alameda.ca") is False
+
+    def test_partial_subdomain_match_rejected(self):
+        """Partial subdomain match should not be first-party."""
+        # "alameda" should not match "alameda.ca"
+        headers = [(b"referer", b"https://alameda.civic.band/meetings")]
+        assert is_first_party_request(headers, "alameda.ca") is False
+
+    def test_subdomain_prefix_attack_rejected(self):
+        """Subdomain prefix attack should not be first-party."""
+        # "alameda.ca.civic.band.evil.com" should not match
+        headers = [(b"referer", b"https://alameda.ca.civic.band.evil.com/")]
+        assert is_first_party_request(headers, "alameda.ca") is False
 
 
 class TestExtractApiKey:

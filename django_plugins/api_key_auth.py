@@ -136,6 +136,35 @@ def is_json_endpoint(path: str) -> bool:
     return path.endswith(".json")
 
 
+def is_first_party_request(headers: list, subdomain: str) -> bool:
+    """
+    Check if request is a first-party browser request via Referer header.
+
+    First-party requests (e.g., datasette-search-all AJAX calls) are allowed
+    without API key authentication. The Referer must match the subdomain
+    being requested to prevent cross-origin scraping.
+
+    Args:
+        headers: List of (name, value) tuples from ASGI scope
+        subdomain: The subdomain being accessed (e.g., "alameda.ca")
+
+    Returns:
+        True if Referer matches the expected origin for this subdomain
+    """
+    # Must match origin exactly, followed by / or end of string
+    # This prevents prefix attacks like "alameda.ca.civic.band.evil.com"
+    expected_origin = f"https://{subdomain}.civic.band/"
+
+    for header_name, header_value in headers:
+        name = header_name.decode("utf-8").lower()
+        if name == "referer":
+            referer = header_value.decode("utf-8")
+            if referer.startswith(expected_origin):
+                return True
+
+    return False
+
+
 def make_401_response() -> tuple:
     """Create a 401 Unauthorized JSON response."""
     body = json.dumps({

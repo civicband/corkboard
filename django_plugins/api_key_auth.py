@@ -151,9 +151,11 @@ def is_first_party_request(headers: list, subdomain: str) -> bool:
     Returns:
         True if Referer matches the expected origin for this subdomain
     """
-    # Must match origin exactly, followed by / or end of string
+    # Must match origin exactly, followed by /
     # This prevents prefix attacks like "alameda.ca.civic.band.evil.com"
-    expected_origin = f"https://{subdomain}.civic.band/"
+    # Domain is configurable via CIVIC_BAND_DOMAIN env var for development
+    domain = settings.CIVIC_BAND_DOMAIN
+    expected_origin = f"https://{subdomain}.{domain}/"
 
     for header_name, header_value in headers:
         name = header_name.decode("utf-8").lower()

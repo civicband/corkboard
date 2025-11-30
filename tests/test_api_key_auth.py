@@ -78,6 +78,16 @@ class TestIsFirstPartyRequest:
         headers = [(b"referer", b"https://alameda.ca.civic.band.evil.com/")]
         assert is_first_party_request(headers, "alameda.ca") is False
 
+    def test_custom_domain_from_settings(self, settings):
+        """Custom domain from CIVIC_BAND_DOMAIN setting should work."""
+        settings.CIVIC_BAND_DOMAIN = "localhost:8000"
+        headers = [(b"referer", b"https://alameda.ca.localhost:8000/meetings")]
+        assert is_first_party_request(headers, "alameda.ca") is True
+
+        # Original domain should not match with custom setting
+        headers = [(b"referer", b"https://alameda.ca.civic.band/meetings")]
+        assert is_first_party_request(headers, "alameda.ca") is False
+
 
 class TestExtractApiKey:
     """Test API key extraction from requests."""

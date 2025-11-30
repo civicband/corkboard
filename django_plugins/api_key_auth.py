@@ -138,6 +138,36 @@ def is_json_endpoint(path: str) -> bool:
     return path.endswith(".json")
 
 
+def is_internal_service_request(headers: list) -> bool:
+    """
+    Check if request is from an internal service (e.g., civic.observer).
+
+    Internal services authenticate via X-Service-Secret header matching
+    the CIVIC_OBSERVER_SECRET setting.
+
+    Args:
+        headers: List of (name, value) tuples from ASGI scope
+
+    Returns:
+        True if X-Service-Secret header matches the configured secret
+    """
+    expected_secret = settings.CIVIC_OBSERVER_SECRET
+    if not expected_secret or expected_secret == "dev-secret-change-me":
+        # Don't allow bypass if secret is not configured
+        return False
+
+    for header_name, header_value in headers:
+        name = header_name.decode("utf-8").lower()
+        if name == "x-service-secret":
+            provided_secret = header_value.decode("utf-8")
+            # Use constant-time comparison to prevent timing attacks
+            import hmac
+
+            return hmac.compare_digest(provided_secret, expected_secret)
+
+    return False
+
+
 def is_first_party_request(headers: list, subdomain: str) -> bool:
     """
     Check if request is a first-party browser request via Referer header.

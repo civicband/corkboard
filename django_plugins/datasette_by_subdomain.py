@@ -7,6 +7,7 @@ from jinja2 import Environment, FileSystemLoader
 from django_plugins.api_key_auth import (
     extract_api_key,
     is_first_party_request,
+    is_internal_service_request,
     is_json_endpoint,
     make_401_response,
     validate_api_key,
@@ -76,11 +77,15 @@ async def datasette_by_subdomain_wrapper(scope, receive, send, app):
             "last_updated": site["last_updated"],
         }
 
-        # Check API key for JSON endpoints (unless first-party browser request)
-        # First-party requests (matching Referer) are allowed without auth
-        # to support datasette-search-all and other browser AJAX calls
+        # Check API key for JSON endpoints unless:
+        # 1. First-party browser request (matching Referer) - for datasette-search-all
+        # 2. Internal service request (valid X-Service-Secret) - for civic.observer
         path = scope.get("path", "")
-        if is_json_endpoint(path) and not is_first_party_request(headers, subdomain):
+        if (
+            is_json_endpoint(path)
+            and not is_first_party_request(headers, subdomain)
+            and not is_internal_service_request(headers)
+        ):
             api_key = extract_api_key(headers, scope.get("query_string", b""))
 
             # No key = instant 401 (DDoS protection)

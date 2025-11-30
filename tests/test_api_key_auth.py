@@ -5,6 +5,7 @@ import pytest
 from django_plugins.api_key_auth import (
     extract_api_key,
     is_first_party_request,
+    is_internal_service_request,
     is_json_endpoint,
     make_401_response,
 )
@@ -87,6 +88,57 @@ class TestIsFirstPartyRequest:
         # Original domain should not match with custom setting
         headers = [(b"referer", b"https://alameda.ca.civic.band/meetings")]
         assert is_first_party_request(headers, "alameda.ca") is False
+
+
+class TestIsInternalServiceRequest:
+    """Test internal service request detection via X-Service-Secret header."""
+
+    def test_valid_secret_allowed(self, settings):
+        """Request with valid X-Service-Secret should be allowed."""
+        settings.CIVIC_OBSERVER_SECRET = "real-secret-value"
+        headers = [(b"x-service-secret", b"real-secret-value")]
+        assert is_internal_service_request(headers) is True
+
+    def test_invalid_secret_rejected(self, settings):
+        """Request with invalid X-Service-Secret should be rejected."""
+        settings.CIVIC_OBSERVER_SECRET = "real-secret-value"
+        headers = [(b"x-service-secret", b"wrong-secret")]
+        assert is_internal_service_request(headers) is False
+
+    def test_missing_header_rejected(self, settings):
+        """Request without X-Service-Secret should be rejected."""
+        settings.CIVIC_OBSERVER_SECRET = "real-secret-value"
+        headers = [(b"content-type", b"application/json")]
+        assert is_internal_service_request(headers) is False
+
+    def test_empty_headers_rejected(self, settings):
+        """Request with no headers should be rejected."""
+        settings.CIVIC_OBSERVER_SECRET = "real-secret-value"
+        assert is_internal_service_request([]) is False
+
+    def test_default_secret_rejected(self, settings):
+        """Default dev secret should not allow bypass."""
+        settings.CIVIC_OBSERVER_SECRET = "dev-secret-change-me"
+        headers = [(b"x-service-secret", b"dev-secret-change-me")]
+        assert is_internal_service_request(headers) is False
+
+    def test_empty_secret_rejected(self, settings):
+        """Empty secret should not allow bypass."""
+        settings.CIVIC_OBSERVER_SECRET = ""
+        headers = [(b"x-service-secret", b"")]
+        assert is_internal_service_request(headers) is False
+
+    def test_none_secret_rejected(self, settings):
+        """None secret should not allow bypass."""
+        settings.CIVIC_OBSERVER_SECRET = None
+        headers = [(b"x-service-secret", b"anything")]
+        assert is_internal_service_request(headers) is False
+
+    def test_case_insensitive_header_name(self, settings):
+        """Header name matching should be case-insensitive."""
+        settings.CIVIC_OBSERVER_SECRET = "real-secret-value"
+        headers = [(b"X-Service-Secret", b"real-secret-value")]
+        assert is_internal_service_request(headers) is True
 
 
 class TestExtractApiKey:

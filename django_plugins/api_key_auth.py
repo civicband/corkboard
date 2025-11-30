@@ -61,7 +61,9 @@ async def validate_api_key(api_key: str, subdomain: str) -> dict:
     result = await _call_civic_observer(api_key, subdomain)
 
     # Cache the result
-    ttl = settings.API_KEY_VALID_TTL if result["valid"] else settings.API_KEY_INVALID_TTL
+    ttl = (
+        settings.API_KEY_VALID_TTL if result["valid"] else settings.API_KEY_INVALID_TTL
+    )
     await redis_client.setex(cache_key, ttl, json.dumps(result))
 
     return result
@@ -156,6 +158,8 @@ def is_first_party_request(headers: list, subdomain: str) -> bool:
     # Domain is configurable via CIVIC_BAND_DOMAIN env var for development
     domain = settings.CIVIC_BAND_DOMAIN
     expected_origin = f"https://{subdomain}.{domain}/"
+    if settings.DEBUG:
+        expected_origin = f"http://{subdomain}.{domain}/"
 
     for header_name, header_value in headers:
         name = header_name.decode("utf-8").lower()
@@ -169,10 +173,9 @@ def is_first_party_request(headers: list, subdomain: str) -> bool:
 
 def make_401_response() -> tuple:
     """Create a 401 Unauthorized JSON response."""
-    body = json.dumps({
-        "error": "API key required",
-        "docs": "https://civic.observer/api-keys"
-    }).encode("utf-8")
+    body = json.dumps(
+        {"error": "API key required", "docs": "https://civic.observer/api-keys"}
+    ).encode("utf-8")
 
     return body, [
         (b"content-type", b"application/json"),

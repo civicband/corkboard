@@ -1,21 +1,4 @@
 services:
-  # Development service with DEBUG enabled
-  django_dev:
-    build: .
-    volumes:
-      - .:/app/
-      - ../sites:/sites/
-    environment:
-      - DEBUG=true
-      - DJP_PLUGINS_DIR=django_plugins
-      - REDIS_URL=redis://redis:6379
-      - CIVIC_BAND_DOMAIN=localhost:8000
-    command: uvicorn config.asgi:application --host 0.0.0.0 --reload
-    ports:
-      - 8000:8000
-    depends_on:
-      - redis
-
   anubis_django_blue:
     image: ghcr.io/techarohq/anubis:latest
     environment:
@@ -34,10 +17,11 @@ services:
     volumes:
       - .:/app/
       - ../sites:/sites/
+    env_file:
+      - .env
     environment:
       - DJP_PLUGINS_DIR=django_plugins
       - WEB_CONCURRENCY=4
-      - DJANGO_SETTINGS_MODULE=config.prod_settings
       - REDIS_URL=redis://redis:6379
     command: uvicorn config.asgi:application --host 0.0.0.0 --limit-max-requests 100 --timeout-graceful-shutdown 7
     ports:
@@ -62,10 +46,11 @@ services:
     volumes:
       - .:/app/
       - ../sites:/sites/
+    env_file:
+      - .env
     environment:
       - DJP_PLUGINS_DIR=django_plugins
       - WEB_CONCURRENCY=4
-      - DJANGO_SETTINGS_MODULE=config.prod_settings
       - REDIS_URL=redis://redis:6379
     command: uvicorn config.asgi:application --host 0.0.0.0 --limit-max-requests 100 --timeout-graceful-shutdown 7
     depends_on:

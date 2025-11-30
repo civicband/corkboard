@@ -90,16 +90,13 @@ manage *args:
     uv run python manage.py {{args}}
 
 # Start development environment (Django + Redis in Docker)
+# Configure DEBUG, CIVIC_BAND_DOMAIN, etc. in .env file
 dev:
-    docker compose up django_dev
+    docker compose up django_blue
 
 # Start development environment in background
 dev-d:
-    docker compose up -d django_dev
-
-# Start production-like Docker stack (blue)
-prod:
-    docker compose up django_blue redis
+    docker compose up -d django_blue
 
 # Run Docker development environment (all services)
 docker-up:

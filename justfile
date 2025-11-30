@@ -96,7 +96,7 @@ dev:
     @echo "Waiting for Redis to be ready..."
     @sleep 2
     @echo "Redis ready. Starting Django dev server..."
-    REDIS_URL=redis://localhost:6379 uv run python manage.py runserver
+    DEBUG=true REDIS_URL=redis://localhost:6379 uv run python manage.py runserver
 
 # Start full Docker stack (all services)
 dev-docker:

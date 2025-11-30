@@ -218,7 +218,9 @@ DJP_PLUGINS_DIR = [BASE_DIR / "django_plugins"]
 # API Key Authentication Settings
 REDIS_URL = get_env_variable("REDIS_URL", "redis://localhost:6379")
 CIVIC_OBSERVER_URL = get_env_variable("CIVIC_OBSERVER_URL", "http://localhost:8080")
-CIVIC_OBSERVER_SECRET = get_env_variable("CIVIC_OBSERVER_SECRET", "dev-secret-change-me")
+CIVIC_OBSERVER_SECRET = get_env_variable(
+    "CIVIC_OBSERVER_SECRET", "dev-secret-change-me"
+)
 CIVIC_BAND_DOMAIN = get_env_variable("CIVIC_BAND_DOMAIN", "civic.band")
 
 # Cache TTLs (in seconds)

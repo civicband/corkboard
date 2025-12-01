@@ -13,6 +13,7 @@ services:
     volumes:
       - "./botPolicy.yaml:/data/cfg/botPolicy.yaml:ro"
   django_blue:
+    image: corkboard-django:${VERSION:-latest}
     build: .
     volumes:
       - .:/app/
@@ -42,6 +43,7 @@ services:
     volumes:
       - "./botPolicy.yaml:/data/cfg/botPolicy.yaml:ro"
   django_green:
+    image: corkboard-django:${VERSION:-latest}
     build: .
     volumes:
       - .:/app/
@@ -65,6 +67,7 @@ services:
     command: redis-server --appendonly yes
 
   sites_datasette_blue:
+    image: corkboard-datasette:${VERSION:-latest}
     build:
       dockerfile: Dockerfile.sites
     ports:
@@ -82,6 +85,7 @@ services:
       --setting allow_download off
       --setting allow_csv_stream off
   sites_datasette_green:
+    image: corkboard-datasette:${VERSION:-latest}
     build:
       dockerfile: Dockerfile.sites
     ports:

@@ -42,7 +42,7 @@ jobs:
             git fetch origin main &&
             git checkout main &&
             git pull origin main &&
-            docker build -t corkboard-django:${{ github.sha }} . &&
+            docker build --no-cache -t corkboard-django:${{ github.sha }} . &&
             CANARY_PERIOD=$CANARY_PERIOD /home/deploy/scripts/deploy.sh corkboard-django ${{ github.sha }}
           "
 
@@ -53,7 +53,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
             deploy@${{ env.VPS_HOSTNAME }} "
             cd /home/deploy/corkboard &&
-            docker build -f Dockerfile.sites -t corkboard-datasette:${{ github.sha }} . &&
+            docker build --no-cache -f Dockerfile.sites -t corkboard-datasette:${{ github.sha }} . &&
             CANARY_PERIOD=$CANARY_PERIOD /home/deploy/scripts/deploy.sh corkboard-datasette ${{ github.sha }}
           "
 

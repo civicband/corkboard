@@ -25,7 +25,7 @@ services:
       - DJP_PLUGINS_DIR=django_plugins
       - WEB_CONCURRENCY=4
       - REDIS_URL=redis://redis:6379
-    command: uvicorn config.asgi:application --host 0.0.0.0 --limit-max-requests 100 --timeout-graceful-shutdown 7
+    command: uvicorn config.asgi:application --host 0.0.0.0 --limit-max-requests 1000 --timeout-graceful-shutdown 7
     ports:
       - 9000:8000
     depends_on:
@@ -56,7 +56,7 @@ services:
       - DJP_PLUGINS_DIR=django_plugins
       - WEB_CONCURRENCY=4
       - REDIS_URL=redis://redis:6379
-    command: uvicorn config.asgi:application --host 0.0.0.0 --limit-max-requests 100 --timeout-graceful-shutdown 7
+    command: uvicorn config.asgi:application --host 0.0.0.0 --limit-max-requests 1000 --timeout-graceful-shutdown 7
     depends_on:
       - redis
 

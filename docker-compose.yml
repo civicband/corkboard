@@ -21,6 +21,7 @@ services:
     env_file:
       - .env
     environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
       - DJP_PLUGINS_DIR=django_plugins
       - WEB_CONCURRENCY=4
       - REDIS_URL=redis://redis:6379
@@ -51,6 +52,7 @@ services:
     env_file:
       - .env
     environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
       - DJP_PLUGINS_DIR=django_plugins
       - WEB_CONCURRENCY=4
       - REDIS_URL=redis://redis:6379

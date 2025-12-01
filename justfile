@@ -89,7 +89,16 @@ shell:
 manage *args:
     uv run python manage.py {{args}}
 
-# Run Docker development environment
+# Start development environment (Django + Redis in Docker)
+# Configure DEBUG, CIVIC_BAND_DOMAIN, etc. in .env file
+dev:
+    docker compose up django_blue
+
+# Start development environment in background
+dev-d:
+    docker compose up -d django_blue
+
+# Run Docker development environment (all services)
 docker-up:
     docker compose up
 
@@ -102,8 +111,20 @@ docker-down:
     docker compose down
 
 # View Docker logs
-docker-logs:
-    docker compose logs -f
+docker-logs *args:
+    docker compose logs -f {{args}}
+
+# Rebuild Docker images
+docker-build:
+    docker compose build
+
+# Start just Redis for local development
+redis:
+    docker compose up -d redis
+
+# Stop Redis
+redis-down:
+    docker compose stop redis
 
 # Clean Python cache files
 clean:

@@ -25,7 +25,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Set DEBUG=true in environment to enable debug mode
+DEBUG = os.environ.get("DEBUG", "false").lower() in ("true", "1", "yes")
 
 
 def get_env_variable(var_name, default=None):
@@ -34,7 +35,7 @@ def get_env_variable(var_name, default=None):
         return os.environ[var_name]
     except KeyError as exc:
         error_msg = f"Set the {var_name} env variable"
-        if DEBUG or default:
+        if DEBUG or default is not None:
             warnings.warn(error_msg, stacklevel=2)
             return default
         else:
@@ -212,6 +213,19 @@ logging.config.dictConfig(
 
 
 DJP_PLUGINS_DIR = [BASE_DIR / "django_plugins"]
+
+
+# API Key Authentication Settings
+REDIS_URL = get_env_variable("REDIS_URL", "redis://localhost:6379")
+CIVIC_OBSERVER_URL = get_env_variable("CIVIC_OBSERVER_URL", "http://localhost:8080")
+CIVIC_OBSERVER_SECRET = get_env_variable(
+    "CIVIC_OBSERVER_SECRET", "dev-secret-change-me"
+)
+CIVIC_BAND_DOMAIN = get_env_variable("CIVIC_BAND_DOMAIN", "civic.band")
+
+# Cache TTLs (in seconds)
+API_KEY_VALID_TTL = 7200  # 2 hours for valid keys
+API_KEY_INVALID_TTL = 300  # 5 minutes for invalid keys
 
 
 djp.settings(globals())

@@ -17,13 +17,17 @@ services:
     volumes:
       - .:/app/
       - ../sites:/sites/
+    env_file:
+      - .env
     environment:
       - DJP_PLUGINS_DIR=django_plugins
       - WEB_CONCURRENCY=4
-      - DJANGO_SETTINGS_MODULE=config.prod_settings
+      - REDIS_URL=redis://redis:6379
     command: uvicorn config.asgi:application --host 0.0.0.0 --limit-max-requests 100 --timeout-graceful-shutdown 7
     ports:
       - 9000:8000
+    depends_on:
+      - redis
   anubis_django_green:
     image: ghcr.io/techarohq/anubis:latest
     environment:
@@ -42,11 +46,23 @@ services:
     volumes:
       - .:/app/
       - ../sites:/sites/
+    env_file:
+      - .env
     environment:
       - DJP_PLUGINS_DIR=django_plugins
       - WEB_CONCURRENCY=4
-      - DJANGO_SETTINGS_MODULE=config.prod_settings
+      - REDIS_URL=redis://redis:6379
     command: uvicorn config.asgi:application --host 0.0.0.0 --limit-max-requests 100 --timeout-graceful-shutdown 7
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - 6379:6379
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
 
   sites_datasette_blue:
     build:
@@ -82,3 +98,6 @@ services:
       --setting num_sql_threads 5
       --setting allow_download off
       --setting allow_csv_stream off
+
+volumes:
+  redis_data:

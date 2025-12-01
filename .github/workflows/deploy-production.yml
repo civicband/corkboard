@@ -42,7 +42,7 @@ jobs:
             git fetch origin main &&
             git checkout main &&
             git pull origin main &&
-            docker build --no-cache -t corkboard-django:${{ github.sha }} . &&
+            docker build --no-cache --build-arg RELEASE_SHA=${{ github.sha }} -t corkboard-django:${{ github.sha }} . &&
             CANARY_PERIOD=$CANARY_PERIOD /home/deploy/scripts/deploy.sh corkboard-django ${{ github.sha }}
           "
 

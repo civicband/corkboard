@@ -10,7 +10,9 @@ https://docs.djangoproject.com/en/5.1/howto/deployment/asgi/
 import os
 
 import djp
+import logfire
 import sentry_sdk
+from django.conf import settings
 from django.core.asgi import get_asgi_application
 from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 
@@ -38,7 +40,19 @@ if sentry_dsn:
         traces_sample_rate=0.1,
     )
 
+# Get the ASGI application first (this initializes Django)
 application = djp.asgi_wrapper(get_asgi_application())
+
+# Configure Logfire after Django is initialized
+if settings.DEBUG:
+    # Development: console output only, no data sent to Logfire
+    logfire.configure(send_to_logfire=False)
+else:
+    # Production: full telemetry if token is configured
+    logfire_token = os.environ.get("LOGFIRE_TOKEN")
+    if logfire_token:
+        logfire.configure(token=logfire_token)
+        logfire.instrument_django()
 
 # Wrap with Sentry middleware for error capture
 if sentry_dsn:

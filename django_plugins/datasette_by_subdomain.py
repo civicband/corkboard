@@ -67,6 +67,35 @@ async def send_redirect_to_home(send):
     )
 
 
+async def send_404_response(send):
+    """Send a simple 404 Not Found response."""
+    body = b"""<!DOCTYPE html>
+<html>
+<head><title>404 - Page Not Found</title></head>
+<body>
+<h1>Page not found</h1>
+<p>The page you're looking for doesn't exist.</p>
+<p><a href="/">Return to homepage</a></p>
+</body>
+</html>"""
+    await send(
+        {
+            "type": "http.response.start",
+            "status": 404,
+            "headers": [
+                (b"content-type", b"text/html; charset=utf-8"),
+                (b"content-length", str(len(body)).encode()),
+            ],
+        }
+    )
+    await send(
+        {
+            "type": "http.response.body",
+            "body": body,
+        }
+    )
+
+
 async def datasette_by_subdomain_wrapper(scope, receive, send, app):
     if scope["type"] == "http":
         headers = scope["headers"]
@@ -155,10 +184,18 @@ async def datasette_by_subdomain_wrapper(scope, receive, send, app):
             },
         ).app()
 
+        # Import NotFound to catch 404s before they hit Datasette's
+        # exception handler (which calls rich.print_exception and fails)
+        from datasette.utils.asgi import NotFound  # noqa: PLC0415
+
         with logfire.span(
             "datasette_request",
             subdomain=subdomain,
             path=path,
             method=scope.get("method", "GET"),
         ):
-            await ds(scope, receive, send)
+            try:
+                await ds(scope, receive, send)
+            except NotFound:
+                # Handle 404s ourselves to avoid rich.print_exception errors
+                await send_404_response(send)

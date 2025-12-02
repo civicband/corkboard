@@ -228,18 +228,4 @@ API_KEY_VALID_TTL = 7200  # 2 hours for valid keys
 API_KEY_INVALID_TTL = 300  # 5 minutes for invalid keys
 
 
-# Logfire configuration for tracing and structured logging
-import logfire
-
-if DEBUG:
-    # Development: console output only, no data sent to Logfire
-    logfire.configure(send_to_logfire=False)
-else:
-    # Production: full telemetry if token is configured
-    logfire_token = os.environ.get("LOGFIRE_TOKEN")
-    if logfire_token:
-        logfire.configure(token=logfire_token)
-        logfire.instrument_django()
-
-
 djp.settings(globals())

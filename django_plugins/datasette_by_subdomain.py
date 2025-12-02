@@ -46,6 +46,27 @@ async def send_401_response(send):
     )
 
 
+async def send_redirect_to_home(send):
+    """Send a 302 redirect to civic.band homepage."""
+    await send(
+        {
+            "type": "http.response.start",
+            "status": 302,
+            "headers": [
+                (b"location", b"https://civic.band/"),
+                (b"content-type", b"text/plain"),
+                (b"content-length", b"0"),
+            ],
+        }
+    )
+    await send(
+        {
+            "type": "http.response.body",
+            "body": b"",
+        }
+    )
+
+
 async def datasette_by_subdomain_wrapper(scope, receive, send, app):
     if scope["type"] == "http":
         headers = scope["headers"]
@@ -65,11 +86,20 @@ async def datasette_by_subdomain_wrapper(scope, receive, send, app):
         )
 
         subdomain = ".".join(parts[:-2])
+
+        # If no subdomain, fall back to Django app (main site)
+        if not subdomain:
+            await app(scope, receive, send)
+            return
+
         try:
             site = db["sites"].get(subdomain)
         except Exception:
-            # Site not found, fall back to Django app
-            await app(scope, receive, send)
+            site = None
+
+        # Site not found - redirect to homepage
+        if site is None:
+            await send_redirect_to_home(send)
             return
         context_blob = {
             "name": site["name"],

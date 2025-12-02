@@ -32,6 +32,10 @@ RUN --mount=type=cache,target=/root/.cache,sharing=locked,id=pip \
 
 FROM builder AS release
 
+# Release SHA for observability (Sentry/Logfire)
+ARG RELEASE_SHA=development
+RUN echo "${RELEASE_SHA}" > /.release
+
 WORKDIR /app
 
 COPY . /app/
@@ -40,4 +44,4 @@ ENV DJP_PLUGINS_DIR=django_plugins
 
 EXPOSE 8000
 
-CMD ["uvicorn", "config.asgi:application", "--host", "0.0.0.0", "--limit-max-requests", "100", "--timeout-graceful-shutdown", "7"]
+CMD ["uvicorn", "config.asgi:application", "--host", "0.0.0.0", "--limit-max-requests", "1000", "--timeout-graceful-shutdown", "7"]

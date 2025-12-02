@@ -1,6 +1,7 @@
 import json
 
 import djp
+import logfire
 import sqlite_utils
 from jinja2 import Environment, FileSystemLoader
 
@@ -123,4 +124,11 @@ async def datasette_by_subdomain_wrapper(scope, receive, send, app):
                 "allow_csv_stream": False,
             },
         ).app()
-        await ds(scope, receive, send)
+
+        with logfire.span(
+            "datasette_request",
+            subdomain=subdomain,
+            path=path,
+            method=scope.get("method", "GET"),
+        ):
+            await ds(scope, receive, send)

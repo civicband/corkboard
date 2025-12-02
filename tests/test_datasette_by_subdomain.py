@@ -202,7 +202,7 @@ async def test_metadata_template_rendering():
 
 @pytest.mark.asyncio
 async def test_asgi_wrapper_missing_subdomain():
-    """Test handling when subdomain doesn't exist."""
+    """Test handling when subdomain doesn't exist - should redirect to civic.band."""
     with patch(
         "django_plugins.datasette_by_subdomain.sqlite_utils.Database"
     ) as mock_sqlite:
@@ -235,6 +235,66 @@ async def test_asgi_wrapper_missing_subdomain():
         # Verify subdomain was correctly extracted
         mock_sites_table.get.assert_called_once_with("nonexistent")
 
-        # With fixed implementation, it should fall back to the original app
-        # when site is not found
-        mock_app.assert_called_once_with(mock_scope, mock_receive, mock_send)
+        # Should NOT fall back to Django app - should redirect instead
+        mock_app.assert_not_called()
+
+        # Verify redirect response was sent
+        assert mock_send.call_count == 2
+
+        # First call should be http.response.start with 302 status
+        start_call = mock_send.call_args_list[0]
+        start_message = start_call[0][0]
+        assert start_message["type"] == "http.response.start"
+        assert start_message["status"] == 302
+        # Check location header
+        headers_dict = dict(start_message["headers"])
+        assert headers_dict[b"location"] == b"https://civic.band/"
+
+        # Second call should be http.response.body
+        body_call = mock_send.call_args_list[1]
+        body_message = body_call[0][0]
+        assert body_message["type"] == "http.response.body"
+
+
+@pytest.mark.asyncio
+async def test_asgi_wrapper_missing_subdomain_returns_none():
+    """Test handling when subdomain lookup returns None (not exception)."""
+    with patch(
+        "django_plugins.datasette_by_subdomain.sqlite_utils.Database"
+    ) as mock_sqlite:
+        # Setup mocks
+        mock_app = AsyncMock()
+        mock_scope = {
+            "type": "http",
+            "method": "GET",
+            "path": "/",
+            "headers": [(b"host", b"nonexistent.civic.band")],
+        }
+        mock_receive = AsyncMock()
+        mock_send = AsyncMock()
+
+        # Setup sqlite mock to return None for missing site
+        mock_db_instance = MagicMock()
+        mock_sites_table = MagicMock()
+        mock_db_instance.__getitem__.return_value = mock_sites_table
+        mock_sqlite.return_value = mock_db_instance
+
+        # Mock site data - return None (site not found)
+        mock_sites_table.get.return_value = None
+
+        # Run the wrapper
+        wrapper = datasette_by_subdomain.wrap(mock_app)
+
+        # Run the test
+        await wrapper(mock_scope, mock_receive, mock_send)
+
+        # Verify subdomain was correctly extracted
+        mock_sites_table.get.assert_called_once_with("nonexistent")
+
+        # Should NOT fall back to Django app - should redirect instead
+        mock_app.assert_not_called()
+
+        # Verify redirect response was sent (302 to civic.band)
+        assert mock_send.call_count == 2
+        start_message = mock_send.call_args_list[0][0][0]
+        assert start_message["status"] == 302

@@ -579,6 +579,65 @@ class TestASGIWrapper:
             assert event_data.get("client_ip") == "203.0.113.50"
             assert event_data.get("user_language") == "es-MX"
 
+    @pytest.mark.asyncio
+    async def test_full_request_metadata_flow(self, asgi_receive, asgi_send):
+        """End-to-end test: request metadata flows through to Umami."""
+        from plugins.civic_analytics import asgi_wrapper
+
+        mock_app = AsyncMock()
+        scope = {
+            "type": "http",
+            "path": "/meetings/agendas",
+            "query_string": b"sql=SELECT+*+FROM+agendas+LIMIT+10",
+            "headers": [
+                (b"host", b"oakland.ca.civic.band"),
+                (b"x-forwarded-for", b"198.51.100.42"),
+                (b"x-real-ip", b"198.51.100.42"),
+                (b"user-agent", b"Mozilla/5.0 (Linux; Android 13; Pixel 7)"),
+                (b"accept-language", b"en-CA,en;q=0.8"),
+                (b"referer", b"https://duckduckgo.com/"),
+            ],
+            "client": ("127.0.0.1", 54321),
+        }
+
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+
+        mock_client = MagicMock()
+        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+        mock_client.__aexit__ = AsyncMock()
+        mock_client.post = AsyncMock(return_value=mock_response)
+
+        with patch.dict(os.environ, {"UMAMI_ANALYTICS_ENABLED": "true"}):
+            wrapper = asgi_wrapper(None)
+            wrapped_app = wrapper(mock_app)
+
+            with patch("httpx.AsyncClient", return_value=mock_client):
+                await wrapped_app(scope, asgi_receive, asgi_send)
+
+            # Verify complete payload
+            call_args = mock_client.post.call_args
+            payload = call_args[1]["json"]["payload"]
+            headers = call_args[1]["headers"]
+
+            # Umami payload fields for geolocation
+            assert payload["ip"] == "198.51.100.42"
+            assert "Android" in payload["userAgent"]
+            assert "Pixel 7" in payload["userAgent"]
+            assert payload["language"] == "en-CA"
+
+            # Event data includes context
+            event_data = payload["data"]
+            assert event_data["subdomain"] == "oakland.ca"
+            assert event_data["client_ip"] == "198.51.100.42"
+            assert event_data["user_language"] == "en-CA"
+
+            # Request header uses client UA
+            assert "Android" in headers["User-Agent"]
+
+            # Referrer captured
+            assert payload["referrer"] == "https://duckduckgo.com/"
+
 
 class TestSQLQueryDeduplication:
     """Test SQL query deduplication logic."""

@@ -158,10 +158,14 @@ class TestUmamiEventTracker:
             assert payload["payload"]["hostname"] == "alameda.ca.civic.band"
             assert payload["payload"]["data"]["query_text"] == "council"
 
-            # Check headers
+            # Verify default language used
+            assert payload["payload"]["language"] == "en-US"
+
+            # Check headers - should use default UA when none provided
             headers = call_args[1]["headers"]
             assert "Authorization" in headers
             assert headers["Authorization"] == "Bearer test-key"
+            assert "CivicBand" in headers["User-Agent"]
 
     @pytest.mark.asyncio
     async def test_track_event_failure(self):
@@ -234,6 +238,43 @@ class TestUmamiEventTracker:
         data = {f"key{i}": f"value{i}" for i in range(100)}
         cleaned = tracker._clean_event_data(data)
         assert len(cleaned) <= 50
+
+    @pytest.mark.asyncio
+    async def test_track_event_with_request_metadata(self):
+        """Track event with IP and user agent."""
+        with (
+            patch("plugins.civic_analytics.UMAMI_ENABLED", True),
+            patch("plugins.civic_analytics.UMAMI_API_KEY", None),
+        ):
+            tracker = UmamiEventTracker("https://test.com", "test-id")
+
+            mock_response = MagicMock()
+            mock_response.status_code = 200
+
+            mock_client = MagicMock()
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock()
+            mock_client.post = AsyncMock(return_value=mock_response)
+
+            with patch("httpx.AsyncClient", return_value=mock_client):
+                await tracker.track_event(
+                    event_name="search_query",
+                    url="/meetings/agendas",
+                    hostname="alameda.ca.civic.band",
+                    client_ip="203.0.113.50",
+                    user_agent="Mozilla/5.0 (iPhone; CPU iPhone OS 17_0)",
+                    language="es-MX",
+                )
+
+            # Verify payload includes metadata
+            payload = mock_client.post.call_args[1]["json"]["payload"]
+            assert payload.get("ip") == "203.0.113.50"
+            assert payload.get("userAgent") == "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0)"
+            assert payload.get("language") == "es-MX"
+
+            # Verify User-Agent header uses actual client UA
+            headers = mock_client.post.call_args[1]["headers"]
+            assert headers["User-Agent"] == "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0)"
 
 
 class TestASGIWrapper:

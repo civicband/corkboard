@@ -334,9 +334,19 @@ def asgi_wrapper(datasette):
                 await app(scope, receive, send)
                 return
 
+            # Extract client metadata for Umami
+            client_ip = get_client_ip(headers, scope)
+            user_agent = get_user_agent(headers)
+            language = get_accept_language(headers)
+
             # Prepare event tracking data
             event_name = None
-            event_data = {"subdomain": subdomain, "timestamp": int(time.time() * 1000)}
+            event_data = {
+                "subdomain": subdomain,
+                "timestamp": int(time.time() * 1000),
+                "client_ip": client_ip if client_ip != "unknown" else None,
+                "user_language": language,
+            }
 
             # Detect and track full-text search events
             if "_search" in query_params and query_params["_search"]:
@@ -367,7 +377,6 @@ def asgi_wrapper(datasette):
                 sql_text = query_params["sql"][0]
 
                 # Check deduplication cache
-                client_ip = get_client_ip(headers, scope)
                 if not _sql_query_cache.should_track(sql_text, client_ip, subdomain):
                     # Duplicate query, skip tracking but continue with request
                     await app(scope, receive, send)
@@ -443,6 +452,9 @@ def asgi_wrapper(datasette):
                     referrer=headers.get("referer"),
                     hostname=f"{subdomain}.civic.band",
                     event_data=event_data,
+                    client_ip=client_ip,
+                    user_agent=user_agent,
+                    language=language,
                 )
 
             # Continue with the normal request handling

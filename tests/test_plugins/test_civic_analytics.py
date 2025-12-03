@@ -531,6 +531,50 @@ class TestASGIWrapper:
                 await wrapped_app(scope, asgi_receive, asgi_send)
                 assert mock_client.post.call_count == 1  # Still 1, not 2
 
+    @pytest.mark.asyncio
+    async def test_search_query_includes_request_metadata(self, asgi_receive, asgi_send):
+        """Search query events include client metadata."""
+        from plugins.civic_analytics import asgi_wrapper
+
+        mock_app = AsyncMock()
+        scope = {
+            "type": "http",
+            "path": "/meetings/agendas",
+            "query_string": b"_search=council",
+            "headers": [
+                (b"host", b"alameda.ca.civic.org"),
+                (b"x-forwarded-for", b"203.0.113.50, 10.0.0.1"),
+                (b"user-agent", b"Mozilla/5.0 (iPhone; CPU iPhone OS 17_0)"),
+                (b"accept-language", b"es-MX,es;q=0.9"),
+            ],
+        }
+
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+
+        mock_client = MagicMock()
+        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+        mock_client.__aexit__ = AsyncMock()
+        mock_client.post = AsyncMock(return_value=mock_response)
+
+        with patch.dict(os.environ, {"UMAMI_ANALYTICS_ENABLED": "true"}):
+            wrapper = asgi_wrapper(None)
+            wrapped_app = wrapper(mock_app)
+
+            with patch("httpx.AsyncClient", return_value=mock_client):
+                await wrapped_app(scope, asgi_receive, asgi_send)
+
+            # Verify metadata in payload
+            payload = mock_client.post.call_args[1]["json"]["payload"]
+            assert payload.get("ip") == "203.0.113.50"
+            assert "iPhone" in payload.get("userAgent", "")
+            assert payload.get("language") == "es-MX"
+
+            # Verify event data includes additional context
+            event_data = payload.get("data", {})
+            assert event_data.get("client_ip") == "203.0.113.50"
+            assert event_data.get("user_language") == "es-MX"
+
 
 class TestSQLQueryDeduplication:
     """Test SQL query deduplication logic."""

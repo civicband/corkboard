@@ -257,6 +257,27 @@ def get_client_ip(headers: Dict[str, str], scope: Dict) -> str:
     return "unknown"
 
 
+def get_user_agent(headers: Dict[str, str]) -> Optional[str]:
+    """Extract user agent from headers."""
+    return headers.get("user-agent")
+
+
+def get_accept_language(headers: Dict[str, str]) -> str:
+    """Extract primary accept language from headers.
+
+    Returns the first language in the Accept-Language header,
+    or 'en-US' as default.
+    """
+    accept_lang = headers.get("accept-language", "")
+    if not accept_lang:
+        return "en-US"
+
+    # Take the first language (highest priority)
+    # Format: "en-US,en;q=0.9,es;q=0.8"
+    primary = accept_lang.split(",")[0].split(";")[0].strip()
+    return primary if primary else "en-US"
+
+
 @hookimpl
 def asgi_wrapper(datasette):
     """Wrap ASGI application to track analytics events."""

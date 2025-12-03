@@ -106,17 +106,35 @@ class UmamiEventTracker:
         referrer: str = None,
         hostname: str = "civic.band",
         event_data: Dict = None,
+        client_ip: str = None,
+        user_agent: str = None,
+        language: str = None,
     ):
-        """Send an event to Umami Analytics."""
+        """Send an event to Umami Analytics.
+
+        Args:
+            event_name: Name of the event
+            url: Page URL
+            title: Page title
+            referrer: Referrer URL
+            hostname: Hostname for the event
+            event_data: Custom event data properties
+            client_ip: Client IP for geolocation (Umami derives country/city)
+            user_agent: Client user agent (Umami derives browser/OS/device)
+            language: Client language preference
+        """
         if not UMAMI_ENABLED:
             return
 
         try:
+            # Use provided language or default
+            lang = language or "en-US"
+
             payload = {
                 "type": "event",
                 "payload": {
                     "hostname": hostname,
-                    "language": "en-US",
+                    "language": lang,
                     "referrer": referrer or "",
                     "screen": "1920x1080",
                     "title": title or event_name,
@@ -126,16 +144,24 @@ class UmamiEventTracker:
                 },
             }
 
+            # Add IP for geolocation (Umami derives country/region/city)
+            if client_ip and client_ip != "unknown":
+                payload["payload"]["ip"] = client_ip
+
+            # Add user agent for browser/OS/device detection
+            if user_agent:
+                payload["payload"]["userAgent"] = user_agent
+
             # Add custom event data if provided
             if event_data:
                 # Ensure data meets Umami constraints
                 cleaned_data = self._clean_event_data(event_data)
                 payload["payload"]["data"] = cleaned_data
 
-            # Prepare headers
+            # Prepare headers - use actual client UA if available
             headers = {
                 "Content-Type": "application/json",
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                "User-Agent": user_agent or "CivicBand-Analytics/1.0",
             }
 
             # Add API key if available
@@ -151,7 +177,7 @@ class UmamiEventTracker:
                 )
 
                 if response.status_code == 200:
-                    print(f"Event tracked: {event_name}")
+                    logger.debug(f"Event tracked: {event_name}")
                 else:
                     logger.warning(f"Event tracking failed: {response.status_code}")
 

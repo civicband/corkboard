@@ -5,6 +5,21 @@ import logfire
 import sqlite_utils
 from jinja2 import Environment, FileSystemLoader
 
+# Patch rich.Console.print_exception to prevent errors in Datasette.
+# Datasette's handle_exception calls rich.print_exception() outside of an
+# except block, which fails because print_exception() requires sys.exc_info()
+# to return an active exception. This patch makes it a safe no-op.
+try:
+    import rich.console
+
+    def _safe_print_exception(self, *args, **kwargs):
+        """No-op replacement for print_exception that won't raise."""
+        pass
+
+    rich.console.Console.print_exception = _safe_print_exception
+except ImportError:
+    pass
+
 from django_plugins.api_key_auth import (
     extract_api_key,
     is_first_party_request,

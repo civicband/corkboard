@@ -622,3 +622,47 @@ class TestSQLQueryDeduplication:
             "SELECT * FROM agendas", "192.168.1.1", "alameda.ca"
         )
         assert result is True
+
+
+class TestRequestMetadataExtraction:
+    """Test request metadata extraction functions."""
+
+    def test_get_user_agent_from_headers(self):
+        """Extract user agent from headers."""
+        from plugins.civic_analytics import get_user_agent
+
+        headers = {"user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"}
+        result = get_user_agent(headers)
+        assert result == "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"
+
+    def test_get_user_agent_missing(self):
+        """Return None when user agent missing."""
+        from plugins.civic_analytics import get_user_agent
+
+        headers = {}
+        result = get_user_agent(headers)
+        assert result is None
+
+    def test_get_accept_language(self):
+        """Extract accept language from headers."""
+        from plugins.civic_analytics import get_accept_language
+
+        headers = {"accept-language": "en-US,en;q=0.9,es;q=0.8"}
+        result = get_accept_language(headers)
+        assert result == "en-US"
+
+    def test_get_accept_language_simple(self):
+        """Extract simple accept language."""
+        from plugins.civic_analytics import get_accept_language
+
+        headers = {"accept-language": "fr-FR"}
+        result = get_accept_language(headers)
+        assert result == "fr-FR"
+
+    def test_get_accept_language_missing(self):
+        """Return default when accept language missing."""
+        from plugins.civic_analytics import get_accept_language
+
+        headers = {}
+        result = get_accept_language(headers)
+        assert result == "en-US"

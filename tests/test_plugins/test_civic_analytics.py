@@ -158,10 +158,14 @@ class TestUmamiEventTracker:
             assert payload["payload"]["hostname"] == "alameda.ca.civic.band"
             assert payload["payload"]["data"]["query_text"] == "council"
 
-            # Check headers
+            # Verify default language used
+            assert payload["payload"]["language"] == "en-US"
+
+            # Check headers - should use default UA when none provided
             headers = call_args[1]["headers"]
             assert "Authorization" in headers
             assert headers["Authorization"] == "Bearer test-key"
+            assert "CivicBand" in headers["User-Agent"]
 
     @pytest.mark.asyncio
     async def test_track_event_failure(self):
@@ -234,6 +238,45 @@ class TestUmamiEventTracker:
         data = {f"key{i}": f"value{i}" for i in range(100)}
         cleaned = tracker._clean_event_data(data)
         assert len(cleaned) <= 50
+
+    @pytest.mark.asyncio
+    async def test_track_event_with_request_metadata(self):
+        """Track event with IP and user agent."""
+        with (
+            patch("plugins.civic_analytics.UMAMI_ENABLED", True),
+            patch("plugins.civic_analytics.UMAMI_API_KEY", None),
+        ):
+            tracker = UmamiEventTracker("https://test.com", "test-id")
+
+            mock_response = MagicMock()
+            mock_response.status_code = 200
+
+            mock_client = MagicMock()
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock()
+            mock_client.post = AsyncMock(return_value=mock_response)
+
+            with patch("httpx.AsyncClient", return_value=mock_client):
+                await tracker.track_event(
+                    event_name="search_query",
+                    url="/meetings/agendas",
+                    hostname="alameda.ca.civic.band",
+                    client_ip="203.0.113.50",
+                    user_agent="Mozilla/5.0 (iPhone; CPU iPhone OS 17_0)",
+                    language="es-MX",
+                )
+
+            # Verify payload includes metadata
+            payload = mock_client.post.call_args[1]["json"]["payload"]
+            assert payload.get("ip") == "203.0.113.50"
+            assert (
+                payload.get("userAgent") == "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0)"
+            )
+            assert payload.get("language") == "es-MX"
+
+            # Verify User-Agent header uses actual client UA
+            headers = mock_client.post.call_args[1]["headers"]
+            assert headers["User-Agent"] == "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0)"
 
 
 class TestASGIWrapper:
@@ -490,6 +533,111 @@ class TestASGIWrapper:
                 await wrapped_app(scope, asgi_receive, asgi_send)
                 assert mock_client.post.call_count == 1  # Still 1, not 2
 
+    @pytest.mark.asyncio
+    async def test_search_query_includes_request_metadata(
+        self, asgi_receive, asgi_send
+    ):
+        """Search query events include client metadata."""
+        from plugins.civic_analytics import asgi_wrapper
+
+        mock_app = AsyncMock()
+        scope = {
+            "type": "http",
+            "path": "/meetings/agendas",
+            "query_string": b"_search=council",
+            "headers": [
+                (b"host", b"alameda.ca.civic.org"),
+                (b"x-forwarded-for", b"203.0.113.50, 10.0.0.1"),
+                (b"user-agent", b"Mozilla/5.0 (iPhone; CPU iPhone OS 17_0)"),
+                (b"accept-language", b"es-MX,es;q=0.9"),
+            ],
+        }
+
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+
+        mock_client = MagicMock()
+        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+        mock_client.__aexit__ = AsyncMock()
+        mock_client.post = AsyncMock(return_value=mock_response)
+
+        with patch.dict(os.environ, {"UMAMI_ANALYTICS_ENABLED": "true"}):
+            wrapper = asgi_wrapper(None)
+            wrapped_app = wrapper(mock_app)
+
+            with patch("httpx.AsyncClient", return_value=mock_client):
+                await wrapped_app(scope, asgi_receive, asgi_send)
+
+            # Verify metadata in payload
+            payload = mock_client.post.call_args[1]["json"]["payload"]
+            assert payload.get("ip") == "203.0.113.50"
+            assert "iPhone" in payload.get("userAgent", "")
+            assert payload.get("language") == "es-MX"
+
+            # Verify event data includes additional context
+            event_data = payload.get("data", {})
+            assert event_data.get("client_ip") == "203.0.113.50"
+            assert event_data.get("user_language") == "es-MX"
+
+    @pytest.mark.asyncio
+    async def test_full_request_metadata_flow(self, asgi_receive, asgi_send):
+        """End-to-end test: request metadata flows through to Umami."""
+        from plugins.civic_analytics import asgi_wrapper
+
+        mock_app = AsyncMock()
+        scope = {
+            "type": "http",
+            "path": "/meetings/agendas",
+            "query_string": b"sql=SELECT+*+FROM+agendas+LIMIT+10",
+            "headers": [
+                (b"host", b"oakland.ca.civic.band"),
+                (b"x-forwarded-for", b"198.51.100.42"),
+                (b"x-real-ip", b"198.51.100.42"),
+                (b"user-agent", b"Mozilla/5.0 (Linux; Android 13; Pixel 7)"),
+                (b"accept-language", b"en-CA,en;q=0.8"),
+                (b"referer", b"https://duckduckgo.com/"),
+            ],
+            "client": ("127.0.0.1", 54321),
+        }
+
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+
+        mock_client = MagicMock()
+        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+        mock_client.__aexit__ = AsyncMock()
+        mock_client.post = AsyncMock(return_value=mock_response)
+
+        with patch.dict(os.environ, {"UMAMI_ANALYTICS_ENABLED": "true"}):
+            wrapper = asgi_wrapper(None)
+            wrapped_app = wrapper(mock_app)
+
+            with patch("httpx.AsyncClient", return_value=mock_client):
+                await wrapped_app(scope, asgi_receive, asgi_send)
+
+            # Verify complete payload
+            call_args = mock_client.post.call_args
+            payload = call_args[1]["json"]["payload"]
+            headers = call_args[1]["headers"]
+
+            # Umami payload fields for geolocation
+            assert payload["ip"] == "198.51.100.42"
+            assert "Android" in payload["userAgent"]
+            assert "Pixel 7" in payload["userAgent"]
+            assert payload["language"] == "en-CA"
+
+            # Event data includes context
+            event_data = payload["data"]
+            assert event_data["subdomain"] == "oakland.ca"
+            assert event_data["client_ip"] == "198.51.100.42"
+            assert event_data["user_language"] == "en-CA"
+
+            # Request header uses client UA
+            assert "Android" in headers["User-Agent"]
+
+            # Referrer captured
+            assert payload["referrer"] == "https://duckduckgo.com/"
+
 
 class TestSQLQueryDeduplication:
     """Test SQL query deduplication logic."""
@@ -622,3 +770,47 @@ class TestSQLQueryDeduplication:
             "SELECT * FROM agendas", "192.168.1.1", "alameda.ca"
         )
         assert result is True
+
+
+class TestRequestMetadataExtraction:
+    """Test request metadata extraction functions."""
+
+    def test_get_user_agent_from_headers(self):
+        """Extract user agent from headers."""
+        from plugins.civic_analytics import get_user_agent
+
+        headers = {"user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"}
+        result = get_user_agent(headers)
+        assert result == "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"
+
+    def test_get_user_agent_missing(self):
+        """Return None when user agent missing."""
+        from plugins.civic_analytics import get_user_agent
+
+        headers = {}
+        result = get_user_agent(headers)
+        assert result is None
+
+    def test_get_accept_language(self):
+        """Extract accept language from headers."""
+        from plugins.civic_analytics import get_accept_language
+
+        headers = {"accept-language": "en-US,en;q=0.9,es;q=0.8"}
+        result = get_accept_language(headers)
+        assert result == "en-US"
+
+    def test_get_accept_language_simple(self):
+        """Extract simple accept language."""
+        from plugins.civic_analytics import get_accept_language
+
+        headers = {"accept-language": "fr-FR"}
+        result = get_accept_language(headers)
+        assert result == "fr-FR"
+
+    def test_get_accept_language_missing(self):
+        """Return default when accept language missing."""
+        from plugins.civic_analytics import get_accept_language
+
+        headers = {}
+        result = get_accept_language(headers)
+        assert result == "en-US"

@@ -106,17 +106,35 @@ class UmamiEventTracker:
         referrer: str = None,
         hostname: str = "civic.band",
         event_data: Dict = None,
+        client_ip: str = None,
+        user_agent: str = None,
+        language: str = None,
     ):
-        """Send an event to Umami Analytics."""
+        """Send an event to Umami Analytics.
+
+        Args:
+            event_name: Name of the event
+            url: Page URL
+            title: Page title
+            referrer: Referrer URL
+            hostname: Hostname for the event
+            event_data: Custom event data properties
+            client_ip: Client IP for geolocation (Umami derives country/city)
+            user_agent: Client user agent (Umami derives browser/OS/device)
+            language: Client language preference
+        """
         if not UMAMI_ENABLED:
             return
 
         try:
+            # Use provided language or default
+            lang = language or "en-US"
+
             payload = {
                 "type": "event",
                 "payload": {
                     "hostname": hostname,
-                    "language": "en-US",
+                    "language": lang,
                     "referrer": referrer or "",
                     "screen": "1920x1080",
                     "title": title or event_name,
@@ -126,16 +144,24 @@ class UmamiEventTracker:
                 },
             }
 
+            # Add IP for geolocation (Umami derives country/region/city)
+            if client_ip and client_ip != "unknown":
+                payload["payload"]["ip"] = client_ip
+
+            # Add user agent for browser/OS/device detection
+            if user_agent:
+                payload["payload"]["userAgent"] = user_agent
+
             # Add custom event data if provided
             if event_data:
                 # Ensure data meets Umami constraints
                 cleaned_data = self._clean_event_data(event_data)
                 payload["payload"]["data"] = cleaned_data
 
-            # Prepare headers
+            # Prepare headers - use actual client UA if available
             headers = {
                 "Content-Type": "application/json",
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                "User-Agent": user_agent or "CivicBand-Analytics/1.0",
             }
 
             # Add API key if available
@@ -151,7 +177,7 @@ class UmamiEventTracker:
                 )
 
                 if response.status_code == 200:
-                    print(f"Event tracked: {event_name}")
+                    logger.debug(f"Event tracked: {event_name}")
                 else:
                     logger.warning(f"Event tracking failed: {response.status_code}")
 
@@ -257,6 +283,27 @@ def get_client_ip(headers: Dict[str, str], scope: Dict) -> str:
     return "unknown"
 
 
+def get_user_agent(headers: Dict[str, str]) -> Optional[str]:
+    """Extract user agent from headers."""
+    return headers.get("user-agent")
+
+
+def get_accept_language(headers: Dict[str, str]) -> str:
+    """Extract primary accept language from headers.
+
+    Returns the first language in the Accept-Language header,
+    or 'en-US' as default.
+    """
+    accept_lang = headers.get("accept-language", "")
+    if not accept_lang:
+        return "en-US"
+
+    # Take the first language (highest priority)
+    # Format: "en-US,en;q=0.9,es;q=0.8"
+    primary = accept_lang.split(",")[0].split(";")[0].strip()
+    return primary if primary else "en-US"
+
+
 @hookimpl
 def asgi_wrapper(datasette):
     """Wrap ASGI application to track analytics events."""
@@ -287,9 +334,19 @@ def asgi_wrapper(datasette):
                 await app(scope, receive, send)
                 return
 
+            # Extract client metadata for Umami
+            client_ip = get_client_ip(headers, scope)
+            user_agent = get_user_agent(headers)
+            language = get_accept_language(headers)
+
             # Prepare event tracking data
             event_name = None
-            event_data = {"subdomain": subdomain, "timestamp": int(time.time() * 1000)}
+            event_data = {
+                "subdomain": subdomain,
+                "timestamp": int(time.time() * 1000),
+                "client_ip": client_ip if client_ip != "unknown" else None,
+                "user_language": language,
+            }
 
             # Detect and track full-text search events
             if "_search" in query_params and query_params["_search"]:
@@ -320,7 +377,6 @@ def asgi_wrapper(datasette):
                 sql_text = query_params["sql"][0]
 
                 # Check deduplication cache
-                client_ip = get_client_ip(headers, scope)
                 if not _sql_query_cache.should_track(sql_text, client_ip, subdomain):
                     # Duplicate query, skip tracking but continue with request
                     await app(scope, receive, send)
@@ -396,6 +452,9 @@ def asgi_wrapper(datasette):
                     referrer=headers.get("referer"),
                     hostname=f"{subdomain}.civic.band",
                     event_data=event_data,
+                    client_ip=client_ip,
+                    user_agent=user_agent,
+                    language=language,
                 )
 
             # Continue with the normal request handling

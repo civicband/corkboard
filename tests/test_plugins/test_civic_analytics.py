@@ -269,7 +269,9 @@ class TestUmamiEventTracker:
             # Verify payload includes metadata
             payload = mock_client.post.call_args[1]["json"]["payload"]
             assert payload.get("ip") == "203.0.113.50"
-            assert payload.get("userAgent") == "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0)"
+            assert (
+                payload.get("userAgent") == "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0)"
+            )
             assert payload.get("language") == "es-MX"
 
             # Verify User-Agent header uses actual client UA
@@ -532,7 +534,9 @@ class TestASGIWrapper:
                 assert mock_client.post.call_count == 1  # Still 1, not 2
 
     @pytest.mark.asyncio
-    async def test_search_query_includes_request_metadata(self, asgi_receive, asgi_send):
+    async def test_search_query_includes_request_metadata(
+        self, asgi_receive, asgi_send
+    ):
         """Search query events include client metadata."""
         from plugins.civic_analytics import asgi_wrapper
 

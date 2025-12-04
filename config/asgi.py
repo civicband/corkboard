@@ -51,7 +51,18 @@ else:
     # Production: full telemetry if token is configured
     logfire_token = os.environ.get("LOGFIRE_TOKEN")
     if logfire_token:
-        logfire.configure(token=logfire_token, service_name="corkboard")
+        from logfire import SamplingOptions
+
+        logfire.configure(
+            token=logfire_token,
+            service_name="corkboard",
+            # Keep all errors/warnings and slow traces (>5s), sample 5% of normal traffic
+            sampling=SamplingOptions.level_or_duration(
+                level_threshold="warning",
+                duration_threshold=5.0,
+                background_rate=0.05,
+            ),
+        )
         logfire.instrument_django()
         logfire.instrument_httpx()
         logfire.instrument_sqlite3()

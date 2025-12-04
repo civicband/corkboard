@@ -1,10 +1,7 @@
 import markupsafe
 from datasette import hookimpl
 
-from plugins.tracing import trace_plugin
 
-
-@trace_plugin
 @hookimpl
 def render_cell(row, value, column, table, database, datasette):
     # Render {"href": "...", "label": "..."} as link

@@ -53,6 +53,8 @@ else:
     if logfire_token:
         logfire.configure(token=logfire_token)
         logfire.instrument_django()
+        logfire.instrument_httpx()
+        logfire.instrument_sqlite3()
 
 # Wrap with Sentry middleware for error capture
 if sentry_dsn:

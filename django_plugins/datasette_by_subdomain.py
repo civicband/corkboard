@@ -1,9 +1,15 @@
 import json
+import os
+from urllib.parse import parse_qs
 
 import djp
 import logfire
 import sqlite_utils
 from jinja2 import Environment, FileSystemLoader
+
+# Bot protection: max length for text search queries
+MAX_QUERY_TEXT_LENGTH = int(os.getenv("MAX_QUERY_TEXT_LENGTH", "500"))
+API_SIGNUP_URL = os.getenv("API_SIGNUP_URL", "https://civic.observer/api")
 
 # Patch rich.Console.print_exception to prevent errors in Datasette.
 # Datasette's handle_exception calls rich.print_exception() outside of an
@@ -111,6 +117,49 @@ async def send_404_response(send):
     )
 
 
+async def send_402_response(send):
+    """Send a 402 Payment Required response for bot-like queries."""
+    response = {
+        "error": "query_too_long",
+        "message": "Automated queries require an API key",
+        "get_api_key": API_SIGNUP_URL,
+    }
+    body = json.dumps(response).encode()
+    await send(
+        {
+            "type": "http.response.start",
+            "status": 402,
+            "headers": [
+                (b"content-type", b"application/json"),
+                (b"content-length", str(len(body)).encode()),
+            ],
+        }
+    )
+    await send(
+        {
+            "type": "http.response.body",
+            "body": body,
+        }
+    )
+
+
+def is_query_too_long(query_string: bytes) -> bool:
+    """Check if text search query exceeds maximum allowed length."""
+    if not query_string:
+        return False
+
+    params = parse_qs(query_string.decode("utf-8", errors="ignore"))
+
+    # Check both 'text' and '_search' parameters
+    for param in ("text", "_search"):
+        values = params.get(param, [])
+        for value in values:
+            if len(value) > MAX_QUERY_TEXT_LENGTH:
+                return True
+
+    return False
+
+
 async def datasette_by_subdomain_wrapper(scope, receive, send, app):
     if scope["type"] == "http":
         headers = scope["headers"]
@@ -145,6 +194,13 @@ async def datasette_by_subdomain_wrapper(scope, receive, send, app):
         if site is None:
             await send_redirect_to_home(send)
             return
+
+        # Bot protection: block overly long text queries
+        query_string = scope.get("query_string", b"")
+        if is_query_too_long(query_string):
+            await send_402_response(send)
+            return
+
         context_blob = {
             "name": site["name"],
             "state": site["state"],

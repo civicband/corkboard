@@ -200,6 +200,86 @@ async def test_metadata_template_rendering():
         assert kwargs["template_dir"] == "templates/datasette"
 
 
+class TestQueryLengthProtection:
+    """Tests for bot protection via query length limits."""
+
+    def test_is_query_too_long_short_query(self):
+        """Short queries should be allowed."""
+        assert datasette_by_subdomain.is_query_too_long(b"text=hello") is False
+        assert datasette_by_subdomain.is_query_too_long(b"_search=council") is False
+
+    def test_is_query_too_long_long_text(self):
+        """Long text queries should be blocked."""
+        long_text = "a" * 600
+        query = f"text={long_text}".encode()
+        assert datasette_by_subdomain.is_query_too_long(query) is True
+
+    def test_is_query_too_long_long_search(self):
+        """Long _search queries should be blocked."""
+        long_text = "a" * 600
+        query = f"_search={long_text}".encode()
+        assert datasette_by_subdomain.is_query_too_long(query) is True
+
+    def test_is_query_too_long_empty(self):
+        """Empty query string should be allowed."""
+        assert datasette_by_subdomain.is_query_too_long(b"") is False
+        assert datasette_by_subdomain.is_query_too_long(None) is False
+
+    def test_is_query_too_long_other_params(self):
+        """Long values in other params should be allowed."""
+        long_text = "a" * 600
+        query = f"other_param={long_text}".encode()
+        assert datasette_by_subdomain.is_query_too_long(query) is False
+
+
+@pytest.mark.asyncio
+async def test_bot_protection_blocks_long_queries():
+    """Test that long text queries return 402."""
+    with patch(
+        "django_plugins.datasette_by_subdomain.sqlite_utils.Database"
+    ) as mock_sqlite:
+        mock_app = AsyncMock()
+        long_text = "a" * 600
+        mock_scope = {
+            "type": "http",
+            "method": "GET",
+            "path": "/meetings/minutes",
+            "query_string": f"text={long_text}".encode(),
+            "headers": [(b"host", b"test.civic.band")],
+        }
+        mock_receive = AsyncMock()
+        mock_send = AsyncMock()
+
+        # Setup sqlite mock
+        mock_db_instance = MagicMock()
+        mock_sites_table = MagicMock()
+        mock_db_instance.__getitem__.return_value = mock_sites_table
+        mock_sqlite.return_value = mock_db_instance
+        mock_sites_table.get.return_value = {
+            "name": "Test",
+            "state": "CA",
+            "subdomain": "test",
+            "last_updated": "2024-01-01",
+        }
+
+        wrapper = datasette_by_subdomain.wrap(mock_app)
+        await wrapper(mock_scope, mock_receive, mock_send)
+
+        # Should NOT call the app
+        mock_app.assert_not_called()
+
+        # Should return 402
+        assert mock_send.call_count == 2
+        start_message = mock_send.call_args_list[0][0][0]
+        assert start_message["status"] == 402
+
+        # Body should be JSON with API signup URL
+        body_message = mock_send.call_args_list[1][0][0]
+        body = json.loads(body_message["body"])
+        assert body["error"] == "query_too_long"
+        assert "get_api_key" in body
+
+
 @pytest.mark.asyncio
 async def test_asgi_wrapper_missing_subdomain():
     """Test handling when subdomain doesn't exist - should redirect to civic.band."""

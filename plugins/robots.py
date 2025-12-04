@@ -1,7 +1,10 @@
 from datasette import hookimpl
 from datasette.utils.asgi import Response
 
+from plugins.tracing import trace_plugin
 
+
+@trace_plugin
 async def robots_txt(datasette, request):
     disallow = []
     for database_name in datasette.databases:
@@ -46,6 +49,7 @@ async def robots_txt(datasette, request):
     return Response.text("\n".join(lines))
 
 
+@trace_plugin
 @hookimpl
 def register_routes():
     return [

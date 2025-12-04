@@ -55,6 +55,10 @@ else:
         logfire.instrument_django()
         logfire.instrument_httpx()
         logfire.instrument_sqlite3()
+        # Propagate trace context to thread pools (used by Datasette for queries)
+        from opentelemetry.instrumentation.threading import ThreadingInstrumentor
+
+        ThreadingInstrumentor().instrument()
 
 # Wrap with Sentry middleware for error capture
 if sentry_dsn:

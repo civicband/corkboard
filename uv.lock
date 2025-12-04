@@ -215,6 +215,7 @@ dependencies = [
     { name = "httpx" },
     { name = "jinja2" },
     { name = "logfire", extra = ["django", "httpx", "sqlite3"] },
+    { name = "opentelemetry-instrumentation-threading" },
     { name = "redis", extra = ["hiredis"] },
     { name = "requests" },
     { name = "sentry-sdk" },
@@ -257,6 +258,7 @@ requires-dist = [
     { name = "httpx", specifier = ">=0.24.0" },
     { name = "jinja2", specifier = ">=3.0.0" },
     { name = "logfire", extras = ["django", "httpx", "sqlite3"], specifier = ">=0.30.0" },
+    { name = "opentelemetry-instrumentation-threading", specifier = ">=0.59b0" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.0.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0.0" },
     { name = "pytest", marker = "extra == 'test'", specifier = ">=7.0.0" },
@@ -951,6 +953,20 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/5d/c9/316d9800fbb64ac2b5474d17d13f96a37df86e5c06e348a7d143b3eb377f/opentelemetry_instrumentation_sqlite3-0.59b0.tar.gz", hash = "sha256:7b9989d805336a1e78a907b3863376cf4ff1dc96dd8a9e0d385f6bb3686c27ac", size = 7923, upload-time = "2025-10-16T08:40:01.625Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e5/ef/daf9075b22f59f45c8839dcde8d1c4fd3061b6a6692a61150fad6ca7a1a5/opentelemetry_instrumentation_sqlite3-0.59b0-py3-none-any.whl", hash = "sha256:ec13867102687426b835f6c499a287ee2f4195abfba85d372e011a795661914c", size = 9338, upload-time = "2025-10-16T08:39:11.545Z" },
+]
+
+[[package]]
+name = "opentelemetry-instrumentation-threading"
+version = "0.59b0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "opentelemetry-api" },
+    { name = "opentelemetry-instrumentation" },
+    { name = "wrapt" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/82/7a/84e97d8992808197006e607ae410c2219bdbbc23d1289ba0c244d3220741/opentelemetry_instrumentation_threading-0.59b0.tar.gz", hash = "sha256:ce5658730b697dcbc0e0d6d13643a69fd8aeb1b32fa8db3bade8ce114c7975f3", size = 8770, upload-time = "2025-10-16T08:40:03.587Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b8/50/32d29076aaa1c91983cdd3ca8c6bb4d344830cd7d87a7c0fdc2d98c58509/opentelemetry_instrumentation_threading-0.59b0-py3-none-any.whl", hash = "sha256:76da2fc01fe1dccebff6581080cff9e42ac7b27cc61eb563f3c4435c727e8eca", size = 9313, upload-time = "2025-10-16T08:39:15.876Z" },
 ]
 
 [[package]]

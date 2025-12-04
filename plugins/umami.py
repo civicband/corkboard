@@ -8,7 +8,10 @@ Injects Umami tracking script with:
 
 from datasette import hookimpl
 
+from plugins.tracing import trace_plugin
 
+
+@trace_plugin
 @hookimpl
 def extra_body_script(datasette):
     """Inject Umami tracking script with subdomain support."""

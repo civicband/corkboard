@@ -24,6 +24,8 @@ from urllib.parse import parse_qs
 import httpx
 from datasette import hookimpl
 
+from plugins.tracing import trace_plugin
+
 logger = logging.getLogger(__name__)
 
 # Configuration from environment
@@ -304,6 +306,7 @@ def get_accept_language(headers: Dict[str, str]) -> str:
     return primary if primary else "en-US"
 
 
+@trace_plugin
 @hookimpl
 def asgi_wrapper(datasette):
     """Wrap ASGI application to track analytics events."""

@@ -1,6 +1,5 @@
 """Tests for the trace_plugin decorator."""
 
-import asyncio
 from unittest.mock import MagicMock, patch
 
 import pytest

@@ -6,9 +6,9 @@ from datasette import hookimpl
 
 @hookimpl
 def render_cell(row, value, column, table, database, datasette, request):
-    """Add a clip icon next to the rowid column for agendas/minutes tables."""
-    # Only process the rowid column
-    if column != "rowid":
+    """Add a clip icon next to the id column for agendas/minutes tables."""
+    # Only process the id column (primary key for these tables)
+    if column != "id":
         return None
 
     # Only for agendas and minutes tables

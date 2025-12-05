@@ -6,9 +6,9 @@ from datasette import hookimpl
 
 @hookimpl
 def render_cell(row, value, column, table, database, datasette, request):
-    """Add a clip icon next to the rowid column for agendas/minutes tables."""
-    # Only process the rowid column
-    if column != "rowid":
+    """Add a clip icon next to the id column for agendas/minutes tables."""
+    # Only process the id column (primary key for these tables)
+    if column != "id":
         return None
 
     # Only for agendas and minutes tables
@@ -16,7 +16,8 @@ def render_cell(row, value, column, table, database, datasette, request):
         return None
 
     # Get the subdomain from plugin config
-    subdomain = datasette.plugin_config("corkboard", {}).get("subdomain", "")
+    config = datasette.plugin_config("corkboard") or {}
+    subdomain = config.get("subdomain", "")
 
     # Build the clip URL with UTM tracking
     clip_url = (

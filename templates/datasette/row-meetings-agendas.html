@@ -18,7 +18,7 @@
     {{ table }}: {{ ', '.join(primary_key_values) }}{% if private %} 🔒{% endif %}
 </h1>
 
-<a href="https://civic.observer/clip/?id={{ primary_key_values[0] }}&subdomain={{ subdomain }}&table={{ table }}&utm_source=civicband&utm_medium=clip&utm_campaign={{ subdomain }}&utm_content=detail_button"
+<a href="https://civic.observer/clip/?id={{ rows[0].id }}&subdomain={{ subdomain }}&table={{ table }}&utm_source=civicband&utm_medium=clip&utm_campaign={{ subdomain }}&utm_content=detail_button"
    class="clip-button"
    target="_blank"
    data-umami-event="clip_to_notebook"
@@ -120,10 +120,12 @@ document.querySelector('#citation-agendas-{{ primary_key_values[0] }} .access-da
     background: #0056b3;
 }
 
-.clip-button {
+a.clip-button,
+a.clip-button:link,
+a.clip-button:visited {
     display: inline-block;
     background: #28a745;
-    color: white;
+    color: white !important;
     text-decoration: none;
     border-radius: 4px;
     padding: 0.5rem 1rem;
@@ -131,9 +133,10 @@ document.querySelector('#citation-agendas-{{ primary_key_values[0] }} .access-da
     margin: 0.5rem 0;
 }
 
-.clip-button:hover {
+a.clip-button:hover,
+a.clip-button:active {
     background: #218838;
-    color: white;
+    color: white !important;
 }
 </style>
 {% endblock %}

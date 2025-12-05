@@ -18,6 +18,14 @@
     {{ table }}: {{ ', '.join(primary_key_values) }}{% if private %} 🔒{% endif %}
 </h1>
 
+<a href="https://civic.observer/clip/?id={{ primary_key_values[0] }}&subdomain={{ subdomain }}&table={{ table }}&utm_source=civicband&utm_medium=clip&utm_campaign={{ subdomain }}&utm_content=detail_button"
+   class="clip-button"
+   target="_blank"
+   data-umami-event="clip_to_notebook"
+   data-umami-event-table="{{ table }}">
+    📋 Clip to Notebook
+</a>
+
 {% if rows and rows[0].page %}
 <p style="margin: 0.5rem 0;">
     <a href="/{{ database }}/{{ table }}?meeting__exact={{ rows[0].meeting|urlencode }}&date__exact={{ rows[0].date|urlencode }}&page__gte={{ [rows[0].page - 2, 1]|max }}&page__lte={{ rows[0].page + 2 }}&_sort=page" data-umami-event="row_context" data-umami-event-table="agendas">View surrounding pages (pages {{ [rows[0].page - 2, 1]|max }}–{{ rows[0].page + 2 }})</a>
@@ -110,6 +118,22 @@ document.querySelector('#citation-agendas-{{ primary_key_values[0] }} .access-da
 
 .copy-citation:hover {
     background: #0056b3;
+}
+
+.clip-button {
+    display: inline-block;
+    background: #28a745;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    margin: 0.5rem 0;
+}
+
+.clip-button:hover {
+    background: #218838;
+    color: white;
 }
 </style>
 {% endblock %}

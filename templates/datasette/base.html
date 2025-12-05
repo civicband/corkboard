@@ -26,6 +26,18 @@
 {%- if alternate_url_json -%}
     <link rel="alternate" type="application/json+datasette" href="{{ alternate_url_json }}">
 {%- endif -%}
+<style>
+/* Clip to notebook icon styles */
+.clip-icon {
+    text-decoration: none;
+    opacity: 0.6;
+    font-size: 0.9em;
+    margin-left: 0.25em;
+}
+.clip-icon:hover {
+    opacity: 1;
+}
+</style>
 {%- block extra_head %}{% endblock -%}
 </head>
 <body class="{% block body_class %}{% endblock %}">

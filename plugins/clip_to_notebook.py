@@ -16,7 +16,8 @@ def render_cell(row, value, column, table, database, datasette, request):
         return None
 
     # Get the subdomain from plugin config
-    subdomain = datasette.plugin_config("corkboard", {}).get("subdomain", "")
+    config = datasette.plugin_config("corkboard") or {}
+    subdomain = config.get("subdomain", "")
 
     # Build the clip URL with UTM tracking
     clip_url = (

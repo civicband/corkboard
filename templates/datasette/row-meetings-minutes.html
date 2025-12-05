@@ -18,7 +18,7 @@
     {{ table }}: {{ ', '.join(primary_key_values) }}{% if private %} 🔒{% endif %}
 </h1>
 
-<a href="https://civic.observer/clip/?id={{ primary_key_values[0] }}&subdomain={{ subdomain }}&table={{ table }}"
+<a href="https://civic.observer/clip/?id={{ primary_key_values[0] }}&subdomain={{ subdomain }}&table={{ table }}&utm_source=civicband&utm_medium=clip&utm_campaign={{ subdomain }}&utm_content=detail_button"
    class="clip-button"
    target="_blank"
    data-umami-event="clip_to_notebook"

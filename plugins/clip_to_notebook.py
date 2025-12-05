@@ -18,9 +18,10 @@ def render_cell(row, value, column, table, database, datasette, request):
     # Get the subdomain from plugin config
     subdomain = datasette.plugin_config("corkboard", {}).get("subdomain", "")
 
-    # Build the clip URL
+    # Build the clip URL with UTM tracking
     clip_url = (
         f"https://civic.observer/clip/?id={value}&subdomain={subdomain}&table={table}"
+        f"&utm_source=civicband&utm_medium=clip&utm_campaign={subdomain}&utm_content=row_icon"
     )
 
     # Return the rowid value with a clip icon link

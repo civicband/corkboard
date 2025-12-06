@@ -3,11 +3,14 @@
 import pytest
 
 from django_plugins.api_key_auth import (
+    cap_result_size,
     extract_api_key,
     is_first_party_request,
     is_internal_service_request,
     is_json_endpoint,
+    is_research_tool_request,
     make_401_response,
+    make_402_rate_limit_response,
 )
 
 
@@ -274,3 +277,200 @@ class TestValidateApiKey:
         assert cached is not None
         assert b"valid" in cached
         assert b"false" in cached.lower()
+
+
+class TestIsResearchToolRequest:
+    """Test research tool detection via User-Agent header."""
+
+    def test_zotero_user_agent(self):
+        """Zotero requests should be detected as research tools."""
+        headers = [(b"user-agent", b"Zotero/6.0.27")]
+        assert is_research_tool_request(headers) is True
+
+    def test_zotero_connector(self):
+        """Zotero Connector requests should be detected."""
+        headers = [
+            (
+                b"user-agent",
+                b"Mozilla/5.0 (compatible; Zotero Connector/5.0.91)",
+            )
+        ]
+        assert is_research_tool_request(headers) is True
+
+    def test_mendeley_user_agent(self):
+        """Mendeley requests should be detected as research tools."""
+        headers = [(b"user-agent", b"Mendeley Desktop/1.19.8")]
+        assert is_research_tool_request(headers) is True
+
+    def test_endnote_user_agent(self):
+        """EndNote requests should be detected as research tools."""
+        headers = [(b"user-agent", b"EndNote X9")]
+        assert is_research_tool_request(headers) is True
+
+    def test_papers_user_agent(self):
+        """Papers app requests should be detected as research tools."""
+        headers = [(b"user-agent", b"Papers/4.0")]
+        assert is_research_tool_request(headers) is True
+
+    def test_case_insensitive_detection(self):
+        """Detection should be case-insensitive."""
+        headers = [(b"user-agent", b"ZOTERO/6.0")]
+        assert is_research_tool_request(headers) is True
+
+    def test_generic_browser_rejected(self):
+        """Generic browser requests should not be detected as research tools."""
+        headers = [
+            (
+                b"user-agent",
+                b"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0",
+            )
+        ]
+        assert is_research_tool_request(headers) is False
+
+    def test_curl_rejected(self):
+        """curl requests should not be detected as research tools."""
+        headers = [(b"user-agent", b"curl/7.88.1")]
+        assert is_research_tool_request(headers) is False
+
+    def test_no_user_agent(self):
+        """Requests without User-Agent should not be detected as research tools."""
+        headers = [(b"content-type", b"application/json")]
+        assert is_research_tool_request(headers) is False
+
+    def test_empty_headers(self):
+        """Requests with no headers should not be detected as research tools."""
+        assert is_research_tool_request([]) is False
+
+
+class TestCapResultSize:
+    """Test result size capping for unauthenticated requests."""
+
+    def test_no_size_adds_cap(self):
+        """Missing _size should add the cap."""
+        result = cap_result_size(b"_search=budget")
+        assert b"_size=100" in result
+        assert b"_search=budget" in result
+
+    def test_empty_query_string(self):
+        """Empty query string should add just the cap."""
+        result = cap_result_size(b"")
+        assert result == b"_size=100"
+
+    def test_size_below_cap_unchanged(self):
+        """_size below cap should be preserved."""
+        result = cap_result_size(b"_size=50&_search=budget")
+        assert b"_size=50" in result
+        assert b"_search=budget" in result
+
+    def test_size_at_cap_unchanged(self):
+        """_size at cap should be preserved."""
+        result = cap_result_size(b"_size=100&_search=budget")
+        assert b"_size=100" in result
+
+    def test_size_above_cap_is_capped(self):
+        """_size above cap should be reduced to cap."""
+        result = cap_result_size(b"_size=500&_search=budget")
+        assert b"_size=100" in result
+        assert b"_size=500" not in result
+        assert b"_search=budget" in result
+
+    def test_invalid_size_gets_capped(self):
+        """Invalid _size value should be replaced with cap."""
+        result = cap_result_size(b"_size=invalid&_search=budget")
+        assert b"_size=100" in result
+        assert b"_search=budget" in result
+
+    def test_preserves_other_params(self):
+        """Other query parameters should be preserved."""
+        result = cap_result_size(b"_search=budget&year=2023&_sort=date")
+        params = dict(p.split(b"=") for p in result.split(b"&"))
+        assert params[b"_search"] == b"budget"
+        assert params[b"year"] == b"2023"
+        assert params[b"_sort"] == b"date"
+        assert params[b"_size"] == b"100"
+
+
+class TestMake402RateLimitResponse:
+    """Test 402 rate limit response generation."""
+
+    def test_response_body(self):
+        body, headers = make_402_rate_limit_response()
+        assert b"rate_limit_exceeded" in body
+        assert b"15 requests per minute" in body
+        assert b"https://civic.observer/api-keys" in body
+
+    def test_response_headers(self):
+        body, headers = make_402_rate_limit_response()
+        header_dict = {k.decode(): v.decode() for k, v in headers}
+        assert header_dict["content-type"] == "application/json"
+        assert header_dict["content-length"] == str(len(body))
+
+
+@pytest.mark.asyncio
+class TestCheckRateLimit:
+    """Test rate limiting functionality."""
+
+    @pytest.fixture(autouse=True)
+    def reset_redis_client(self):
+        """Reset Redis client between tests."""
+        from django_plugins import api_key_auth
+
+        api_key_auth._redis_client = None
+        yield
+        api_key_auth._redis_client = None
+
+    @pytest.fixture
+    def fake_redis(self):
+        """Create a fake Redis client for testing."""
+        import fakeredis.aioredis
+
+        return fakeredis.aioredis.FakeRedis()
+
+    async def test_first_request_allowed(self, fake_redis):
+        from django_plugins.api_key_auth import check_rate_limit, set_redis_client
+
+        set_redis_client(fake_redis)
+        # First request should be allowed
+        exceeded = await check_rate_limit("192.168.1.1")
+        assert exceeded is False
+
+    async def test_requests_under_limit_allowed(self, fake_redis):
+        from django_plugins.api_key_auth import check_rate_limit, set_redis_client
+
+        set_redis_client(fake_redis)
+        ip = "192.168.1.2"
+        # Make 14 requests (should all be allowed)
+        for i in range(14):
+            exceeded = await check_rate_limit(ip)
+            assert exceeded is False, f"Request {i + 1} should be allowed"
+
+    async def test_16th_request_blocked(self, fake_redis):
+        from django_plugins.api_key_auth import check_rate_limit, set_redis_client
+
+        set_redis_client(fake_redis)
+        ip = "192.168.1.3"
+        # Make 15 requests
+        for _ in range(15):
+            await check_rate_limit(ip)
+        # 16th should be blocked
+        exceeded = await check_rate_limit(ip)
+        assert exceeded is True
+
+    async def test_different_ips_tracked_separately(self, fake_redis):
+        from django_plugins.api_key_auth import check_rate_limit, set_redis_client
+
+        set_redis_client(fake_redis)
+        ip1 = "192.168.1.10"
+        ip2 = "192.168.1.20"
+
+        # Max out ip1
+        for _ in range(15):
+            await check_rate_limit(ip1)
+
+        # ip2 should still be allowed
+        exceeded = await check_rate_limit(ip2)
+        assert exceeded is False
+
+        # ip1 should be blocked
+        exceeded = await check_rate_limit(ip1)
+        assert exceeded is True

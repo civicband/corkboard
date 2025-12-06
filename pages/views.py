@@ -17,5 +17,9 @@ def privacy_view(request):
     return render(request, "pages/privacy.html")
 
 
+def researchers_view(request):
+    return render(request, "pages/researchers.html")
+
+
 def feed_view(request):
     return render(request, "pages/rss.xml")

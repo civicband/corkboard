@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>For Researchers - Civic Band</title>
+  <script defer src="https://analytics.civic.band/sunshine"
+    data-website-id="6250918b-6a0c-4c05-a6cb-ec8f86349e1a"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="fediverse:creator" content="@civicband@sfba.social">
+  <meta name="description" content="CivicBand for researchers and academics - citation formats, Zotero integration, and research tools">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="h-full">
+  <div class="bg-white px-6 py-32 lg:px-8">
+    <div class="mx-auto max-w-3xl text-base/7 text-gray-700">
+      <p class="text-base/7 font-semibold text-indigo-600"><a href="/" data-umami-event="researchers_nav" data-umami-event-target="back">
+          &lt; Back</a>
+      </p>
+      <h1 class="mt-2 text-pretty text-4xl font-semibold tracking-tight text-gray-900 sm:text-5xl">CivicBand for Researchers</h1>
+      <p class="mt-6 text-xl/8">CivicBand provides free access to searchable municipal meeting records. Here's how to integrate CivicBand into your research workflow.</p>
+
+      <div class="mt-10 max-w-2xl">
+        <h2 class="text-2xl font-bold tracking-tight text-gray-900">Citing CivicBand Records</h2>
+        <p class="mt-4">Each record page includes a "Cite this page" section with a pre-formatted citation. Records include Dublin Core metadata for automated citation tools.</p>
+
+        <h3 class="mt-8 text-lg font-semibold text-gray-900">Citation Examples</h3>
+        <p class="mt-2 text-sm text-gray-500">For a City Council Minutes page from Alameda, CA dated January 15, 2024:</p>
+
+        <div class="mt-4 space-y-4">
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <p class="font-semibold text-sm text-gray-900">Chicago (Notes-Bibliography)</p>
+            <p class="mt-2 text-sm font-mono text-gray-600">City of Alameda. "City Council Minutes." January 15, 2024, page 3. CivicBand Archive. Accessed [date]. https://alameda.ca.civic.band/meetings/minutes/[id]</p>
+          </div>
+
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <p class="font-semibold text-sm text-gray-900">APA (7th Edition)</p>
+            <p class="mt-2 text-sm font-mono text-gray-600">City of Alameda. (2024, January 15). City council minutes (p. 3). CivicBand Archive. https://alameda.ca.civic.band/meetings/minutes/[id]</p>
+          </div>
+
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <p class="font-semibold text-sm text-gray-900">MLA (9th Edition)</p>
+            <p class="mt-2 text-sm font-mono text-gray-600">City of Alameda. "City Council Minutes." 15 Jan. 2024, p. 3. <em>CivicBand Archive</em>, alameda.ca.civic.band/meetings/minutes/[id]. Accessed [date].</p>
+          </div>
+        </div>
+
+        <h2 class="mt-12 text-2xl font-bold tracking-tight text-gray-900">Browser Search Integration</h2>
+        <p class="mt-4">Each CivicBand site supports <a href="https://developer.mozilla.org/en-US/docs/Web/OpenSearch" class="text-indigo-600 hover:text-indigo-500">OpenSearch</a>, allowing you to add it as a search engine in your browser.</p>
+
+        <div class="mt-4 bg-gray-50 p-4 rounded-lg">
+          <p class="font-semibold text-sm text-gray-900">To add a CivicBand site as a search engine:</p>
+          <ol class="mt-2 text-sm text-gray-600 list-decimal list-inside space-y-1">
+            <li>Visit any CivicBand site (e.g., <a href="https://alameda.ca.civic.band" class="text-indigo-600 hover:text-indigo-500">alameda.ca.civic.band</a>)</li>
+            <li>In Firefox: Right-click the address bar and select "Add Search Engine"</li>
+            <li>In Chrome: The site will appear in Settings &gt; Search engine &gt; Manage search engines</li>
+          </ol>
+        </div>
+
+        <h2 class="mt-12 text-2xl font-bold tracking-tight text-gray-900">Zotero Integration</h2>
+        <p class="mt-4">CivicBand works with <a href="https://www.zotero.org/" class="text-indigo-600 hover:text-indigo-500">Zotero</a>, the free reference management tool popular with researchers.</p>
+
+        <h3 class="mt-6 text-lg font-semibold text-gray-900">Automatic Metadata Detection</h3>
+        <p class="mt-2">CivicBand pages include Dublin Core metadata that Zotero can automatically detect. When viewing a record page, the Zotero browser connector will recognize it as a citable source.</p>
+
+        <h3 class="mt-6 text-lg font-semibold text-gray-900">Adding as a Locate Engine</h3>
+        <p class="mt-2">You can add CivicBand sites as Zotero "Locate" engines for quick lookups. Add the following to your <code class="text-sm bg-gray-100 px-1 py-0.5 rounded">engines.json</code> file in your Zotero data directory:</p>
+
+        <div class="mt-4 bg-gray-900 p-4 rounded-lg overflow-x-auto">
+          <pre class="text-sm text-gray-100"><code>{
+  "name": "Alameda CA CivicBand",
+  "alias": "Alameda Civic",
+  "description": "Search Alameda CA meeting records",
+  "_urlTemplate": "https://alameda.ca.civic.band/meetings?_search={z:title}",
+  "hidden": false
+}</code></pre>
+        </div>
+
+        <p class="mt-4 text-sm text-gray-500">Replace "alameda.ca" with the subdomain for your municipality of interest. Find all available sites at <a href="https://civic.band" class="text-indigo-600 hover:text-indigo-500">civic.band</a>.</p>
+
+        <h2 class="mt-12 text-2xl font-bold tracking-tight text-gray-900">Data Access</h2>
+        <p class="mt-4">All CivicBand data is accessible via JSON API. Append <code class="text-sm bg-gray-100 px-1 py-0.5 rounded">.json</code> to any page URL to get machine-readable data.</p>
+
+        <div class="mt-4 bg-gray-50 p-4 rounded-lg">
+          <p class="font-semibold text-sm text-gray-900">Example API URLs:</p>
+          <ul class="mt-2 text-sm text-gray-600 space-y-1 font-mono">
+            <li>Table data: <code>https://alameda.ca.civic.band/meetings/minutes.json</code></li>
+            <li>Search results: <code>https://alameda.ca.civic.band/meetings/minutes.json?_search=budget</code></li>
+            <li>Single record: <code>https://alameda.ca.civic.band/meetings/minutes/[id].json</code></li>
+          </ul>
+        </div>
+
+        <p class="mt-4 text-sm text-gray-500">For high-volume API access or cross-domain search capabilities, contact us about <a href="https://civic.observer" class="text-indigo-600 hover:text-indigo-500">CivicObserver</a> research accounts.</p>
+
+        <h2 class="mt-12 text-2xl font-bold tracking-tight text-gray-900">Questions?</h2>
+        <p class="mt-4">For research inquiries, data access questions, or collaboration opportunities, contact us at <a href="mailto:hello@civic.band" class="text-indigo-600 hover:text-indigo-500">hello@civic.band</a>.</p>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

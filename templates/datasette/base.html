@@ -26,6 +26,7 @@
 {%- if alternate_url_json -%}
     <link rel="alternate" type="application/json+datasette" href="{{ alternate_url_json }}">
 {%- endif -%}
+<link rel="search" type="application/opensearchdescription+xml" title="{{ site_name }} Search" href="/opensearch.xml">
 <style>
 /* Clip to notebook icon styles */
 .clip-icon {
@@ -86,7 +87,7 @@
 {% endblock %}
 </section>
 </div>
-<footer class="ft">{% block footer %}{% include "_footer.html" %}{% endblock %} <a href="https://civic.band/privacy.html">Privacy</a></footer>
+<footer class="ft">{% block footer %}{% include "_footer.html" %}{% endblock %} <a href="https://civic.band/researchers">For Researchers</a> | <a href="https://civic.band/privacy.html">Privacy</a></footer>
 
 {% include "_close_open_menus.html" %}
 

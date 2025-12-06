@@ -378,3 +378,57 @@ async def test_asgi_wrapper_missing_subdomain_returns_none():
         assert mock_send.call_count == 2
         start_message = mock_send.call_args_list[0][0][0]
         assert start_message["status"] == 302
+
+
+class TestGetClientIp:
+    """Test client IP extraction from ASGI scope."""
+
+    def test_direct_client_ip(self):
+        """Direct connection should use client IP from scope."""
+        scope = {
+            "headers": [(b"content-type", b"application/json")],
+            "client": ("192.168.1.100", 54321),
+        }
+        assert datasette_by_subdomain.get_client_ip(scope) == "192.168.1.100"
+
+    def test_x_forwarded_for_single(self):
+        """Single IP in X-Forwarded-For should be used."""
+        scope = {
+            "headers": [(b"x-forwarded-for", b"10.0.0.50")],
+            "client": ("127.0.0.1", 54321),
+        }
+        assert datasette_by_subdomain.get_client_ip(scope) == "10.0.0.50"
+
+    def test_x_forwarded_for_multiple(self):
+        """First IP in X-Forwarded-For chain should be used."""
+        scope = {
+            "headers": [(b"x-forwarded-for", b"10.0.0.50, 192.168.1.1, 172.16.0.1")],
+            "client": ("127.0.0.1", 54321),
+        }
+        assert datasette_by_subdomain.get_client_ip(scope) == "10.0.0.50"
+
+    def test_x_forwarded_for_with_spaces(self):
+        """X-Forwarded-For with extra whitespace should be handled."""
+        scope = {
+            "headers": [(b"x-forwarded-for", b"  10.0.0.50  , 192.168.1.1")],
+            "client": ("127.0.0.1", 54321),
+        }
+        assert datasette_by_subdomain.get_client_ip(scope) == "10.0.0.50"
+
+    def test_no_client_info(self):
+        """Missing client info should return 'unknown'."""
+        scope = {"headers": []}
+        assert datasette_by_subdomain.get_client_ip(scope) == "unknown"
+
+    def test_empty_scope(self):
+        """Empty scope should return 'unknown'."""
+        scope = {}
+        assert datasette_by_subdomain.get_client_ip(scope) == "unknown"
+
+    def test_x_forwarded_for_takes_precedence(self):
+        """X-Forwarded-For should take precedence over client tuple."""
+        scope = {
+            "headers": [(b"x-forwarded-for", b"10.0.0.50")],
+            "client": ("192.168.1.100", 54321),
+        }
+        assert datasette_by_subdomain.get_client_ip(scope) == "10.0.0.50"

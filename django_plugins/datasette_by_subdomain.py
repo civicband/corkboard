@@ -27,11 +27,15 @@ except ImportError:
     pass
 
 from django_plugins.api_key_auth import (
+    cap_result_size,
+    check_rate_limit,
     extract_api_key,
     is_first_party_request,
     is_internal_service_request,
     is_json_endpoint,
+    is_research_tool_request,
     make_401_response,
+    make_402_rate_limit_response,
     validate_api_key,
 )
 
@@ -117,22 +121,26 @@ async def send_404_response(send):
     )
 
 
-async def send_402_response(send):
-    """Send a 402 Payment Required response for bot-like queries."""
-    response = {
-        "error": "query_too_long",
-        "message": "Automated queries require an API key",
-        "get_api_key": API_SIGNUP_URL,
-    }
-    body = json.dumps(response).encode()
+async def send_402_response(send, error_type: str = "query_too_long"):
+    """Send a 402 Payment Required response for bot-like queries or rate limiting."""
+    if error_type == "rate_limit":
+        body, headers = make_402_rate_limit_response()
+    else:
+        response = {
+            "error": "query_too_long",
+            "message": "Automated queries require an API key",
+            "get_api_key": API_SIGNUP_URL,
+        }
+        body = json.dumps(response).encode()
+        headers = [
+            (b"content-type", b"application/json"),
+            (b"content-length", str(len(body)).encode()),
+        ]
     await send(
         {
             "type": "http.response.start",
             "status": 402,
-            "headers": [
-                (b"content-type", b"application/json"),
-                (b"content-length", str(len(body)).encode()),
-            ],
+            "headers": headers,
         }
     )
     await send(
@@ -158,6 +166,37 @@ def is_query_too_long(query_string: bytes) -> bool:
                 return True
 
     return False
+
+
+def get_client_ip(scope: dict) -> str:
+    """
+    Extract client IP address from ASGI scope.
+
+    Checks X-Forwarded-For header first (for proxied requests),
+    then falls back to the client address from the scope.
+
+    Args:
+        scope: ASGI scope dictionary
+
+    Returns:
+        Client IP address string
+    """
+    headers = scope.get("headers", [])
+
+    # Check X-Forwarded-For header (used by proxies/load balancers)
+    for header_name, header_value in headers:
+        name = header_name.decode("utf-8").lower()
+        if name == "x-forwarded-for":
+            # X-Forwarded-For can contain multiple IPs; first is the client
+            forwarded = header_value.decode("utf-8")
+            return forwarded.split(",")[0].strip()
+
+    # Fall back to direct client address
+    client = scope.get("client")
+    if client:
+        return client[0]
+
+    return "unknown"
 
 
 async def datasette_by_subdomain_wrapper(scope, receive, send, app):
@@ -208,27 +247,51 @@ async def datasette_by_subdomain_wrapper(scope, receive, send, app):
             "last_updated": site["last_updated"],
         }
 
-        # Check API key for JSON endpoints unless:
-        # 1. First-party browser request (matching Referer) - for datasette-search-all
-        # 2. Internal service request (valid X-Service-Secret) - for civic.observer
+        # Tiered JSON access control:
+        # | Layer            | Condition                     | Action                    |
+        # |------------------|-------------------------------|---------------------------|
+        # | First-party      | Matching Referer              | Allow (full access)       |
+        # | Internal service | Valid X-Service-Secret        | Allow (full access)       |
+        # | Research tools   | UA contains Zotero/etc.       | Allow (full access)       |
+        # | Rate limit       | >15 req/min per IP            | 402                       |
+        # | API key          | Valid key                     | Allow (unlimited results) |
+        # | No API key       | Unauthenticated               | Allow (cap _size at 100)  |
         path = scope.get("path", "")
-        if (
-            is_json_endpoint(path)
-            and not is_first_party_request(headers, subdomain)
-            and not is_internal_service_request(headers)
-        ):
-            api_key = extract_api_key(headers, scope.get("query_string", b""))
+        should_cap_results = False
 
-            # No key = instant 401 (DDoS protection)
-            if not api_key:
-                await send_401_response(send)
-                return
+        if is_json_endpoint(path):
+            # Layers 1-3: Trusted sources get full access without rate limiting
+            is_trusted_source = (
+                is_first_party_request(headers, subdomain)  # Layer 1: browser AJAX
+                or is_internal_service_request(headers)  # Layer 2: civic.observer
+                or is_research_tool_request(headers)  # Layer 3: Zotero, etc.
+            )
 
-            # Validate key against cache/civic.observer
-            result = await validate_api_key(api_key, subdomain)
-            if not result["valid"]:
-                await send_401_response(send)
-                return
+            if not is_trusted_source:
+                # Layer 4: Rate limiting for all other JSON requests
+                client_ip = get_client_ip(scope)
+                if await check_rate_limit(client_ip):
+                    await send_402_response(send, "rate_limit")
+                    return
+
+                # Layer 5: Check for API key
+                api_key = extract_api_key(headers, query_string)
+
+                if api_key:
+                    # Validate key against cache/civic.observer
+                    result = await validate_api_key(api_key, subdomain)
+                    if not result["valid"]:
+                        await send_401_response(send)
+                        return
+                    # Valid API key - full access, no capping
+                else:
+                    # Layer 6: No API key - allow but cap results
+                    should_cap_results = True
+
+        # Cap result size for unauthenticated requests
+        if should_cap_results:
+            scope = dict(scope)  # Make a mutable copy
+            scope["query_string"] = cap_result_size(query_string)
 
         metadata = json.loads(
             jinja_env.get_template("metadata.json").render(context=context_blob)

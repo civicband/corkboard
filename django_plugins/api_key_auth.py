@@ -2,18 +2,30 @@
 API Key authentication for JSON endpoints.
 
 Validates API keys against civic.observer with Redis caching.
+Also includes rate limiting and research tool detection.
 """
 
 import hashlib
 import json
 import logging
 from typing import Optional
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, urlencode
 
 import redis.asyncio as redis
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
+
+# Research tools that get full JSON access without API key
+# These are legitimate academic tools that shouldn't be rate-limited
+RESEARCH_TOOL_USER_AGENTS = ["zotero", "mendeley", "endnote", "papers"]
+
+# Rate limiting settings
+RATE_LIMIT_REQUESTS = 15  # requests per window
+RATE_LIMIT_WINDOW_SECONDS = 60  # 1 minute window
+
+# Result size cap for unauthenticated requests
+MAX_RESULTS_UNAUTHENTICATED = 100
 
 # Redis connection (lazy initialization)
 _redis_client: Optional[redis.Redis] = None
@@ -205,6 +217,132 @@ def make_401_response() -> tuple:
     """Create a 401 Unauthorized JSON response."""
     body = json.dumps(
         {"error": "API key required", "docs": "https://civic.observer/api-keys"}
+    ).encode("utf-8")
+
+    return body, [
+        (b"content-type", b"application/json"),
+        (b"content-length", str(len(body)).encode()),
+    ]
+
+
+def is_research_tool_request(headers: list) -> bool:
+    """
+    Check if request is from a known research tool via User-Agent.
+
+    Research tools like Zotero, Mendeley, EndNote, and Papers are allowed
+    full JSON access without API key authentication, as they represent
+    legitimate academic use cases.
+
+    Args:
+        headers: List of (name, value) tuples from ASGI scope
+
+    Returns:
+        True if User-Agent contains a known research tool identifier
+    """
+    for header_name, header_value in headers:
+        name = header_name.decode("utf-8").lower()
+        if name == "user-agent":
+            user_agent = header_value.decode("utf-8").lower()
+            for tool in RESEARCH_TOOL_USER_AGENTS:
+                if tool in user_agent:
+                    logger.debug(f"Research tool detected: {tool} in User-Agent")
+                    return True
+    return False
+
+
+def _rate_limit_key(ip_address: str) -> str:
+    """Generate Redis key for rate limiting by IP."""
+    return f"ratelimit:{ip_address}"
+
+
+async def check_rate_limit(ip_address: str) -> bool:
+    """
+    Check if an IP address has exceeded the rate limit.
+
+    Uses a fixed-window rate limiting approach with Redis.
+    Allows RATE_LIMIT_REQUESTS requests per RATE_LIMIT_WINDOW_SECONDS.
+
+    Args:
+        ip_address: The client's IP address
+
+    Returns:
+        True if rate limit exceeded, False if request is allowed
+    """
+    redis_client = await get_redis()
+    key = _rate_limit_key(ip_address)
+
+    # Get current count
+    current = await redis_client.get(key)
+
+    if current is None:
+        # First request in window - set count to 1 with expiry
+        await redis_client.setex(key, RATE_LIMIT_WINDOW_SECONDS, 1)
+        return False
+
+    count = int(current)
+    if count >= RATE_LIMIT_REQUESTS:
+        logger.info(f"Rate limit exceeded for IP {ip_address}: {count} requests")
+        return True
+
+    # Increment count
+    await redis_client.incr(key)
+    return False
+
+
+def cap_result_size(query_string: bytes) -> bytes:
+    """
+    Cap the _size parameter to MAX_RESULTS_UNAUTHENTICATED.
+
+    If _size is not present or exceeds the maximum, set it to the max.
+    This ensures unauthenticated requests can't retrieve unlimited data.
+
+    Args:
+        query_string: Original query string bytes
+
+    Returns:
+        Modified query string with capped _size parameter
+    """
+    if not query_string:
+        return f"_size={MAX_RESULTS_UNAUTHENTICATED}".encode("utf-8")
+
+    params = parse_qs(query_string.decode("utf-8"), keep_blank_values=True)
+
+    # Get current _size value
+    current_size = params.get("_size", [None])[0]
+
+    if current_size is None:
+        # No _size specified - add the cap
+        params["_size"] = [str(MAX_RESULTS_UNAUTHENTICATED)]
+    else:
+        try:
+            size_int = int(current_size)
+            if size_int > MAX_RESULTS_UNAUTHENTICATED:
+                params["_size"] = [str(MAX_RESULTS_UNAUTHENTICATED)]
+        except ValueError:
+            # Invalid _size value - set to max
+            params["_size"] = [str(MAX_RESULTS_UNAUTHENTICATED)]
+
+    # Rebuild query string - flatten lists back to single values for urlencode
+    flat_params = {}
+    for key, values in params.items():
+        if len(values) == 1:
+            flat_params[key] = values[0]
+        else:
+            # Multiple values for same key - keep as list for urlencode's doseq
+            flat_params[key] = values
+
+    # Use doseq=True to handle multi-value params properly
+    return urlencode(flat_params, doseq=True).encode("utf-8")
+
+
+def make_402_rate_limit_response() -> tuple:
+    """Create a 402 Payment Required JSON response for rate limiting."""
+    body = json.dumps(
+        {
+            "error": "rate_limit_exceeded",
+            "message": f"Rate limit exceeded. Maximum {RATE_LIMIT_REQUESTS} requests per minute.",
+            "get_api_key": "https://civic.observer/api-keys",
+        }
     ).encode("utf-8")
 
     return body, [

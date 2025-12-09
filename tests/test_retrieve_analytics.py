@@ -23,7 +23,12 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
 # Mock the script execution to avoid running main
 with patch("sys.argv", ["retrieve_umami_analytics.py"]):
-    from retrieve_umami_analytics import AnalyticsDatabase, UmamiClient
+    from retrieve_umami_analytics import (
+        AnalyticsDatabase,
+        UmamiClient,
+        generate_summary_report,
+        get_stat_value,
+    )
 
 
 class TestUmamiClient:
@@ -442,3 +447,251 @@ class TestAnalyticsDatabase:
         assert cursor.fetchone()[0] == 0
 
         conn.close()
+
+    def test_context_manager(self, temp_db_path):
+        """Database supports context manager protocol."""
+        with AnalyticsDatabase(str(temp_db_path)) as db:
+            stats = {"pageviews": 100, "visitors": 50}
+            db.insert_website_stats(datetime(2024, 1, 1), datetime(2024, 1, 31), stats)
+
+        # Connection should be closed after context
+        assert db.conn is None or not db.conn
+
+        # Data should still be persisted
+        conn = sqlite3.connect(temp_db_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM website_stats")
+        assert cursor.fetchone()[0] == 1
+        conn.close()
+
+    def test_context_manager_closes_on_exception(self, temp_db_path):
+        """Context manager closes connection even on exception."""
+        try:
+            with AnalyticsDatabase(str(temp_db_path)) as db:
+                raise ValueError("Test exception")
+        except ValueError:
+            pass
+
+        # Connection should be closed
+        assert db.conn is None or not db.conn
+
+    def test_consistent_retrieved_at_timestamp(self, temp_db_path):
+        """All inserts in a session use the same timestamp."""
+        db = AnalyticsDatabase(str(temp_db_path))
+
+        events = [
+            {"name": "event1", "url": "/", "hostname": "test.com", "data": {}},
+            {"name": "event2", "url": "/", "hostname": "test.com", "data": {}},
+        ]
+        db.insert_events(events)
+
+        stats = {"pageviews": 100}
+        db.insert_website_stats(datetime(2024, 1, 1), datetime(2024, 1, 31), stats)
+
+        # All records should have the same retrieved_at
+        conn = sqlite3.connect(temp_db_path)
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT DISTINCT retrieved_at FROM events")
+        event_timestamps = cursor.fetchall()
+        assert len(event_timestamps) == 1
+
+        cursor.execute("SELECT retrieved_at FROM website_stats")
+        stats_timestamp = cursor.fetchone()[0]
+
+        # All timestamps should match
+        assert event_timestamps[0][0] == stats_timestamp
+
+        conn.close()
+        db.close()
+
+    def test_duplicate_stats_replaced(self, temp_db_path):
+        """Duplicate stats for same date range are replaced, not duplicated."""
+        db = AnalyticsDatabase(str(temp_db_path))
+
+        start_date = datetime(2024, 1, 1)
+        end_date = datetime(2024, 1, 31)
+
+        # Insert first stats
+        stats1 = {"pageviews": 100, "visitors": 50}
+        db.insert_website_stats(start_date, end_date, stats1)
+
+        # Insert updated stats for same date range
+        stats2 = {"pageviews": 200, "visitors": 100}
+        db.insert_website_stats(start_date, end_date, stats2)
+
+        # Should only have one record with updated values
+        conn = sqlite3.connect(temp_db_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM website_stats")
+        assert cursor.fetchone()[0] == 1
+
+        cursor.execute("SELECT pageviews, unique_visitors FROM website_stats")
+        row = cursor.fetchone()
+        assert row[0] == 200  # Updated value
+        assert row[1] == 100  # Updated value
+
+        conn.close()
+        db.close()
+
+    def test_duplicate_url_metrics_replaced(self, temp_db_path):
+        """Duplicate URL metrics for same date range are replaced."""
+        db = AnalyticsDatabase(str(temp_db_path))
+
+        start_date = datetime(2024, 1, 1)
+        end_date = datetime(2024, 1, 31)
+
+        # Insert first metrics
+        metrics1 = [{"x": "/page1", "y": 100}]
+        db.insert_metrics(start_date, end_date, metrics1, "url")
+
+        # Insert updated metrics for same date range and URL
+        metrics2 = [{"x": "/page1", "y": 200}]
+        db.insert_metrics(start_date, end_date, metrics2, "url")
+
+        # Should only have one record with updated value
+        conn = sqlite3.connect(temp_db_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM url_metrics")
+        assert cursor.fetchone()[0] == 1
+
+        cursor.execute("SELECT visits FROM url_metrics")
+        assert cursor.fetchone()[0] == 200
+
+        conn.close()
+        db.close()
+
+    def test_insert_metrics_invalid_type_raises(self, temp_db_path):
+        """Invalid metric type raises ValueError."""
+        db = AnalyticsDatabase(str(temp_db_path))
+
+        metrics = [{"x": "/page1", "y": 100}]
+
+        with pytest.raises(ValueError) as exc_info:
+            db.insert_metrics(
+                datetime(2024, 1, 1), datetime(2024, 1, 31), metrics, "invalid"
+            )
+
+        assert "Invalid metric_type" in str(exc_info.value)
+        db.close()
+
+
+class TestGetStatValue:
+    """Test get_stat_value helper function."""
+
+    def test_new_format_integer(self):
+        """Handle new API format with direct integers."""
+        stats = {"pageviews": 1000, "visitors": 250}
+        assert get_stat_value(stats, "pageviews") == 1000
+        assert get_stat_value(stats, "visitors") == 250
+
+    def test_legacy_format_nested(self):
+        """Handle legacy API format with nested value objects."""
+        stats = {"pageviews": {"value": 2000}, "visitors": {"value": 500}}
+        assert get_stat_value(stats, "pageviews") == 2000
+        assert get_stat_value(stats, "visitors") == 500
+
+    def test_missing_key_returns_zero(self):
+        """Missing key returns 0."""
+        stats = {"pageviews": 1000}
+        assert get_stat_value(stats, "visitors") == 0
+
+    def test_invalid_type_returns_zero(self):
+        """Non-integer, non-dict value returns 0."""
+        stats = {"pageviews": "invalid"}
+        assert get_stat_value(stats, "pageviews") == 0
+
+    def test_empty_stats(self):
+        """Empty stats dict returns 0 for any key."""
+        stats = {}
+        assert get_stat_value(stats, "pageviews") == 0
+
+
+class TestGenerateSummaryReport:
+    """Test generate_summary_report function."""
+
+    def test_new_api_format(self):
+        """Generate report with new API format stats."""
+        stats = {
+            "pageviews": 1000,
+            "visitors": 250,
+            "visits": 500,
+            "bounces": 100,
+            "totaltime": 50000,
+        }
+        events = []
+        start_date = datetime(2024, 1, 1)
+        end_date = datetime(2024, 1, 31)
+
+        report = generate_summary_report(stats, events, start_date, end_date)
+
+        assert report["overview"]["pageviews"] == 1000
+        assert report["overview"]["unique_visitors"] == 250
+        assert report["overview"]["visits"] == 500
+        assert report["overview"]["bounce_rate"] == 100
+        assert report["overview"]["total_time_seconds"] == 50000
+
+    def test_legacy_api_format(self):
+        """Generate report with legacy API format stats."""
+        stats = {
+            "pageviews": {"value": 2000},
+            "visitors": {"value": 500},
+            "visits": {"value": 800},
+            "bounces": {"value": 200},
+            "totaltime": {"value": 100000},
+        }
+        events = []
+        start_date = datetime(2024, 1, 1)
+        end_date = datetime(2024, 1, 31)
+
+        report = generate_summary_report(stats, events, start_date, end_date)
+
+        assert report["overview"]["pageviews"] == 2000
+        assert report["overview"]["unique_visitors"] == 500
+
+    def test_event_counting(self):
+        """Report correctly counts events by type."""
+        stats = {"pageviews": 100}
+        events = [
+            {"name": "search_query", "data": {"subdomain": "alameda.ca"}},
+            {"name": "search_query", "data": {"subdomain": "alameda.ca"}},
+            {"name": "sql_query", "data": {"subdomain": "vancouver.bc"}},
+        ]
+        start_date = datetime(2024, 1, 1)
+        end_date = datetime(2024, 1, 31)
+
+        report = generate_summary_report(stats, events, start_date, end_date)
+
+        assert report["events"]["total_events"] == 3
+        assert report["events"]["event_breakdown"]["search_query"] == 2
+        assert report["events"]["event_breakdown"]["sql_query"] == 1
+
+    def test_municipality_counting(self):
+        """Report correctly counts events by municipality."""
+        stats = {"pageviews": 100}
+        events = [
+            {"name": "search", "data": {"subdomain": "alameda.ca"}},
+            {"name": "search", "data": {"subdomain": "alameda.ca"}},
+            {"name": "search", "data": {"subdomain": "vancouver.bc"}},
+        ]
+        start_date = datetime(2024, 1, 1)
+        end_date = datetime(2024, 1, 31)
+
+        report = generate_summary_report(stats, events, start_date, end_date)
+
+        assert report["municipalities"]["total_municipalities"] == 2
+        assert report["municipalities"]["municipality_breakdown"]["alameda.ca"] == 2
+        assert report["municipalities"]["municipality_breakdown"]["vancouver.bc"] == 1
+
+    def test_empty_stats(self):
+        """Handle empty stats gracefully."""
+        stats = {}
+        events = []
+        start_date = datetime(2024, 1, 1)
+        end_date = datetime(2024, 1, 31)
+
+        report = generate_summary_report(stats, events, start_date, end_date)
+
+        assert report["overview"]["pageviews"] == 0
+        assert report["overview"]["unique_visitors"] == 0
+        assert report["events"]["total_events"] == 0

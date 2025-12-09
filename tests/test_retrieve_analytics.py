@@ -304,14 +304,16 @@ class TestAnalyticsDatabase:
         conn.close()
 
     def test_insert_website_stats(self, temp_db_path):
-        """Insert website statistics to database."""
+        """Insert website statistics to database (new flat format)."""
         db = AnalyticsDatabase(str(temp_db_path))
 
+        # New Umami API format returns flat integers
         stats = {
-            "pageviews": {"value": 1000},
-            "visitors": {"value": 250},
-            "visits": {"value": 500},
-            "bounces": {"value": 100},
+            "pageviews": 1000,
+            "visitors": 250,
+            "visits": 500,
+            "bounces": 100,
+            "totaltime": 50000,
         }
 
         # insert_website_stats expects datetime objects
@@ -338,6 +340,38 @@ class TestAnalyticsDatabase:
         assert row[1] == 250  # unique_visitors (from 'visitors' in stats)
         assert row[2] == 500  # visits
         assert row[3] == 100  # bounces
+
+        conn.close()
+
+    def test_insert_website_stats_legacy_format(self, temp_db_path):
+        """Insert website statistics with legacy nested format."""
+        db = AnalyticsDatabase(str(temp_db_path))
+
+        # Legacy Umami API format with nested {"value": X} objects
+        stats = {
+            "pageviews": {"value": 2000},
+            "visitors": {"value": 500},
+            "visits": {"value": 800},
+            "bounces": {"value": 200},
+            "totaltime": {"value": 100000},
+        }
+
+        start_date = datetime(2024, 2, 1)
+        end_date = datetime(2024, 2, 28)
+
+        db.insert_website_stats(start_date, end_date, stats)
+
+        conn = sqlite3.connect(temp_db_path)
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT pageviews, unique_visitors, visits, bounces FROM website_stats"
+        )
+        row = cursor.fetchone()
+
+        assert row[0] == 2000  # pageviews
+        assert row[1] == 500  # unique_visitors
+        assert row[2] == 800  # visits
+        assert row[3] == 200  # bounces
 
         conn.close()
 

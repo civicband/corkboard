@@ -228,6 +228,13 @@ class AnalyticsDatabase:
         """Insert website statistics."""
         retrieved_at = datetime.now().isoformat()
 
+        # Handle both old format (nested {"value": X}) and new format (direct int)
+        def get_stat_value(stats: Dict, key: str) -> int:
+            value = stats.get(key, 0)
+            if isinstance(value, dict):
+                return value.get("value", 0)
+            return value if isinstance(value, int) else 0
+
         self.conn.execute(
             """
             INSERT INTO website_stats (
@@ -240,11 +247,11 @@ class AnalyticsDatabase:
                 retrieved_at,
                 start_date.isoformat(),
                 end_date.isoformat(),
-                stats.get("pageviews", {}).get("value", 0),
-                stats.get("visitors", {}).get("value", 0),
-                stats.get("visits", {}).get("value", 0),
-                stats.get("bounces", {}).get("value", 0),
-                stats.get("totaltime", {}).get("value", 0),
+                get_stat_value(stats, "pageviews"),
+                get_stat_value(stats, "visitors"),
+                get_stat_value(stats, "visits"),
+                get_stat_value(stats, "bounces"),
+                get_stat_value(stats, "totaltime"),
                 json.dumps(stats),
             ),
         )

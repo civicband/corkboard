@@ -160,21 +160,60 @@ class UmamiClient:
             return None
 
     def get_events(
-        self, start_date: datetime, end_date: datetime
+        self, start_date: datetime, end_date: datetime, page_size: int = 100
     ) -> Optional[List[Dict]]:
-        """Get all events for date range."""
+        """Get all events for date range.
+
+        The Umami API returns paginated results. This method fetches all pages
+        and returns the combined list of events.
+
+        Args:
+            start_date: Start of the date range
+            end_date: End of the date range
+            page_size: Number of events per page (default 100)
+
+        Returns:
+            List of event dictionaries, or None on error
+        """
         try:
             start_ms = int(start_date.timestamp() * 1000)
             end_ms = int(end_date.timestamp() * 1000)
 
-            response = requests.get(
-                f"{self.url}/api/websites/{self.website_id}/events",
-                headers=self._get_headers(),
-                params={"startAt": start_ms, "endAt": end_ms},
-                timeout=30,
-            )
-            response.raise_for_status()
-            return response.json()
+            all_events = []
+            page = 1
+
+            while True:
+                response = requests.get(
+                    f"{self.url}/api/websites/{self.website_id}/events",
+                    headers=self._get_headers(),
+                    params={
+                        "startAt": start_ms,
+                        "endAt": end_ms,
+                        "page": page,
+                        "pageSize": page_size,
+                    },
+                    timeout=30,
+                )
+                response.raise_for_status()
+                result = response.json()
+
+                # Handle paginated response format: {"data": [...], "count": N, ...}
+                if isinstance(result, dict) and "data" in result:
+                    events = result["data"]
+                    all_events.extend(events)
+
+                    # Check if there are more pages
+                    total_count = result.get("count", 0)
+                    if len(all_events) >= total_count:
+                        break
+                    page += 1
+                else:
+                    # Fallback for unexpected format - treat as direct list
+                    if isinstance(result, list):
+                        all_events.extend(result)
+                    break
+
+            return all_events
 
         except requests.exceptions.RequestException as e:
             logger.error(f"Failed to get events: {e}")
@@ -322,8 +361,39 @@ class AnalyticsDatabase:
         self.conn.commit()
 
     def insert_events(self, events: List[Dict]):
-        """Insert events data."""
+        """Insert events data.
+
+        Handles both old event format (name, url, hostname, data, timestamp)
+        and new Umami API format (eventName, urlPath, hostname, createdAt, etc.)
+        """
         for event in events:
+            # Handle both old and new API field names
+            event_name = event.get("eventName") or event.get("name")
+            event_url = event.get("urlPath") or event.get("url")
+            event_hostname = event.get("hostname")
+            event_timestamp = event.get("createdAt") or event.get("timestamp")
+
+            # For new API format, there's no separate 'data' field
+            # Instead, we store useful metadata from the event
+            if "data" in event:
+                event_data = event.get("data", {})
+            else:
+                # Extract useful fields from new API format as event_data
+                event_data = {
+                    k: v
+                    for k, v in event.items()
+                    if k
+                    in (
+                        "country",
+                        "city",
+                        "device",
+                        "os",
+                        "browser",
+                        "referrerDomain",
+                    )
+                    and v
+                }
+
             self.conn.execute(
                 """
                 INSERT INTO events (
@@ -333,11 +403,11 @@ class AnalyticsDatabase:
             """,
                 (
                     self.retrieved_at,
-                    event.get("name"),
-                    event.get("url"),
-                    event.get("hostname"),
-                    json.dumps(event.get("data", {})),
-                    event.get("timestamp"),
+                    event_name,
+                    event_url,
+                    event_hostname,
+                    json.dumps(event_data) if event_data else "{}",
+                    event_timestamp,
                 ),
             )
         self.conn.commit()

@@ -120,15 +120,36 @@ class UmamiClient:
     def get_metrics(
         self, start_date: datetime, end_date: datetime, metric_type: str = "url"
     ) -> Optional[List[Dict]]:
-        """Get metrics data (URLs, events, etc.)."""
+        """Get metrics data (paths, events, etc.).
+
+        Args:
+            start_date: Start of the date range
+            end_date: End of the date range
+            metric_type: Type of metric to retrieve. Valid values:
+                - "url" or "path": Page paths (mapped to API type "path")
+                - "event": Event names
+                - "referrer": Referrer URLs
+                - "browser", "os", "device": User agent info
+
+        Returns:
+            List of metric dictionaries with 'x' (name) and 'y' (count) keys
+        """
         try:
             start_ms = int(start_date.timestamp() * 1000)
             end_ms = int(end_date.timestamp() * 1000)
 
+            # Map our metric types to Umami API types
+            # "url" is a legacy name we used; Umami API uses "path"
+            api_type = "path" if metric_type == "url" else metric_type
+
             response = requests.get(
                 f"{self.url}/api/websites/{self.website_id}/metrics",
                 headers=self._get_headers(),
-                params={"startAt": start_ms, "endAt": end_ms, "type": metric_type},
+                params={
+                    "startAt": start_ms,
+                    "endAt": end_ms,
+                    "type": api_type,
+                },
                 timeout=30,
             )
             response.raise_for_status()

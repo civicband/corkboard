@@ -160,11 +160,15 @@ class UmamiEventTracker:
                 cleaned_data = self._clean_event_data(event_data)
                 payload["payload"]["data"] = cleaned_data
 
-            # Prepare headers - use actual client UA if available
+            # Prepare headers - use actual client UA and IP if available
+            # X-Forwarded-For tells Umami to use this IP for session identification
+            # (not just the payload ip field which is only for geolocation)
             headers = {
                 "Content-Type": "application/json",
                 "User-Agent": user_agent or "CivicBand-Analytics/1.0",
             }
+            if client_ip and client_ip != "unknown":
+                headers["X-Forwarded-For"] = client_ip
 
             # Add API key if available
             if UMAMI_API_KEY:

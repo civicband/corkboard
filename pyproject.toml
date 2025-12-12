@@ -23,6 +23,7 @@ dependencies = [
     "datasette-dashboards>=0.1.0",
     "logfire[django,httpx,sqlite3]>=0.30.0",
     "datasette-search-all==1.1.4", # 1.1.5a0 requires datasette>=1.0a20
+    "datasette-updated>=0.2.0",
     "djp>=0.0.6",
     "jinja2>=3.0.0",
     "sqlite-utils>=3.30.0",

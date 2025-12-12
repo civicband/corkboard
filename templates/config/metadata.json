@@ -10,6 +10,10 @@
       "site_name": "{{ context.name }}",
       "site_description_html": "A fully-searchable database of {{ context.name }}, {{ context.state }} civic meeting minutes and agendas. Last processed: {{ context.last_updated }}. See the full list at <a href=\"https://civic.band\">Civic Band</a>."
     },
+    "datasette-updated": {
+      "updated": "{{ context.last_updated }}",
+      "time_type": "date"
+    },
     "datasette-dashboards": {
       "meetings-stats": {
         "title": "{{ context.name }} Meeting Statistics",

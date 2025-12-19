@@ -39,8 +39,14 @@ RUN --mount=type=cache,target=/root/.cache,sharing=locked,id=pip \
 
 FROM builder AS release
 
+# Create non-root user for security
+RUN useradd --no-create-home --no-log-init --shell /usr/sbin/nologin --uid 1000 appuser
+
 WORKDIR /app
 
 COPY . /app/
+
+# Switch to non-root user
+USER appuser
 
 EXPOSE 8001

@@ -36,11 +36,17 @@ FROM builder AS release
 ARG RELEASE_SHA=development
 RUN echo "${RELEASE_SHA}" > /.release
 
+# Create non-root user for security
+RUN useradd --no-create-home --no-log-init --shell /usr/sbin/nologin --uid 1000 appuser
+
 WORKDIR /app
 
 COPY . /app/
 
 ENV DJP_PLUGINS_DIR=django_plugins
+
+# Switch to non-root user
+USER appuser
 
 EXPOSE 8000
 

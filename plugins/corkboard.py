@@ -1,9 +1,6 @@
 from datasette import hookimpl
 
-from plugins.tracing import trace_plugin
 
-
-@trace_plugin
 @hookimpl
 def extra_template_vars(template, datasette, request):
     if template != "index.html":

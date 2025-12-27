@@ -1,11 +1,13 @@
 import json
+import logging
 import os
 from urllib.parse import parse_qs
 
 import djp
-import logfire
 import sqlite_utils
 from jinja2 import Environment, FileSystemLoader
+
+logger = logging.getLogger(__name__)
 
 # Bot protection: max length for text search queries
 MAX_QUERY_TEXT_LENGTH = int(os.getenv("MAX_QUERY_TEXT_LENGTH", "500"))
@@ -231,6 +233,10 @@ async def datasette_by_subdomain_wrapper(scope, receive, send, app):
 
         # Site not found - redirect to homepage
         if site is None:
+            logger.warning(
+                "Site not found",
+                extra={"subdomain": subdomain, "host": host},
+            )
             await send_redirect_to_home(send)
             return
 
@@ -271,6 +277,14 @@ async def datasette_by_subdomain_wrapper(scope, receive, send, app):
                 # Layer 4: Rate limiting for all other JSON requests
                 client_ip = get_client_ip(scope)
                 if await check_rate_limit(client_ip):
+                    logger.warning(
+                        "Rate limit exceeded",
+                        extra={
+                            "subdomain": subdomain,
+                            "path": path,
+                            "client_ip": client_ip,
+                        },
+                    )
                     await send_402_response(send, "rate_limit")
                     return
 
@@ -322,14 +336,24 @@ async def datasette_by_subdomain_wrapper(scope, receive, send, app):
         # exception handler (which calls rich.print_exception and fails)
         from datasette.utils.asgi import NotFound  # noqa: PLC0415
 
-        with logfire.span(
-            "datasette_request",
-            subdomain=subdomain,
-            path=path,
-            method=scope.get("method", "GET"),
-        ):
-            try:
-                await ds(scope, receive, send)
-            except NotFound:
-                # Handle 404s ourselves to avoid rich.print_exception errors
-                await send_404_response(send)
+        try:
+            await ds(scope, receive, send)
+            logger.info(
+                "Request completed",
+                extra={
+                    "subdomain": subdomain,
+                    "path": path,
+                    "method": scope.get("method", "GET"),
+                },
+            )
+        except NotFound:
+            # Handle 404s ourselves to avoid rich.print_exception errors
+            logger.warning(
+                "Page not found",
+                extra={
+                    "subdomain": subdomain,
+                    "path": path,
+                    "method": scope.get("method", "GET"),
+                },
+            )
+            await send_404_response(send)

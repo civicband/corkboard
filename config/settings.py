@@ -171,24 +171,32 @@ from django.utils.log import DEFAULT_LOGGING
 # Disable Django's logging setup
 LOGGING_CONFIG = None
 
+# Log level can be set via environment variable
 LOGLEVEL = os.environ.get("LOGLEVEL", "info").upper()
+
+# Use JSON logging in production, plain text in development
+LOG_FORMAT = os.environ.get("LOG_FORMAT", "json" if not DEBUG else "plain")
 
 logging.config.dictConfig(
     {
         "version": 1,
         "disable_existing_loggers": False,
         "formatters": {
-            "default": {
-                # exact format is not important, this is the minimum information
+            "plain": {
                 "format": "%(asctime)s %(name)-12s %(levelname)-8s %(message)s",
+            },
+            "json": {
+                "()": "pythonjsonlogger.json.JsonFormatter",
+                "format": "%(asctime)s %(name)s %(levelname)s %(message)s",
+                "timestamp": True,
             },
             "django.server": DEFAULT_LOGGING["formatters"]["django.server"],
         },
         "handlers": {
-            # console logs to stderr
+            # console logs to stderr with configured format
             "console": {
                 "class": "logging.StreamHandler",
-                "formatter": "default",
+                "formatter": LOG_FORMAT,
             },
             "django.server": DEFAULT_LOGGING["handlers"]["django.server"],
         },
@@ -199,10 +207,14 @@ logging.config.dictConfig(
                 "handlers": ["console"],
             },
             # Our application code
-            "app": {
+            "django_plugins": {
                 "level": LOGLEVEL,
                 "handlers": ["console"],
-                # Avoid double logging because of root logger
+                "propagate": False,
+            },
+            "plugins": {
+                "level": LOGLEVEL,
+                "handlers": ["console"],
                 "propagate": False,
             },
             # Default runserver request logging

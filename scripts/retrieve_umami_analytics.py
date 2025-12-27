@@ -19,7 +19,6 @@ Environment Variables Required:
 
 import argparse
 import json
-import logging
 import os
 import sqlite3
 import sys
@@ -28,12 +27,6 @@ from pathlib import Path
 from typing import Dict, List, Optional, Union
 
 import requests
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
 
 
 def get_stat_value(stats: Dict, key: str) -> int:
@@ -69,7 +62,6 @@ class UmamiClient:
     def authenticate(self) -> bool:
         """Authenticate and get access token."""
         try:
-            logger.info("Authenticating with Umami...")
             response = requests.post(
                 f"{self.url}/api/auth/login",
                 headers={"Content-Type": "application/json"},
@@ -82,14 +74,13 @@ class UmamiClient:
             self.token = data.get("token")
 
             if not self.token:
-                logger.error("No token in authentication response")
+                print("Error: No token in authentication response", file=sys.stderr)
                 return False
 
-            logger.info("Authentication successful")
             return True
 
         except requests.exceptions.RequestException as e:
-            logger.error(f"Authentication failed: {e}")
+            print(f"Error: Authentication failed: {e}", file=sys.stderr)
             return False
 
     def _get_headers(self) -> Dict[str, str]:
@@ -114,7 +105,7 @@ class UmamiClient:
             return response.json()
 
         except requests.exceptions.RequestException as e:
-            logger.error(f"Failed to get website stats: {e}")
+            print(f"Error: Failed to get website stats: {e}", file=sys.stderr)
             return None
 
     def get_metrics(
@@ -156,7 +147,7 @@ class UmamiClient:
             return response.json()
 
         except requests.exceptions.RequestException as e:
-            logger.error(f"Failed to get metrics: {e}")
+            print(f"Error: Failed to get metrics: {e}", file=sys.stderr)
             return None
 
     def get_events(
@@ -216,7 +207,7 @@ class UmamiClient:
             return all_events
 
         except requests.exceptions.RequestException as e:
-            logger.error(f"Failed to get events: {e}")
+            print(f"Error: Failed to get events: {e}", file=sys.stderr)
             return None
 
     def get_active_users(self) -> int:
@@ -232,7 +223,7 @@ class UmamiClient:
             return data.get("x", 0)
 
         except requests.exceptions.RequestException as e:
-            logger.error(f"Failed to get active users: {e}")
+            print(f"Error: Failed to get active users: {e}", file=sys.stderr)
             return 0
 
 
@@ -329,7 +320,6 @@ class AnalyticsDatabase:
             CREATE INDEX IF NOT EXISTS idx_stats_dates ON website_stats(start_date, end_date);
         """)
         self.conn.commit()
-        logger.info(f"Database initialized at {self.db_path}")
 
     def insert_website_stats(
         self, start_date: datetime, end_date: datetime, stats: Dict
@@ -576,8 +566,11 @@ def main():
     umami_website_id = os.getenv("UMAMI_WEBSITE_ID")
 
     if not all([umami_username, umami_password, umami_website_id]):
-        logger.error("Missing required environment variables")
-        logger.error("Required: UMAMI_USERNAME, UMAMI_PASSWORD, UMAMI_WEBSITE_ID")
+        print("Error: Missing required environment variables", file=sys.stderr)
+        print(
+            "Required: UMAMI_USERNAME, UMAMI_PASSWORD, UMAMI_WEBSITE_ID",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     # Initialize client
@@ -585,61 +578,45 @@ def main():
 
     # Authenticate
     if not client.authenticate():
-        logger.error("Failed to authenticate with Umami")
+        print("Error: Failed to authenticate with Umami", file=sys.stderr)
         sys.exit(1)
 
     # Calculate date range
     end_date = datetime.now()
     start_date = end_date - timedelta(days=args.days)
 
-    logger.info(f"Retrieving data from {start_date.date()} to {end_date.date()}")
-
     # Initialize database with context manager for safe cleanup
     db_path = args.output / "umami_events.db"
 
     with AnalyticsDatabase(db_path) as db:
         # Get website stats
-        logger.info("Retrieving website statistics...")
         stats = client.get_website_stats(start_date, end_date)
 
         if stats:
             db.insert_website_stats(start_date, end_date, stats)
-            pageviews = get_stat_value(stats, "pageviews")
-            visitors = get_stat_value(stats, "visitors")
-            logger.info(f"Stats: {pageviews} pageviews, {visitors} unique visitors")
         else:
-            logger.warning("No stats data retrieved")
             stats = {}
 
         # Get events if requested
         events = []
         if args.events:
-            logger.info("Retrieving event data...")
             events = client.get_events(start_date, end_date) or []
 
             if events:
                 db.insert_events(events)
-                logger.info(f"Retrieved {len(events)} events")
-            else:
-                logger.warning("No events data retrieved")
 
             # Get event metrics
-            logger.info("Retrieving event metrics...")
             event_metrics = client.get_metrics(start_date, end_date, "event") or []
             if event_metrics:
                 db.insert_metrics(start_date, end_date, event_metrics, "event")
-                logger.info(f"Retrieved metrics for {len(event_metrics)} event types")
 
         # Get URL metrics
-        logger.info("Retrieving URL metrics...")
         url_metrics = client.get_metrics(start_date, end_date, "url") or []
         if url_metrics:
             db.insert_metrics(start_date, end_date, url_metrics, "url")
-            logger.info(f"Retrieved metrics for {len(url_metrics)} URLs")
 
         # Generate summary if requested
         if args.summary:
-            logger.info("Generating summary report...")
             summary = generate_summary_report(stats, events, start_date, end_date)
 
             summary_path = (
@@ -647,8 +624,6 @@ def main():
             )
             with open(summary_path, "w") as f:
                 json.dump(summary, f, indent=2, default=str)
-
-            logger.info(f"Summary saved to {summary_path}")
 
             # Print summary to console
             print("\n=== Analytics Summary ===")
@@ -676,9 +651,6 @@ def main():
                 print("  Top Municipalities:")
                 for subdomain, count in summary["municipalities"]["top_municipalities"]:
                     print(f"    - {subdomain}: {count:,} events")
-
-    logger.info("Analytics retrieval complete")
-    logger.info(f"Data stored in {db_path}")
 
 
 if __name__ == "__main__":

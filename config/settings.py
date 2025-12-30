@@ -174,24 +174,42 @@ LOGGING_CONFIG = None
 # Log level can be set via environment variable
 LOGLEVEL = os.environ.get("LOGLEVEL", "info").upper()
 
-# Use JSON logging in production, plain text in development
-LOG_FORMAT = os.environ.get("LOG_FORMAT", "json" if not DEBUG else "plain")
+# Check if JSON logging is available
+try:
+    import pythonjsonlogger.json  # noqa: F401
+
+    _json_logging_available = True
+except ImportError:
+    _json_logging_available = False
+
+# Use JSON logging in production if available, plain text otherwise
+_default_format = "json" if (not DEBUG and _json_logging_available) else "plain"
+LOG_FORMAT = os.environ.get("LOG_FORMAT", _default_format)
+
+# Fall back to plain if JSON requested but not available
+if LOG_FORMAT == "json" and not _json_logging_available:
+    LOG_FORMAT = "plain"
+
+# Build formatters dict - only include JSON if available
+_formatters = {
+    "plain": {
+        "format": "%(asctime)s %(name)-12s %(levelname)-8s %(message)s",
+    },
+    "django.server": DEFAULT_LOGGING["formatters"]["django.server"],
+}
+
+if _json_logging_available:
+    _formatters["json"] = {
+        "()": "pythonjsonlogger.json.JsonFormatter",
+        "format": "%(asctime)s %(name)s %(levelname)s %(message)s",
+        "timestamp": True,
+    }
 
 logging.config.dictConfig(
     {
         "version": 1,
         "disable_existing_loggers": False,
-        "formatters": {
-            "plain": {
-                "format": "%(asctime)s %(name)-12s %(levelname)-8s %(message)s",
-            },
-            "json": {
-                "()": "pythonjsonlogger.json.JsonFormatter",
-                "format": "%(asctime)s %(name)s %(levelname)s %(message)s",
-                "timestamp": True,
-            },
-            "django.server": DEFAULT_LOGGING["formatters"]["django.server"],
-        },
+        "formatters": _formatters,
         "handlers": {
             # console logs to stderr with configured format
             "console": {

@@ -176,3 +176,6 @@ cython_debug/
 # Analytics data
 analytics/umami_events.db
 analytics/summary_*.json
+
+# Git worktrees
+.worktrees/

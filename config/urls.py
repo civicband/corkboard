@@ -29,5 +29,5 @@ urlpatterns = [
     path("researchers", researchers_view),
     path("rss.xml", feed_view),
     path("health/", health_check, name="health_check"),
-    path("", home_view),
+    path("", home_view, name="home"),
 ] + djp.urlpatterns()

@@ -2,10 +2,10 @@
 
 {% block content %}
 <!-- Compact Header -->
-<div class="border-b border-gray-200 bg-white">
+<div class="bg-white border-b-2 border-gray-300">
   <div class="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
     <!-- Navigation -->
-    <nav class="mb-2">
+    <nav class="mb-3 pb-2 border-b border-gray-200">
       <ul class="flex flex-wrap gap-2 text-sm">
         <li><a href="/how.html" class="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-2 py-0.5 rounded transition" data-umami-event="homepage_nav" data-umami-event-target="how">How it works</a></li>
         <li><a href="/why.html" class="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-2 py-0.5 rounded transition" data-umami-event="homepage_nav" data-umami-event-target="why">Why?</a></li>
@@ -17,8 +17,8 @@
     </nav>
 
     <!-- Title and Description -->
-    <h1 class="text-2xl font-bold text-gray-900 mb-1">CivicBand</h1>
-    <div class="text-sm text-gray-700 space-y-1.5">
+    <h1 class="text-2xl font-bold text-gray-900 mb-2">CivicBand</h1>
+    <div class="text-sm text-gray-700 space-y-2">
       <p>The largest collection of civic meeting data in the United States and Canada. A project from the <a href="https://raft.foundation" class="text-indigo-600 hover:text-indigo-800 underline" data-umami-event="homepage_external" data-umami-event-target="raft-foundation">Raft Foundation</a>. Email hello @ civic dot band with questions.</p>
 
       <!-- Newsletter Form -->
@@ -48,8 +48,8 @@
 </div>
 
 <!-- Compact Search and Filters -->
-<div class="bg-gray-50 border-b border-gray-200">
-  <div class="mx-auto max-w-7xl px-4 py-2 sm:px-6 lg:px-8">
+<div class="bg-gray-100 border-b border-gray-300">
+  <div class="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
     <div class="flex flex-wrap gap-2 items-center text-sm">
       <!-- Search -->
       <input type="text"
@@ -109,14 +109,14 @@
       <!-- Sort Filters -->
       <div class="flex gap-1">
         <button type="button"
-                class="px-2 py-1 text-xs rounded {% if sort == 'pages' %}bg-gray-200 text-gray-900{% else %}text-gray-600 hover:bg-gray-100{% endif %}"
+                class="px-2 py-1 text-xs rounded {% if sort == 'pages' %}bg-gray-700 text-white{% else %}text-gray-600 hover:bg-gray-200{% endif %}"
                 hx-get="/sites/search/?sort=pages"
                 hx-trigger="click"
                 hx-target="#sites-content"
                 hx-include="[name='q'], [name='state'], [name='kind']"
                 hx-push-url="true">Most pages</button>
         <button type="button"
-                class="px-2 py-1 text-xs rounded {% if sort == 'last_updated' %}bg-gray-200 text-gray-900{% else %}text-gray-600 hover:bg-gray-100{% endif %}"
+                class="px-2 py-1 text-xs rounded {% if sort == 'last_updated' %}bg-gray-700 text-white{% else %}text-gray-600 hover:bg-gray-200{% endif %}"
                 hx-get="/sites/search/?sort=last_updated"
                 hx-trigger="click"
                 hx-target="#sites-content"
@@ -127,22 +127,10 @@
   </div>
 </div>
 
-<!-- Content: Table first on mobile, side-by-side on desktop -->
+<!-- Content -->
 <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
   <div id="sites-content">
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      <!-- Table Column - Full width on mobile, 2/3 on desktop -->
-      <div class="lg:col-span-2">
-        <div id="sites-table-container">
-          {% include 'pages/_sites_table.html' %}
-        </div>
-      </div>
-
-      <!-- Map Column - Below table on mobile, 1/3 on desktop -->
-      <div class="lg:col-span-1">
-        <div id="sites-map" class="h-64 lg:h-[600px] rounded border border-gray-200 lg:sticky lg:top-4"></div>
-      </div>
-    </div>
+    {% include 'pages/_sites_content.html' %}
   </div>
 </div>
 {% endblock %}

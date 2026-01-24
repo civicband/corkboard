@@ -48,7 +48,7 @@ def sites_search_view(request):
         'query': query,
     }
 
-    return render(request, 'pages/_sites_table.html', context)
+    return render(request, 'pages/_sites_content.html', context)
 
 
 def how_view(request):

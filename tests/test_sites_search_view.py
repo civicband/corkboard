@@ -12,7 +12,7 @@ class TestSitesSearchView:
 
     def test_sites_search_filters_by_query(self, client: Client):
         """Sites search should filter by query param."""
-        response = client.get(reverse('sites_search') + '?q=berkeley')
+        response = client.get(reverse('sites_search') + '?q=test')
         content = response.content.decode()
         # Should not render full page, just fragment
         assert '<html' not in content.lower()

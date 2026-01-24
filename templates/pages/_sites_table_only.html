@@ -1,0 +1,59 @@
+{% if sites %}
+  {% if query %}
+  <div class="px-3 py-2 bg-gray-50 border border-gray-200 rounded-t text-xs text-gray-600">
+    Showing {{ visible_count }} of {{ total_count }} sites
+  </div>
+  {% endif %}
+
+  <div class="border border-gray-200 rounded{% if not query %} rounded-t{% endif %} bg-white">
+    <table class="min-w-full divide-y divide-gray-200 text-sm">
+      <thead class="bg-gray-50">
+        <tr>
+          <th scope="col" class="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase">
+            Municipality
+          </th>
+          <th scope="col" class="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase hidden sm:table-cell">
+            State
+          </th>
+          <th scope="col" class="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase hidden md:table-cell">
+            Type
+          </th>
+          <th scope="col" class="px-2 py-2 text-right text-xs font-medium text-gray-700 uppercase">
+            Pages
+          </th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        {% for site in sites %}
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-2 py-2">
+            <a href="https://{{ site.subdomain }}.civic.band"
+               class="text-indigo-600 hover:text-indigo-900 font-medium block"
+               data-umami-event="homepage_muni"
+               data-umami-event-subdomain="{{ site.subdomain }}">
+              {{ site.name }}
+              <span class="text-gray-500 sm:hidden">, {{ site.state }}</span>
+            </a>
+          </td>
+          <td class="px-2 py-2 text-gray-600 hidden sm:table-cell">
+            {{ site.state }}
+          </td>
+          <td class="px-2 py-2 text-gray-600 capitalize hidden md:table-cell">
+            {{ site.kind }}
+          </td>
+          <td class="px-2 py-2 text-right text-gray-600 whitespace-nowrap">
+            {% load humanize %}{{ site.pages|intcomma }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="px-6 py-12 text-center border border-gray-200 rounded bg-white">
+    <p class="text-gray-500">No municipalities match your search.</p>
+    <p class="text-sm text-gray-400 mt-2">Try adjusting your filters</p>
+  </div>
+{% endif %}
+
+{% include 'pages/_map_data.html' %}

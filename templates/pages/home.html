@@ -60,7 +60,7 @@
              class="px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 min-w-[200px]"
              hx-get="/sites/search/"
              hx-trigger="keyup changed delay:300ms"
-             hx-target="#sites-content"
+             hx-target="#sites-table-container"
              hx-include="[name='state'], [name='kind'], [name='sort']"
              hx-push-url="true">
 
@@ -70,7 +70,7 @@
               class="px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
               hx-get="/sites/search/"
               hx-trigger="change"
-              hx-target="#sites-content"
+              hx-target="#sites-table-container"
               hx-include="[name='q'], [name='kind'], [name='sort']"
               hx-push-url="true">
         <option value="">All states</option>
@@ -85,21 +85,21 @@
                 class="px-2 py-1 text-xs rounded {% if not kind %}bg-indigo-500 text-white{% else %}bg-white text-gray-700 border border-gray-300 hover:bg-gray-50{% endif %}"
                 hx-get="/sites/search/?kind="
                 hx-trigger="click"
-                hx-target="#sites-content"
+                hx-target="#sites-table-container"
                 hx-include="[name='q'], [name='state'], [name='sort']"
                 hx-push-url="true">All</button>
         <button type="button"
                 class="px-2 py-1 text-xs rounded {% if kind == 'city' %}bg-indigo-500 text-white{% else %}bg-white text-gray-700 border border-gray-300 hover:bg-gray-50{% endif %}"
                 hx-get="/sites/search/?kind=city"
                 hx-trigger="click"
-                hx-target="#sites-content"
+                hx-target="#sites-table-container"
                 hx-include="[name='q'], [name='state'], [name='sort']"
                 hx-push-url="true">Cities</button>
         <button type="button"
                 class="px-2 py-1 text-xs rounded {% if kind == 'county' %}bg-indigo-500 text-white{% else %}bg-white text-gray-700 border border-gray-300 hover:bg-gray-50{% endif %}"
                 hx-get="/sites/search/?kind=county"
                 hx-trigger="click"
-                hx-target="#sites-content"
+                hx-target="#sites-table-container"
                 hx-include="[name='q'], [name='state'], [name='sort']"
                 hx-push-url="true">Counties</button>
       </div>
@@ -112,14 +112,14 @@
                 class="px-2 py-1 text-xs rounded {% if sort == 'pages' %}bg-gray-700 text-white{% else %}text-gray-600 hover:bg-gray-200{% endif %}"
                 hx-get="/sites/search/?sort=pages"
                 hx-trigger="click"
-                hx-target="#sites-content"
+                hx-target="#sites-table-container"
                 hx-include="[name='q'], [name='state'], [name='kind']"
                 hx-push-url="true">Most pages</button>
         <button type="button"
                 class="px-2 py-1 text-xs rounded {% if sort == 'last_updated' %}bg-gray-700 text-white{% else %}text-gray-600 hover:bg-gray-200{% endif %}"
                 hx-get="/sites/search/?sort=last_updated"
                 hx-trigger="click"
-                hx-target="#sites-content"
+                hx-target="#sites-table-container"
                 hx-include="[name='q'], [name='state'], [name='kind']"
                 hx-push-url="true">Recently updated</button>
       </div>
@@ -129,60 +129,113 @@
 
 <!-- Content -->
 <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
-  <div id="sites-content">
-    {% include 'pages/_sites_content.html' %}
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <!-- Table Column - HTMX replaces this -->
+    <div class="lg:col-span-2">
+      <div id="sites-table-container">
+        {% include 'pages/_sites_table_only.html' %}
+      </div>
+    </div>
+
+    <!-- Map Column - Static, never replaced -->
+    <div class="lg:col-span-1">
+      <div id="sites-map" class="h-64 lg:h-[600px] rounded border border-gray-200 lg:sticky lg:top-4"></div>
+    </div>
   </div>
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-// Initialize map
-const map = L.map('sites-map').setView([39.8283, -98.5795], 4);
+(function() {
+  // Initialize map with error handling
+  let map, markers;
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '© OpenStreetMap contributors',
-  maxZoom: 19
-}).addTo(map);
+  try {
+    map = L.map('sites-map').setView([39.8283, -98.5795], 4);
 
-const markers = L.markerClusterGroup();
-markers.addTo(map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 19
+    }).addTo(map);
 
-// Load initial markers
-function loadMarkers(geojson) {
-  markers.clearLayers();
-
-  if (!geojson || !geojson.features || geojson.features.length === 0) {
-    map.setView([39.8283, -98.5795], 4);
+    markers = L.markerClusterGroup();
+    markers.addTo(map);
+  } catch (error) {
+    console.error('Failed to initialize map:', error);
     return;
   }
 
-  L.geoJSON(geojson, {
-    onEachFeature: function(feature, layer) {
-      if (feature.properties && feature.properties.popup) {
-        layer.bindPopup(feature.properties.popup);
-      }
-      layer.on('click', function() {
-        if (feature.properties && feature.properties.link) {
-          window.location.href = feature.properties.link;
-        }
-      });
+  // Load markers with robust error handling
+  function loadMarkers(geojson) {
+    if (!map || !markers) {
+      console.warn('Map not initialized, cannot load markers');
+      return;
     }
-  }).addTo(markers);
 
-  if (markers.getLayers().length > 0) {
-    map.fitBounds(markers.getBounds(), { padding: [50, 50] });
+    try {
+      // Clear existing markers
+      markers.clearLayers();
+
+      // Validate GeoJSON data
+      if (!geojson || typeof geojson !== 'object') {
+        console.warn('Invalid geojson data:', geojson);
+        map.setView([39.8283, -98.5795], 4);
+        return;
+      }
+
+      if (!geojson.features || !Array.isArray(geojson.features)) {
+        console.warn('GeoJSON missing features array:', geojson);
+        map.setView([39.8283, -98.5795], 4);
+        return;
+      }
+
+      if (geojson.features.length === 0) {
+        map.setView([39.8283, -98.5795], 4);
+        return;
+      }
+
+      // Add GeoJSON to map
+      L.geoJSON(geojson, {
+        onEachFeature: function(feature, layer) {
+          if (feature.properties && feature.properties.popup) {
+            layer.bindPopup(feature.properties.popup);
+          }
+          layer.on('click', function() {
+            if (feature.properties && feature.properties.link) {
+              window.location.href = feature.properties.link;
+            }
+          });
+        }
+      }).addTo(markers);
+
+      // Fit bounds if we have markers
+      if (markers.getLayers().length > 0) {
+        map.fitBounds(markers.getBounds(), { padding: [50, 50] });
+      }
+    } catch (error) {
+      console.error('Failed to load markers:', error);
+      // Reset to default view on error
+      try {
+        map.setView([39.8283, -98.5795], 4);
+      } catch (e) {
+        console.error('Failed to reset map view:', e);
+      }
+    }
   }
-}
 
-// Listen for HTMX updates
-document.body.addEventListener('sites:updated', function(event) {
-  loadMarkers(event.detail);
-});
+  // Listen for HTMX updates
+  document.body.addEventListener('sites:updated', function(event) {
+    loadMarkers(event.detail);
+  });
 
-// Load initial data if available (from _map_data.html)
-if (window.sitesGeoJSON) {
-  loadMarkers(window.sitesGeoJSON);
-}
+  // Load initial data if available (from _map_data.html)
+  // Wait a bit to ensure DOM is ready
+  setTimeout(function() {
+    if (window.sitesGeoJSON) {
+      loadMarkers(window.sitesGeoJSON);
+    }
+  }, 100);
+})();
 </script>
 {% endblock %}

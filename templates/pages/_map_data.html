@@ -1,32 +1,41 @@
 <script>
 (function() {
-  const geojson = {
-    "type": "FeatureCollection",
-    "features": [
-      {% for site in sites %}
-      {% if site.lat and site.lng %}
-      {
-        "type": "Feature",
-        "geometry": {
-          "type": "Point",
-          "coordinates": [{{ site.lng }}, {{ site.lat }}]
-        },
-        "properties": {
-          "name": "{{ site.name|escapejs }}",
-          "popup": "<a href='https://{{ site.subdomain }}.civic.band'>{{ site.name|escapejs }}, {{ site.state }}</a>",
-          "link": "https://{{ site.subdomain }}.civic.band"
-        }
-      }{% if not forloop.last %},{% endif %}
-      {% endif %}
-      {% endfor %}
-    ]
-  };
+  try {
+    const geojson = {
+      "type": "FeatureCollection",
+      "features": [
+        {% for site in sites %}
+        {% if site.lat and site.lng %}
+        {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [{{ site.lng }}, {{ site.lat }}]
+          },
+          "properties": {
+            "name": "{{ site.name|escapejs }}",
+            "popup": "<a href='https://{{ site.subdomain }}.civic.band'>{{ site.name|escapejs }}, {{ site.state }}</a>",
+            "link": "https://{{ site.subdomain }}.civic.band"
+          }
+        }{% if not forloop.last %},{% endif %}
+        {% endif %}
+        {% endfor %}
+      ]
+    };
 
-  // Store data globally for map initialization or dispatch event if map is ready
-  window.sitesGeoJSON = geojson;
+    // Store data globally for map initialization
+    window.sitesGeoJSON = geojson;
 
-  // Try to dispatch event (for HTMX updates when map is already loaded)
-  const event = new CustomEvent('sites:updated', { detail: geojson });
-  document.body.dispatchEvent(event);
+    // Dispatch event for HTMX updates when map is already loaded
+    try {
+      const event = new CustomEvent('sites:updated', { detail: geojson });
+      document.body.dispatchEvent(event);
+    } catch (eventError) {
+      console.warn('Failed to dispatch sites:updated event:', eventError);
+    }
+  } catch (error) {
+    console.error('Failed to generate GeoJSON data:', error);
+    window.sitesGeoJSON = { "type": "FeatureCollection", "features": [] };
+  }
 })();
 </script>

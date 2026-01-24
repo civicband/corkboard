@@ -49,6 +49,8 @@ def home_view(request):
         'num_sites': num_sites,
         'total_pages': total_pages,
         'states': states,
+        'visible_count': sites.count(),
+        'total_count': num_sites,
     }
 
     return render(request, 'pages/home.html', context)

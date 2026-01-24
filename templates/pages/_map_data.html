@@ -1,0 +1,29 @@
+<script>
+(function() {
+  const geojson = {
+    "type": "FeatureCollection",
+    "features": [
+      {% for site in sites %}
+      {% if site.lat and site.lng %}
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [{{ site.lng }}, {{ site.lat }}]
+        },
+        "properties": {
+          "name": "{{ site.name|escapejs }}",
+          "popup": "<a href='https://{{ site.subdomain }}.civic.band'>{{ site.name|escapejs }}, {{ site.state }}</a>",
+          "link": "https://{{ site.subdomain }}.civic.band"
+        }
+      }{% if not forloop.last %},{% endif %}
+      {% endif %}
+      {% endfor %}
+    ]
+  };
+
+  // Dispatch custom event for map update
+  const event = new CustomEvent('sites:updated', { detail: geojson });
+  document.body.dispatchEvent(event);
+})();
+</script>

@@ -1,6 +1,12 @@
 from django.db import models
 
 
+class SiteManager(models.Manager):
+    """Custom manager that automatically uses the sites database."""
+    def get_queryset(self):
+        return super().get_queryset().using('sites')
+
+
 class Site(models.Model):
     """Municipality site in the CivicBand directory."""
     subdomain = models.CharField(max_length=255, primary_key=True)
@@ -13,6 +19,8 @@ class Site(models.Model):
     lat = models.CharField(max_length=50, blank=True)
     lng = models.CharField(max_length=50, blank=True)
     popup = models.JSONField(default=dict, blank=True)
+
+    objects = SiteManager()  # Add custom manager
 
     class Meta:
         db_table = 'sites'

@@ -68,42 +68,5 @@ services:
       - redis_data:/data
     command: redis-server --appendonly yes
 
-  sites_datasette_blue:
-    image: corkboard-datasette:${VERSION:-latest}
-    build:
-      dockerfile: Dockerfile.sites
-    ports:
-      - 40001:8001
-    volumes:
-      - .:/app
-      - ../civic-band:/civic-band/
-    command: >
-      datasette -h 0.0.0.0 /civic-band/sites.db
-      --metadata /app/metadata.json
-      --template-dir /app/templates/sites-database
-      --setting default_page_size 1000
-      --setting sql_time_limit_ms 3000
-      --setting num_sql_threads 5
-      --setting allow_download off
-      --setting allow_csv_stream off
-  sites_datasette_green:
-    image: corkboard-datasette:${VERSION:-latest}
-    build:
-      dockerfile: Dockerfile.sites
-    ports:
-      - 40002:8001
-    volumes:
-      - .:/app
-      - ../civic-band:/civic-band/
-    command: >
-      datasette -h 0.0.0.0 /civic-band/sites.db
-      --metadata /app/metadata.json
-      --template-dir /app/templates/sites-database
-      --setting default_page_size 1000
-      --setting sql_time_limit_ms 3000
-      --setting num_sql_threads 5
-      --setting allow_download off
-      --setting allow_csv_stream off
-
 volumes:
   redis_data:

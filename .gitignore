@@ -178,4 +178,4 @@ analytics/umami_events.db
 analytics/summary_*.json
 
 # Git worktrees
-.worktrees/
+.worktrees/umami.dump

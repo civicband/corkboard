@@ -215,12 +215,10 @@ function loadMarkers(geojson) {
   }
 }
 
-// Listen for HTMX updates
+// Listen for HTMX updates and initial load
+// The sites:updated event is fired by _map_data.html on both initial load and HTMX updates
 document.body.addEventListener('sites:updated', function(event) {
   loadMarkers(event.detail);
 });
-
-// Initial load
-loadMarkers({{ sites_geojson|safe }});
 </script>
 {% endblock %}

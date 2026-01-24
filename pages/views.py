@@ -1,36 +1,13 @@
 from django.shortcuts import render
-from django.db.models import Q, Sum
+from django.db.models import Sum
 from pages.models import Site
+from pages.utils import apply_site_filters
 
 
 def home_view(request):
     """Homepage with sites directory."""
-    # Get filter params
-    query = request.GET.get('q', '')
-    state = request.GET.get('state', '')
-    kind = request.GET.get('kind', '')
-    sort = request.GET.get('sort', 'pages')
-
-    # Base queryset
-    sites = Site.objects.all()
-
-    # Apply filters
-    if query:
-        sites = sites.filter(
-            Q(name__icontains=query) |
-            Q(subdomain__icontains=query) |
-            Q(state__icontains=query)
-        )
-    if state:
-        sites = sites.filter(state=state)
-    if kind:
-        sites = sites.filter(kind=kind)
-
-    # Apply sorting
-    if sort == 'last_updated':
-        sites = sites.order_by('-last_updated')
-    else:
-        sites = sites.order_by('-pages')
+    # Apply filters and sorting
+    sites, query, state, kind, sort = apply_site_filters(request)
 
     # Get aggregate stats (from all sites, not filtered)
     all_sites = Site.objects.all()
@@ -58,32 +35,8 @@ def home_view(request):
 
 def sites_search_view(request):
     """HTMX endpoint for filtering sites table."""
-    # Get filter params (same logic as home_view)
-    query = request.GET.get('q', '')
-    state = request.GET.get('state', '')
-    kind = request.GET.get('kind', '')
-    sort = request.GET.get('sort', 'pages')
-
-    # Base queryset
-    sites = Site.objects.all()
-
-    # Apply filters
-    if query:
-        sites = sites.filter(
-            Q(name__icontains=query) |
-            Q(subdomain__icontains=query) |
-            Q(state__icontains=query)
-        )
-    if state:
-        sites = sites.filter(state=state)
-    if kind:
-        sites = sites.filter(kind=kind)
-
-    # Apply sorting
-    if sort == 'last_updated':
-        sites = sites.order_by('-last_updated')
-    else:
-        sites = sites.order_by('-pages')
+    # Apply filters and sorting
+    sites, query, state, kind, sort = apply_site_filters(request)
 
     # Get total count for stats
     total_sites = Site.objects.count()

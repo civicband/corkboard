@@ -187,10 +187,14 @@ function loadMarkers(geojson) {
   }
 }
 
-// Listen for HTMX updates and initial load
-// The sites:updated event is fired by _map_data.html on both initial load and HTMX updates
+// Listen for HTMX updates
 document.body.addEventListener('sites:updated', function(event) {
   loadMarkers(event.detail);
 });
+
+// Load initial data if available (from _map_data.html)
+if (window.sitesGeoJSON) {
+  loadMarkers(window.sitesGeoJSON);
+}
 </script>
 {% endblock %}

@@ -22,7 +22,10 @@
     ]
   };
 
-  // Dispatch custom event for map update
+  // Store data globally for map initialization or dispatch event if map is ready
+  window.sitesGeoJSON = geojson;
+
+  // Try to dispatch event (for HTMX updates when map is already loaded)
   const event = new CustomEvent('sites:updated', { detail: geojson });
   document.body.dispatchEvent(event);
 })();

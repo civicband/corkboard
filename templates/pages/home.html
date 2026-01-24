@@ -1,174 +1,146 @@
 {% extends "pages/base.html" %}
 
 {% block content %}
-<!-- Header Section -->
-<div class="bg-gray-900 py-16">
-  <div class="mx-auto max-w-7xl px-6 lg:px-8">
-    <div class="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-8">
-      <div class="lg:col-span-7">
-        <h1 class="text-5xl font-semibold tracking-tight text-white sm:text-7xl">Civic Band</h1>
-        <p class="mt-8 text-pretty text-lg font-medium text-gray-300 sm:text-xl/8">
-          This is a slowly growing collection of databases of the minutes from civic governments.
-          A project from <a href="https://galaxybrain.co" class="underline hover:text-white" data-umami-event="homepage_external" data-umami-event-target="galaxybrain">Galaxy Brain</a>.
-          Email hello @ civic dot band with questions.
-        </p>
+<!-- Compact Header -->
+<div class="border-b border-gray-200 bg-white">
+  <div class="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+    <!-- Navigation -->
+    <nav class="mb-2">
+      <ul class="flex flex-wrap gap-2 text-sm">
+        <li><a href="/how.html" class="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-2 py-0.5 rounded transition" data-umami-event="homepage_nav" data-umami-event-target="how">How it works</a></li>
+        <li><a href="/why.html" class="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-2 py-0.5 rounded transition" data-umami-event="homepage_nav" data-umami-event-target="why">Why?</a></li>
+        <li><a href="/rss.xml" class="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-2 py-0.5 rounded transition" data-umami-event="homepage_nav" data-umami-event-target="rss">RSS Feed</a></li>
+        <li><a rel="me" href="https://sfba.social/@civicband" class="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-2 py-0.5 rounded transition" data-umami-event="homepage_social" data-umami-event-platform="mastodon">Mastodon</a></li>
+        <li><a rel="me" href="https://bsky.app/profile/civic.band" class="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-2 py-0.5 rounded transition" data-umami-event="homepage_social" data-umami-event-platform="bluesky">Bluesky</a></li>
+        <li><a href="https://opencollective.com/civicband" class="bg-indigo-500 text-white hover:bg-indigo-600 px-2 py-0.5 rounded font-medium transition" data-umami-event="homepage_support">Support!</a></li>
+      </ul>
+    </nav>
 
-        <!-- Navigation Links -->
-        <div class="mx-auto mt-7 max-w-2xl lg:mx-0 lg:max-w-none">
-          <div class="grid grid-cols-1 gap-x-8 gap-y-6 text-base/7 font-semibold text-white sm:grid-cols-2 md:flex lg:gap-x-10">
-            <a href="/how.html" data-umami-event="homepage_nav" data-umami-event-target="how">How it works <span aria-hidden="true">&rarr;</span></a>
-            <a href="/why.html" data-umami-event="homepage_nav" data-umami-event-target="why">Why? <span aria-hidden="true">&rarr;</span></a>
-            <a href="/rss.xml" data-umami-event="homepage_nav" data-umami-event-target="rss">RSS Feed <span aria-hidden="true">&rarr;</span></a>
-            <a rel="me" href="https://sfba.social/@civicband" data-umami-event="homepage_social" data-umami-event-platform="mastodon">Mastodon <span aria-hidden="true">&rarr;</span></a>
-            <a rel="me" href="https://bsky.app/profile/civic.band" data-umami-event="homepage_social" data-umami-event-platform="bluesky">Bluesky <span aria-hidden="true">&rarr;</span></a>
-            <a href="https://donate.stripe.com/3cs3dN5Ki0BRgzSeUX" data-umami-event="homepage_support">Support! <span aria-hidden="true">&rarr;</span></a>
-          </div>
-
-          <!-- Stats -->
-          <dl class="mt-7 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-            <div class="flex flex-col-reverse gap-1">
-              <dt class="text-base/7 text-gray-300">Municipalities tracked</dt>
-              <dd class="text-4xl font-semibold tracking-tight text-white">{{ num_sites|default:0 }}</dd>
-            </div>
-            <div class="flex flex-col-reverse gap-1">
-              <dt class="text-base/7 text-gray-300">Pages of documents</dt>
-              <dd class="text-4xl font-semibold tracking-tight text-white">{{ total_pages|default:0|floatformat:0 }}</dd>
-            </div>
-          </dl>
-        </div>
-      </div>
+    <!-- Title and Description -->
+    <h1 class="text-2xl font-bold text-gray-900 mb-1">CivicBand</h1>
+    <div class="text-sm text-gray-700 space-y-1.5">
+      <p>The largest collection of civic meeting data in the United States and Canada. A project from the <a href="https://raft.foundation" class="text-indigo-600 hover:text-indigo-800 underline" data-umami-event="homepage_external" data-umami-event-target="raft-foundation">Raft Foundation</a>. Email hello @ civic dot band with questions.</p>
 
       <!-- Newsletter Form -->
-      <div class="lg:col-span-5 lg:pt-2">
-        <form class="w-full max-w-md"
-              action="https://buttondown.com/api/emails/embed-subscribe/civicband"
-              method="post"
-              target="popupwindow"
-              onsubmit="window.open('https://buttondown.com/civicband', 'popupwindow')">
-          <div class="flex gap-x-4">
-            <label for="bd-email" class="sr-only">Email address</label>
-            <input id="bd-email" name="email" type="email" autocomplete="email" required
-                   class="min-w-0 flex-auto rounded-md border-0 bg-white/5 px-3.5 py-2 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm/6"
-                   placeholder="Enter your email">
-            <button type="submit"
-                    class="flex-none rounded-md bg-indigo-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
-                    data-umami-event="homepage_newsletter">Subscribe</button>
-          </div>
-          <p class="mt-4 text-sm/6 text-gray-300">
-            We care about your data. Read our
-            <a href="/privacy.html" class="font-semibold text-white" data-umami-event="homepage_nav" data-umami-event-target="privacy">privacy&nbsp;policy</a>.
-          </p>
-        </form>
-      </div>
+      <form action="https://buttondown.com/api/emails/embed-subscribe/civicband"
+            method="post"
+            target="popupwindow"
+            onsubmit="window.open('https://buttondown.com/civicband', 'popupwindow')"
+            class="flex flex-wrap gap-2 items-center">
+        <label for="bd-email" class="sr-only">Email address</label>
+        <input id="bd-email" name="email" type="email" autocomplete="email" required
+               class="px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+               placeholder="Enter your email">
+        <button type="submit"
+                class="px-2 py-1 text-sm bg-indigo-500 text-white rounded hover:bg-indigo-600 font-medium transition"
+                data-umami-event="homepage_newsletter">Subscribe</button>
+        <span class="text-xs text-gray-600">
+          We care about your data. Read our <a href="/privacy.html" class="text-indigo-600 hover:text-indigo-800 underline" data-umami-event="homepage_nav" data-umami-event-target="privacy">privacy policy</a>.
+        </span>
+      </form>
+
+      <!-- Stats -->
+      <h3 class="text-base font-semibold text-gray-900">
+        {% load humanize %}Tracking {{ total_pages|default:0|intcomma }} pages across {{ num_sites|default:0|intcomma }} municipalities
+      </h3>
     </div>
   </div>
 </div>
 
-<!-- Search and Filter Toolbar -->
-<div class="mx-auto max-w-7xl px-6 lg:px-8 mt-8">
-  <div class="bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-lg p-6 shadow-sm">
-    <!-- Search Input -->
-    <div class="mb-6">
-      <div class="relative max-w-2xl mx-auto">
-        <input type="text"
-               name="q"
-               id="search-input"
-               value="{{ query }}"
-               placeholder="Search municipalities by name, state, or subdomain..."
-               class="w-full px-4 py-3 pr-12 rounded-lg border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition"
-               hx-get="/sites/search/"
-               hx-trigger="keyup changed delay:300ms"
-               hx-target="#sites-table-container"
-               hx-include="[name='state'], [name='kind'], [name='sort']"
-               hx-push-url="true">
-        <div class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl pointer-events-none">🔍</div>
-      </div>
-    </div>
+<!-- Compact Search and Filters -->
+<div class="bg-gray-50 border-b border-gray-200">
+  <div class="mx-auto max-w-7xl px-4 py-2 sm:px-6 lg:px-8">
+    <div class="flex flex-wrap gap-2 items-center text-sm">
+      <!-- Search -->
+      <input type="text"
+             name="q"
+             id="search-input"
+             value="{{ query }}"
+             placeholder="Search municipalities..."
+             class="px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 min-w-[200px]"
+             hx-get="/sites/search/"
+             hx-trigger="keyup changed delay:300ms"
+             hx-target="#sites-content"
+             hx-include="[name='state'], [name='kind'], [name='sort']"
+             hx-push-url="true">
 
-    <!-- Filters -->
-    <div class="flex flex-wrap gap-4 justify-center items-center">
       <!-- State Filter -->
-      <div>
-        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">State</label>
-        <select name="state"
-                id="state-filter"
-                class="px-3 py-2 rounded border border-gray-300 bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
-                hx-get="/sites/search/"
-                hx-trigger="change"
-                hx-target="#sites-table-container"
-                hx-include="[name='q'], [name='kind'], [name='sort']"
-                hx-push-url="true">
-          <option value="">All states</option>
-          {% for st in states %}
-          <option value="{{ st }}" {% if st == state %}selected{% endif %}>{{ st }}</option>
-          {% endfor %}
-        </select>
+      <select name="state"
+              id="state-filter"
+              class="px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              hx-get="/sites/search/"
+              hx-trigger="change"
+              hx-target="#sites-content"
+              hx-include="[name='q'], [name='kind'], [name='sort']"
+              hx-push-url="true">
+        <option value="">All states</option>
+        {% for st in states %}
+        <option value="{{ st }}" {% if st == state %}selected{% endif %}>{{ st }}</option>
+        {% endfor %}
+      </select>
+
+      <!-- Kind Filters -->
+      <div class="flex gap-1">
+        <button type="button"
+                class="px-2 py-1 text-xs rounded {% if not kind %}bg-indigo-500 text-white{% else %}bg-white text-gray-700 border border-gray-300 hover:bg-gray-50{% endif %}"
+                hx-get="/sites/search/?kind="
+                hx-trigger="click"
+                hx-target="#sites-content"
+                hx-include="[name='q'], [name='state'], [name='sort']"
+                hx-push-url="true">All</button>
+        <button type="button"
+                class="px-2 py-1 text-xs rounded {% if kind == 'city' %}bg-indigo-500 text-white{% else %}bg-white text-gray-700 border border-gray-300 hover:bg-gray-50{% endif %}"
+                hx-get="/sites/search/?kind=city"
+                hx-trigger="click"
+                hx-target="#sites-content"
+                hx-include="[name='q'], [name='state'], [name='sort']"
+                hx-push-url="true">Cities</button>
+        <button type="button"
+                class="px-2 py-1 text-xs rounded {% if kind == 'county' %}bg-indigo-500 text-white{% else %}bg-white text-gray-700 border border-gray-300 hover:bg-gray-50{% endif %}"
+                hx-get="/sites/search/?kind=county"
+                hx-trigger="click"
+                hx-target="#sites-content"
+                hx-include="[name='q'], [name='state'], [name='sort']"
+                hx-push-url="true">Counties</button>
       </div>
 
-      <!-- Kind Filter -->
-      <div>
-        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Type</label>
-        <div class="flex gap-2">
-          <button type="button"
-                  class="px-3 py-2 rounded border {% if not kind %}bg-indigo-500 text-white border-indigo-600{% else %}bg-white text-gray-700 border-gray-300{% endif %}"
-                  hx-get="/sites/search/?kind="
-                  hx-trigger="click"
-                  hx-target="#sites-table-container"
-                  hx-include="[name='q'], [name='state'], [name='sort']"
-                  hx-push-url="true">All</button>
-          <button type="button"
-                  class="px-3 py-2 rounded border {% if kind == 'city' %}bg-indigo-500 text-white border-indigo-600{% else %}bg-white text-gray-700 border-gray-300{% endif %}"
-                  hx-get="/sites/search/?kind=city"
-                  hx-trigger="click"
-                  hx-target="#sites-table-container"
-                  hx-include="[name='q'], [name='state'], [name='sort']"
-                  hx-push-url="true">Cities</button>
-          <button type="button"
-                  class="px-3 py-2 rounded border {% if kind == 'county' %}bg-indigo-500 text-white border-indigo-600{% else %}bg-white text-gray-700 border-gray-300{% endif %}"
-                  hx-get="/sites/search/?kind=county"
-                  hx-trigger="click"
-                  hx-target="#sites-table-container"
-                  hx-include="[name='q'], [name='state'], [name='sort']"
-                  hx-push-url="true">Counties</button>
-        </div>
-      </div>
+      <span class="text-gray-400 hidden sm:inline">|</span>
 
-      <!-- Sort -->
-      <div>
-        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Sort by</label>
-        <div class="flex gap-2">
-          <button type="button"
-                  class="px-3 py-2 rounded border {% if sort == 'pages' %}bg-indigo-500 text-white border-indigo-600{% else %}bg-white text-gray-700 border-gray-300{% endif %}"
-                  hx-get="/sites/search/?sort=pages"
-                  hx-trigger="click"
-                  hx-target="#sites-table-container"
-                  hx-include="[name='q'], [name='state'], [name='kind']"
-                  hx-push-url="true">Most pages</button>
-          <button type="button"
-                  class="px-3 py-2 rounded border {% if sort == 'last_updated' %}bg-indigo-500 text-white border-indigo-600{% else %}bg-white text-gray-700 border-gray-300{% endif %}"
-                  hx-get="/sites/search/?sort=last_updated"
-                  hx-trigger="click"
-                  hx-target="#sites-table-container"
-                  hx-include="[name='q'], [name='state'], [name='sort']"
-                  hx-push-url="true">Recently updated</button>
-        </div>
+      <!-- Sort Filters -->
+      <div class="flex gap-1">
+        <button type="button"
+                class="px-2 py-1 text-xs rounded {% if sort == 'pages' %}bg-gray-200 text-gray-900{% else %}text-gray-600 hover:bg-gray-100{% endif %}"
+                hx-get="/sites/search/?sort=pages"
+                hx-trigger="click"
+                hx-target="#sites-content"
+                hx-include="[name='q'], [name='state'], [name='kind']"
+                hx-push-url="true">Most pages</button>
+        <button type="button"
+                class="px-2 py-1 text-xs rounded {% if sort == 'last_updated' %}bg-gray-200 text-gray-900{% else %}text-gray-600 hover:bg-gray-100{% endif %}"
+                hx-get="/sites/search/?sort=last_updated"
+                hx-trigger="click"
+                hx-target="#sites-content"
+                hx-include="[name='q'], [name='state'], [name='kind']"
+                hx-push-url="true">Recently updated</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Map and Table -->
-<div class="mx-auto max-w-7xl px-6 lg:px-8 mt-8 pb-16">
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-    <!-- Map Column -->
-    <div class="order-2 lg:order-1">
-      <div id="sites-map" class="h-96 lg:h-[600px] rounded-lg shadow-lg border border-gray-200"></div>
-    </div>
+<!-- Content: Table first on mobile, side-by-side on desktop -->
+<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
+  <div id="sites-content">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <!-- Table Column - Full width on mobile, 2/3 on desktop -->
+      <div class="lg:col-span-2">
+        <div id="sites-table-container">
+          {% include 'pages/_sites_table.html' %}
+        </div>
+      </div>
 
-    <!-- Table Column -->
-    <div class="order-1 lg:order-2">
-      <div id="sites-table-container">
-        {% include 'pages/_sites_table.html' %}
+      <!-- Map Column - Below table on mobile, 1/3 on desktop -->
+      <div class="lg:col-span-1">
+        <div id="sites-map" class="h-64 lg:h-[600px] rounded border border-gray-200 lg:sticky lg:top-4"></div>
       </div>
     </div>
   </div>

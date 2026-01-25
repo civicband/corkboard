@@ -182,11 +182,6 @@
           if (feature.properties && feature.properties.popup) {
             layer.bindPopup(feature.properties.popup);
           }
-          layer.on('click', function() {
-            if (feature.properties && feature.properties.link) {
-              window.location.href = feature.properties.link;
-            }
-          });
         }
       }).addTo(markers);
 

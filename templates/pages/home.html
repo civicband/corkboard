@@ -113,6 +113,17 @@
                 hx-include="[name='q'], [name='state'], [name='kind']"
                 hx-push-url="true">Recently updated</button>
       </div>
+
+      <!-- Clear Filters Button -->
+      {% if query or state or kind %}
+      <button type="button"
+              class="px-2 py-1 text-xs rounded bg-red-100 text-red-700 hover:bg-red-200 border border-red-300"
+              onclick="document.getElementById('search-input').value=''; document.getElementById('state-filter').value=''; document.getElementById('kind-filter').value='';"
+              hx-get="/sites/search/"
+              hx-trigger="click"
+              hx-target="#sites-table-container"
+              hx-push-url="true">Clear filters</button>
+      {% endif %}
     </div>
   </div>
 </div>

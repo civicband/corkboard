@@ -23,3 +23,15 @@ class TestHomeView:
         assert response.context['state'] == 'CA'
         assert response.context['kind'] == 'city'
         assert response.context['sort'] == 'pages'
+
+    def test_clear_filters_button_shows_with_filters(self, client: Client):
+        """Clear filters button should appear when filters are active."""
+        response = client.get(reverse('home') + '?state=CA')
+        content = response.content.decode()
+        assert 'Clear filters' in content
+
+    def test_clear_filters_button_hidden_without_filters(self, client: Client):
+        """Clear filters button should not appear when no filters are active."""
+        response = client.get(reverse('home'))
+        content = response.content.decode()
+        assert 'Clear filters' not in content

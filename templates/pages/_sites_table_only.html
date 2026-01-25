@@ -21,6 +21,9 @@
           <th scope="col" class="px-2 py-2 text-right text-xs font-medium text-gray-700 uppercase">
             Pages
           </th>
+          <th scope="col" class="px-2 py-2 text-right text-xs font-medium text-gray-700 uppercase hidden lg:table-cell">
+            Last Updated
+          </th>
         </tr>
       </thead>
       <tbody class="bg-white divide-y divide-gray-200">
@@ -43,6 +46,9 @@
           </td>
           <td class="px-2 py-2 text-right text-gray-600 whitespace-nowrap">
             {% load humanize %}{{ site.pages|intcomma }}
+          </td>
+          <td class="px-2 py-2 text-right text-gray-600 whitespace-nowrap hidden lg:table-cell">
+            {{ site.last_updated|date:"M j, Y" }}
           </td>
         </tr>
         {% endfor %}

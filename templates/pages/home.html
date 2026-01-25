@@ -95,15 +95,15 @@
       </select>
 
       <!-- Clear Filters Button -->
-      {% if query or state or kind %}
       <button type="button"
+              id="clear-filters-btn"
               class="px-2 py-1 text-xs rounded bg-red-100 text-red-700 hover:bg-red-200 border border-red-300"
-              onclick="document.getElementById('search-input').value=''; document.getElementById('state-filter').value=''; document.getElementById('kind-filter').value='';"
+              style="display: {% if query or state or kind %}inline-block{% else %}none{% endif %};"
+              onclick="document.getElementById('search-input').value=''; document.getElementById('state-filter').value=''; document.getElementById('kind-filter').value=''; this.style.display='none';"
               hx-get="/sites/search/"
               hx-trigger="click"
               hx-target="#sites-table-container"
               hx-push-url="true">Clear filters</button>
-      {% endif %}
     </div>
   </div>
 </div>
@@ -217,6 +217,27 @@
       loadMarkers(window.sitesGeoJSON);
     }
   }, 100);
+})();
+
+// Update clear filters button visibility
+(function() {
+  const clearBtn = document.getElementById('clear-filters-btn');
+  const searchInput = document.getElementById('search-input');
+  const stateFilter = document.getElementById('state-filter');
+  const kindFilter = document.getElementById('kind-filter');
+
+  function updateClearButton() {
+    const hasFilters = searchInput.value || stateFilter.value || kindFilter.value;
+    clearBtn.style.display = hasFilters ? 'inline-block' : 'none';
+  }
+
+  // Check on input changes
+  searchInput.addEventListener('input', updateClearButton);
+  stateFilter.addEventListener('change', updateClearButton);
+  kindFilter.addEventListener('change', updateClearButton);
+
+  // Also check after HTMX requests complete
+  document.body.addEventListener('htmx:afterSwap', updateClearButton);
 })();
 </script>
 {% endblock %}

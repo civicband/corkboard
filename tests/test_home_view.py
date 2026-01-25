@@ -29,9 +29,11 @@ class TestHomeView:
         response = client.get(reverse('home') + '?state=CA')
         content = response.content.decode()
         assert 'Clear filters' in content
+        assert 'style="display: inline-block;"' in content or 'display: inline-block' in content
 
     def test_clear_filters_button_hidden_without_filters(self, client: Client):
-        """Clear filters button should not appear when no filters are active."""
+        """Clear filters button should be hidden when no filters are active."""
         response = client.get(reverse('home'))
         content = response.content.decode()
-        assert 'Clear filters' not in content
+        assert 'Clear filters' in content  # Button exists in HTML
+        assert 'style="display: none;"' in content  # But is hidden

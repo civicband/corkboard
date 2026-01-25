@@ -1,10 +1,11 @@
 """Utility functions for pages app."""
+
 from django.db.models import Q
 
 from pages.models import Site
 
 # Allowed sort fields to prevent potential errors
-ALLOWED_SORT_FIELDS = {'pages', 'last_updated'}
+ALLOWED_SORT_FIELDS = {"pages", "last_updated"}
 
 
 def apply_site_filters(request):
@@ -18,14 +19,14 @@ def apply_site_filters(request):
         tuple: (filtered_sites_queryset, query, state, kind, sort)
     """
     # Get filter params
-    query = request.GET.get('q', '')
-    state = request.GET.get('state', '')
-    kind = request.GET.get('kind', '')
-    sort = request.GET.get('sort', 'pages')
+    query = request.GET.get("q", "")
+    state = request.GET.get("state", "")
+    kind = request.GET.get("kind", "")
+    sort = request.GET.get("sort", "pages")
 
     # Validate sort parameter
     if sort not in ALLOWED_SORT_FIELDS:
-        sort = 'pages'
+        sort = "pages"
 
     # Base queryset
     sites = Site.objects.all()
@@ -33,9 +34,9 @@ def apply_site_filters(request):
     # Apply filters
     if query:
         sites = sites.filter(
-            Q(name__icontains=query) |
-            Q(subdomain__icontains=query) |
-            Q(state__icontains=query)
+            Q(name__icontains=query)
+            | Q(subdomain__icontains=query)
+            | Q(state__icontains=query)
         )
     if state:
         sites = sites.filter(state=state)
@@ -43,9 +44,9 @@ def apply_site_filters(request):
         sites = sites.filter(kind=kind)
 
     # Apply sorting
-    if sort == 'last_updated':
-        sites = sites.order_by('-last_updated')
+    if sort == "last_updated":
+        sites = sites.order_by("-last_updated")
     else:
-        sites = sites.order_by('-pages')
+        sites = sites.order_by("-pages")
 
     return sites, query, state, kind, sort

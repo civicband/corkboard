@@ -3,12 +3,14 @@ from django.db import models
 
 class SiteManager(models.Manager):
     """Custom manager that automatically uses the sites database."""
+
     def get_queryset(self):
-        return super().get_queryset().using('sites')
+        return super().get_queryset().using("sites")
 
 
 class Site(models.Model):
     """Municipality site in the CivicBand directory."""
+
     subdomain = models.CharField(max_length=255, primary_key=True)
     name = models.CharField(max_length=255)
     state = models.CharField(max_length=100)
@@ -23,9 +25,9 @@ class Site(models.Model):
     objects = SiteManager()  # Add custom manager
 
     class Meta:
-        db_table = 'sites'
+        db_table = "sites"
         managed = False  # Don't let Django manage this table
-        ordering = ['-pages']
+        ordering = ["-pages"]
 
     def __str__(self):
         return f"{self.name} ({self.subdomain})"

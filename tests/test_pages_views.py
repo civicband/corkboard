@@ -27,7 +27,7 @@ class TestPageViews:
         """Create request factory for unit tests."""
         return RequestFactory()
 
-    @pytest.mark.django_db(databases=['default', 'sites'])
+    @pytest.mark.django_db(databases=["default", "sites"])
     def test_home_view(self, request_factory):
         """Test home page view returns 200."""
         request = request_factory.get("/")
@@ -57,7 +57,7 @@ class TestPageViews:
         assert response.status_code == 200
 
     # Integration tests with full Django test client
-    @pytest.mark.django_db(databases=['default', 'sites'])
+    @pytest.mark.django_db(databases=["default", "sites"])
     def test_home_view_integration(self, client):
         """Test home page via test client."""
         response = client.get("/")

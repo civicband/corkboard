@@ -3,7 +3,7 @@ from django.test import Client
 from django.urls import reverse
 
 
-@pytest.mark.django_db(databases=["default", "sites"])
+@pytest.mark.django_db
 class TestSitesSearchView:
     def test_sites_search_view_renders(self, client: Client):
         """Sites search view should render successfully."""

@@ -6,7 +6,7 @@ from django.test import RequestFactory
 from pages.utils import apply_site_filters
 
 
-@pytest.mark.django_db(databases=["default", "sites"])
+@pytest.mark.django_db
 class TestApplySiteFilters:
     """Tests for apply_site_filters utility function."""
 

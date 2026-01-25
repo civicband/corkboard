@@ -3,7 +3,7 @@ from django.test import Client
 from django.urls import reverse
 
 
-@pytest.mark.django_db(databases=["default", "sites"])
+@pytest.mark.django_db
 class TestHomeView:
     def test_home_view_renders(self, client: Client):
         """Home view should render successfully."""

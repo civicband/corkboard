@@ -2,10 +2,9 @@ from django.db import models
 
 
 class SiteManager(models.Manager):
-    """Custom manager that automatically uses the sites database."""
+    """Custom manager for Site model."""
 
-    def get_queryset(self):
-        return super().get_queryset().using("sites")
+    pass
 
 
 class Site(models.Model):

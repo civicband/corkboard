@@ -210,3 +210,42 @@ def mock_datasette():
     ds.databases = {}
     ds.get_database = MagicMock()
     return ds
+
+
+@pytest.fixture(scope="function")
+def django_db_setup(django_db_setup, django_db_blocker):
+    """Set up the sites database for tests."""
+    with django_db_blocker.unblock():
+        from django.db import connections
+
+        # Get the sites database connection
+        with connections["sites"].cursor() as cursor:
+            # Create the sites table if it doesn't exist
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS sites (
+                    subdomain TEXT PRIMARY KEY,
+                    name TEXT,
+                    state TEXT,
+                    country TEXT,
+                    kind TEXT,
+                    pages INTEGER,
+                    last_updated TEXT,
+                    lat TEXT,
+                    lng TEXT,
+                    popup TEXT
+                )
+            """)
+
+            # Insert test data
+            cursor.execute("""
+                INSERT OR REPLACE INTO sites
+                (subdomain, name, state, country, kind, pages, last_updated, lat, lng, popup)
+                VALUES
+                ('test.ca', 'Test City', 'California', 'USA', 'city', 100, '2024-01-01', '37.7749', '-122.4194', '{}')
+            """)
+
+    yield
+
+    # Cleanup
+    with django_db_blocker.unblock(), connections["sites"].cursor() as cursor:
+        cursor.execute("DELETE FROM sites WHERE subdomain = 'test.ca'")

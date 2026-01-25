@@ -35,6 +35,15 @@ def home_view(request):
 
 def sites_search_view(request):
     """HTMX endpoint for filtering sites table."""
+    # If this is a direct navigation (not HTMX), redirect to home with query params
+    if not request.headers.get('HX-Request'):
+        from django.shortcuts import redirect
+        from urllib.parse import urlencode
+        query_params = request.GET.dict()
+        if query_params:
+            return redirect(f"/?{urlencode(query_params)}")
+        return redirect('/')
+
     # Apply filters and sorting
     sites, query, state, kind, sort = apply_site_filters(request)
 

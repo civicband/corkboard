@@ -57,6 +57,9 @@ def sites_search_view(request):
         'visible_count': sites.count(),
         'total_count': total_sites,
         'query': query,
+        'state': state,
+        'kind': kind,
+        'sort': sort,
     }
 
     return render(request, 'pages/_sites_table_only.html', context)

@@ -18,11 +18,23 @@
           <th scope="col" class="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase hidden md:table-cell">
             Type
           </th>
-          <th scope="col" class="px-2 py-2 text-right text-xs font-medium text-gray-700 uppercase">
-            Pages
+          <th scope="col"
+              class="px-2 py-2 text-right text-xs font-medium uppercase cursor-pointer hover:bg-gray-100 select-none {% if sort == 'pages' or not sort %}text-indigo-600{% else %}text-gray-700{% endif %}"
+              hx-get="/sites/search/?sort=pages"
+              hx-trigger="click"
+              hx-target="#sites-table-container"
+              hx-include="[name='q'], [name='state'], [name='kind']"
+              hx-push-url="true">
+            Pages {% if sort == 'pages' or not sort %}↓{% endif %}
           </th>
-          <th scope="col" class="px-2 py-2 text-right text-xs font-medium text-gray-700 uppercase hidden lg:table-cell">
-            Last Updated
+          <th scope="col"
+              class="px-2 py-2 text-right text-xs font-medium uppercase cursor-pointer hover:bg-gray-100 select-none hidden lg:table-cell {% if sort == 'last_updated' %}text-indigo-600{% else %}text-gray-700{% endif %}"
+              hx-get="/sites/search/?sort=last_updated"
+              hx-trigger="click"
+              hx-target="#sites-table-container"
+              hx-include="[name='q'], [name='state'], [name='kind']"
+              hx-push-url="true">
+            Last Updated {% if sort == 'last_updated' %}↓{% endif %}
           </th>
         </tr>
       </thead>

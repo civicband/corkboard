@@ -1,7 +1,7 @@
 """Utility functions for pages app."""
 from django.db.models import Q
-from pages.models import Site
 
+from pages.models import Site
 
 # Allowed sort fields to prevent potential errors
 ALLOWED_SORT_FIELDS = {'pages', 'last_updated'}

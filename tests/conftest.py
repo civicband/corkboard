@@ -247,6 +247,5 @@ def django_db_setup(django_db_setup, django_db_blocker):
     yield
 
     # Cleanup
-    with django_db_blocker.unblock():
-        with connections['sites'].cursor() as cursor:
-            cursor.execute("DELETE FROM sites WHERE subdomain = 'test.ca'")
+    with django_db_blocker.unblock(), connections['sites'].cursor() as cursor:
+        cursor.execute("DELETE FROM sites WHERE subdomain = 'test.ca'")

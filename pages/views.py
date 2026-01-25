@@ -1,5 +1,6 @@
-from django.shortcuts import render
 from django.db.models import Sum
+from django.shortcuts import render
+
 from pages.models import Site
 from pages.utils import apply_site_filters
 
@@ -39,8 +40,9 @@ def sites_search_view(request):
     """HTMX endpoint for filtering sites table."""
     # If this is a direct navigation (not HTMX), redirect to home with query params
     if not request.headers.get('HX-Request'):
-        from django.shortcuts import redirect
         from urllib.parse import urlencode
+
+        from django.shortcuts import redirect
         query_params = request.GET.dict()
         if query_params:
             return redirect(f"/?{urlencode(query_params)}")

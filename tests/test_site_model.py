@@ -1,4 +1,5 @@
 import pytest
+
 from pages.models import Site
 
 

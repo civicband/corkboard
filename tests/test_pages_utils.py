@@ -1,6 +1,7 @@
 """Tests for pages app utility functions."""
 import pytest
 from django.test import RequestFactory
+
 from pages.utils import apply_site_filters
 
 

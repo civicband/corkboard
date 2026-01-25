@@ -21,8 +21,12 @@ from django.urls import path
 
 from config.views import health_check
 from pages.views import (
-    feed_view, home_view, how_view, researchers_view,
-    sites_search_view, why_view
+    feed_view,
+    home_view,
+    how_view,
+    researchers_view,
+    sites_search_view,
+    why_view,
 )
 
 urlpatterns = [

@@ -14,8 +14,9 @@ def home_view(request):
     num_sites = all_sites.count()
     total_pages = all_sites.aggregate(total=Sum('pages'))['total'] or 0
 
-    # Get unique states for filter dropdown
+    # Get unique states and kinds for filter dropdowns
     states = Site.objects.values_list('state', flat=True).distinct().order_by('state')
+    kinds = Site.objects.values_list('kind', flat=True).distinct().order_by('kind')
 
     context = {
         'sites': sites,
@@ -26,6 +27,7 @@ def home_view(request):
         'num_sites': num_sites,
         'total_pages': total_pages,
         'states': states,
+        'kinds': kinds,
         'visible_count': sites.count(),
         'total_count': num_sites,
     }

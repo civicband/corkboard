@@ -32,12 +32,12 @@ class TestSiteModel:
         site = Site(subdomain="test.ca", name="Test City")
         assert str(site) == "Test City (test.ca)"
 
-    @pytest.mark.django_db(databases=["default", "sites"])
-    def test_site_model_queries_sites_database(self):
-        """Site model should automatically query sites database."""
-        # This test verifies the custom manager routes to sites db
+    @pytest.mark.django_db
+    def test_site_model_queries_default_database(self):
+        """Site model should query default database (sites.db)."""
+        # Verify the queryset uses the default database
         sites = Site.objects.all()
-        assert sites.db == "sites"
+        assert sites.db == "default"
 
         # Verify we can actually read sites
         count = Site.objects.count()

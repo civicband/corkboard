@@ -46,27 +46,11 @@ jobs:
             CANARY_PERIOD=$CANARY_PERIOD /home/deploy/scripts/deploy.sh corkboard-django ${{ github.sha }}
           "
 
-      - name: Build and deploy Datasette on VPS
-        env:
-          CANARY_PERIOD: ${{ inputs.canary_period || '120' }}
-        run: |
-          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-            deploy@${{ env.VPS_HOSTNAME }} "
-            cd /home/deploy/corkboard &&
-            docker build --no-cache -f Dockerfile.sites -t corkboard-datasette:${{ github.sha }} . &&
-            CANARY_PERIOD=$CANARY_PERIOD /home/deploy/scripts/deploy.sh corkboard-datasette ${{ github.sha }}
-          "
-
       - name: Verify Django deployment
         run: |
           sleep 30
           ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
             deploy@${{ env.VPS_HOSTNAME }} "curl -f -s http://localhost:8000/health/ || curl -f -s http://localhost:8001/health/"
-
-      - name: Verify Datasette deployment
-        run: |
-          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-            deploy@${{ env.VPS_HOSTNAME }} "curl -f -s http://localhost:40001/-/versions.json || curl -f -s http://localhost:40002/-/versions.json"
 
       - name: Notify Slack on failure
         if: failure()

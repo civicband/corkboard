@@ -15,15 +15,16 @@ RUN apt-get update && \
     rm -rf /var/lib/apt && \
     rm -rf /var/lib/dpkg/info/*
 
-COPY pyproject.toml uv.lock /tmp/
+COPY pyproject.toml /tmp/pyproject.toml
 
 RUN --mount=type=cache,target=/root/.cache,sharing=locked,id=pip \
     python -m pip install --upgrade pip uv
 
 RUN --mount=type=cache,target=/root/.cache,sharing=locked,id=pip \
-    cd /tmp && \
-    python -m uv export --no-hashes --no-emit-project --format requirements-txt -o requirements.txt && \
-    python -m uv pip install --system -r requirements.txt
+    python -m uv pip compile /tmp/pyproject.toml -o /tmp/requirements.txt
+
+RUN --mount=type=cache,target=/root/.cache,sharing=locked,id=pip \
+    python -m uv pip install --system --requirement /tmp/requirements.txt
 
 # ------------------------------------------------------------
 # Release layer

@@ -18,10 +18,10 @@ license = {file = "LICENSE"}
 
 dependencies = [
     "Django>=4.2.0",
-    "datasette>=1.0a17,<1.0a20", # Pinned: datasette-dashboards uses deprecated permission_allowed
+    "datasette>=1.0a20",
     "datasette-template-sql>=1.0.2",
     "datasette-dashboards>=0.1.0",
-    "datasette-search-all==1.1.4", # 1.1.5a0 requires datasette>=1.0a20
+    "datasette-search-all>=1.1.5a0",
     "python-json-logger>=2.0.0",
     "datasette-updated>=0.2.0",
     "djp>=0.0.6",

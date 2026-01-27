@@ -247,9 +247,9 @@ test = [
 
 [package.metadata]
 requires-dist = [
-    { name = "datasette", specifier = ">=1.0a17,<1.0a20" },
+    { name = "datasette", specifier = ">=1.0a20" },
     { name = "datasette-dashboards", specifier = ">=0.1.0" },
-    { name = "datasette-search-all", specifier = "==1.1.4" },
+    { name = "datasette-search-all", specifier = ">=1.1.5a0" },
     { name = "datasette-template-sql", specifier = ">=1.0.2" },
     { name = "datasette-updated", specifier = ">=0.2.0" },
     { name = "django", specifier = ">=4.2.0" },
@@ -336,7 +336,7 @@ toml = [
 
 [[package]]
 name = "datasette"
-version = "1.0a19"
+version = "1.0a23"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -358,9 +358,9 @@ dependencies = [
     { name = "sqlite-utils" },
     { name = "uvicorn" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/86/de/f128c7e8f69610981617ed80e00b5e2ddf912305bcff2fd82ddb2199a833/datasette-1.0a19.tar.gz", hash = "sha256:b70dde851dbc330490458841733d017c7258f8c15d79b4d28ff76ab7153dbd61", size = 378920, upload-time = "2025-04-22T05:45:14.077Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/69/74/486c662f0cc3aaa35b72efbe2d9436c8383ef874231a779a7d368ada96a4/datasette-1.0a23.tar.gz", hash = "sha256:80b81b0d29de5e31cd46fa3b4021eec1efe8bae7f47dcb01a2e4975b9e0d2a5e", size = 443047, upload-time = "2025-12-03T03:26:11.271Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/97/2f/ef3cb4c5b761ed0ab797dd34db7dff93febdbb57f0af8a7db27d51e7374c/datasette-1.0a19-py3-none-any.whl", hash = "sha256:e58fe1f18a70b1b160799589a39d01b24bd9b079fb4f6c2c9951381fb951e50c", size = 305905, upload-time = "2025-04-22T05:45:11.625Z" },
+    { url = "https://files.pythonhosted.org/packages/6c/50/33b82e6e505398a49d67780796c461574af11fb96acc5365d6d2f42df1ff/datasette-1.0a23-py3-none-any.whl", hash = "sha256:6bb6c2d02f5611eeb84f88d2571d3cc6c56b32594bd53dc593b68b2b111df84e", size = 352341, upload-time = "2025-12-03T03:26:09.215Z" },
 ]
 
 [[package]]
@@ -405,14 +405,14 @@ wheels = [
 
 [[package]]
 name = "datasette-search-all"
-version = "1.1.4"
+version = "1.1.5a0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "datasette" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/33/3d/2111599e89583f9415b8e1e89f4b57f2dd41833f95ab023ea54157c9e636/datasette_search_all-1.1.4.tar.gz", hash = "sha256:371de80eff4f2f0e5ba70cc8efcdd68c1089ebf03d743febced250012d678911", size = 10885, upload-time = "2024-09-06T03:11:56.932Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f8/3f/44395f6fe52fe0e0d3d8bcebcd05985fbcc13d28099eb2e1eb4271f7878a/datasette_search_all-1.1.5a0.tar.gz", hash = "sha256:be10a2a2f96e9a58297d48d7cb029ad63561a8fed673911f90a6137ad1ee79ca", size = 10956, upload-time = "2025-11-03T23:45:56.585Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/1f/57/3d7535970622b175527e1fc270db0c193df8008ab56c2b8e628a373cdafe/datasette_search_all-1.1.4-py3-none-any.whl", hash = "sha256:8590099131899f5cb9d51d90a857ed3a828a5d8e2003fd3f0f5939a1a6bc7a8d", size = 10640, upload-time = "2024-09-06T03:11:55.455Z" },
+    { url = "https://files.pythonhosted.org/packages/df/e5/a86142d296397b52c62fb57fb0fd72422b2fc4949d3482ef3dccbcfd8728/datasette_search_all-1.1.5a0-py3-none-any.whl", hash = "sha256:1ef1e8f9fa62eb935f9b6e4b1f58ccee172e83a9d41b40ba2dff69bb4a2e5c52", size = 10757, upload-time = "2025-11-03T23:45:54.366Z" },
 ]
 
 [[package]]

@@ -337,8 +337,16 @@ async def datasette_by_subdomain_wrapper(scope, receive, send, app):
         # that was removed in Datasette 1.0a20. Add it back as a wrapper.
         async def permission_allowed(actor, action, resource=None, default=False):
             """Compatibility wrapper for the old permission_allowed() API."""
+            from datasette.database import Database  # noqa: PLC0415
+            from datasette.resources import DatabaseResource  # noqa: PLC0415
+
             # New API: allowed(action, resource=None, actor=None)
             # Old API: permission_allowed(actor, action, resource=None, default=False)
+
+            # Convert Database objects to DatabaseResource objects
+            if isinstance(resource, Database):
+                resource = DatabaseResource(database=resource.name)
+
             result = await datasette_instance.allowed(
                 action=action, resource=resource, actor=actor
             )

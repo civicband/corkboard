@@ -15,14 +15,15 @@ RUN apt-get update && \
     rm -rf /var/lib/apt && \
     rm -rf /var/lib/dpkg/info/*
 
-COPY uv.lock /tmp/
+COPY pyproject.toml uv.lock LICENSE README.md /tmp/
 
 RUN --mount=type=cache,target=/root/.cache,sharing=locked,id=pip \
     python -m pip install --upgrade pip uv
 
 RUN --mount=type=cache,target=/root/.cache,sharing=locked,id=pip \
     cd /tmp && \
-    python -m uv pip install --system -r uv.lock
+    python -m uv export --no-hashes --format requirements-txt -o requirements.txt && \
+    python -m uv pip install --system -r requirements.txt
 
 # ------------------------------------------------------------
 # Release layer

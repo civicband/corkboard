@@ -22,7 +22,8 @@ RUN --mount=type=cache,target=/root/.cache,sharing=locked,id=pip \
 
 RUN --mount=type=cache,target=/root/.cache,sharing=locked,id=pip \
     cd /tmp && \
-    python -m uv pip install --system -r uv.lock
+    python -m uv export --no-hashes --no-editable --format requirements-txt -o requirements.txt && \
+    python -m uv pip install --system -r requirements.txt
 
 # ------------------------------------------------------------
 # Release layer

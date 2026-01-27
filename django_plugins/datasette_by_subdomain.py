@@ -315,7 +315,7 @@ async def datasette_by_subdomain_wrapper(scope, receive, send, app):
 
         from datasette.app import Datasette  # noqa: PLC0415
 
-        ds = Datasette(
+        datasette_instance = Datasette(
             db_list,
             config=metadata,
             plugins_dir="plugins",
@@ -330,7 +330,25 @@ async def datasette_by_subdomain_wrapper(scope, receive, send, app):
                 "allow_download": False,
                 "allow_csv_stream": False,
             },
-        ).app()
+        )
+
+        # Compatibility shim for datasette-dashboards 0.8.0 with Datasette 1.0+
+        # datasette-dashboards uses the deprecated permission_allowed() method
+        # that was removed in Datasette 1.0a20. Add it back as a wrapper.
+        async def permission_allowed(actor, action, resource=None, default=False):
+            """Compatibility wrapper for the old permission_allowed() API."""
+            result = await datasette_instance.allowed(
+                actor, action, resource, default=default
+            )
+            # allowed() returns True/False, permission_allowed() returned True/False/None
+            # If default=None, we should return None when permission is denied
+            if default is None and not result:
+                return None
+            return result
+
+        datasette_instance.permission_allowed = permission_allowed
+
+        ds = datasette_instance.app()
 
         # Import NotFound to catch 404s before they hit Datasette's
         # exception handler (which calls rich.print_exception and fails)

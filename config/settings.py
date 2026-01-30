@@ -109,12 +109,40 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "sites.db",
-    },
-}
+# Use clerk's Postgres database (shared with clerk workers)
+# Falls back to SQLite for local development if DATABASE_URL not set
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+if DATABASE_URL:
+    # Parse postgresql://user:pass@host:port/db
+    import re
+
+    match = re.match(
+        r"postgresql://(?P<user>[^:]+):(?P<password>[^@]+)@(?P<host>[^:]+):(?P<port>\d+)/(?P<name>.+)",
+        DATABASE_URL,
+    )
+    if match:
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.postgresql",
+                "NAME": match.group("name"),
+                "USER": match.group("user"),
+                "PASSWORD": match.group("password"),
+                "HOST": match.group("host"),
+                "PORT": match.group("port"),
+            },
+        }
+    else:
+        msg = f"Invalid DATABASE_URL format: {DATABASE_URL}"
+        raise ImproperlyConfigured(msg)
+else:
+    # Fallback to SQLite for local development
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "sites.db",
+        },
+    }
 
 
 # Password validation

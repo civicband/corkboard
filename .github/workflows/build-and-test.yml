@@ -1,0 +1,202 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: civicband/corkboard
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          load: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          build-args: |
+            RELEASE_SHA=${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run linting in container
+        run: |
+          docker run --rm \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            uv run ruff check .
+
+      - name: Check formatting in container
+        run: |
+          docker run --rm \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            uv run ruff format --check .
+
+      - name: Create test database
+        run: |
+          # Create a minimal sites.db for testing
+          cat > create_test_db.py << 'EOF'
+          import sqlite3
+          conn = sqlite3.connect('sites.db')
+          c = conn.cursor()
+          c.execute('''CREATE TABLE sites (
+            subdomain TEXT PRIMARY KEY,
+            name TEXT,
+            state TEXT,
+            country TEXT,
+            kind TEXT,
+            pages INTEGER,
+            last_updated TEXT
+          )''')
+          c.execute('''INSERT INTO sites VALUES (
+            'test.city',
+            'Test City',
+            'CA',
+            'US',
+            'city',
+            100,
+            '2024-01-01'
+          )''')
+          conn.commit()
+          conn.close()
+          EOF
+          python3 create_test_db.py
+
+      - name: Create test site database
+        run: |
+          mkdir -p sites/test.city
+          cat > create_meetings_db.py << 'EOF'
+          import sqlite3
+          conn = sqlite3.connect('sites/test.city/meetings.db')
+          c = conn.cursor()
+          c.execute('''CREATE TABLE meetings (
+            id INTEGER PRIMARY KEY,
+            title TEXT,
+            date TEXT
+          )''')
+          c.execute('''INSERT INTO meetings VALUES (1, 'Test Meeting', '2024-01-01')''')
+          conn.commit()
+          conn.close()
+          EOF
+          python3 create_meetings_db.py
+
+      - name: Run unit tests in container
+        run: |
+          docker run --rm \
+            -v $PWD/sites.db:/app/sites.db \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            uv run pytest --cov=django_plugins --cov=plugins --cov=pages --cov=config \
+                         --cov-report=term-missing \
+                         --cov-report=xml
+
+      - name: Start application for integration tests
+        run: |
+          docker run -d --name test-app \
+            -p 8000:8000 \
+            -v $PWD/sites.db:/app/sites.db \
+            -v $PWD/sites:/sites \
+            -e DJANGO_SETTINGS_MODULE=config.settings \
+            -e DEBUG=true \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Wait for application startup
+        run: |
+          echo "Waiting for application to start..."
+          for i in {1..30}; do
+            if curl -f -s http://localhost:8000/health/ > /dev/null 2>&1; then
+              echo "Application is ready!"
+              exit 0
+            fi
+            echo "Attempt $i/30: Application not ready yet..."
+            sleep 2
+          done
+          echo "Application failed to start"
+          docker logs test-app
+          exit 1
+
+      - name: Test homepage accessibility
+        run: |
+          echo "Testing homepage..."
+          curl -f -s http://localhost:8000/ > /dev/null || {
+            echo "Homepage test failed"
+            docker logs test-app
+            exit 1
+          }
+
+      - name: Test dashboard accessibility (catches permission_allowed errors)
+        run: |
+          echo "Testing dashboard page..."
+          # This would return 500 if permission_allowed is missing
+          curl -f -s -o /dev/null -w "%{http_code}" http://localhost:8000/-/dashboards/ || {
+            echo "Dashboard test failed - likely permission_allowed error"
+            docker logs test-app
+            exit 1
+          }
+          echo "Dashboard test passed!"
+
+      - name: Show application logs
+        if: always()
+        run: docker logs test-app
+
+      - name: Stop test container
+        if: always()
+        run: docker stop test-app && docker rm test-app
+
+      - name: Log in to GitHub Container Registry
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push Docker image to registry
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+      - name: Notify Slack on failure
+        if: failure() && github.ref == 'refs/heads/main'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          curl -s -X POST "$SLACK_WEBHOOK_URL" \
+            -H 'Content-type: application/json' \
+            -d '{
+              "attachments": [{
+                "color": "#e74c3c",
+                "blocks": [
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": ":x: *corkboard* | `build/test failed`\nDocker build or tests failed on main branch"
+                    }
+                  },
+                  {
+                    "type": "context",
+                    "elements": [{
+                      "type": "mrkdwn",
+                      "text": "Commit: `${{ github.sha }}` | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View logs>"
+                    }]
+                  }
+                ]
+              }]
+            }'

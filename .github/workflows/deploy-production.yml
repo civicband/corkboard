@@ -2,7 +2,7 @@ name: Deploy to Production
 
 on:
   workflow_run:
-    workflows: ["Test"]
+    workflows: ["Build and Test"]
     branches: [main]
     types: [completed]
   workflow_dispatch:
@@ -32,17 +32,19 @@ jobs:
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: tag:ci
 
-      - name: Build and deploy Django on VPS
+      - name: Deploy pre-built image to VPS
         env:
           CANARY_PERIOD: ${{ inputs.canary_period || '120' }}
         run: |
           ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
             deploy@${{ env.VPS_HOSTNAME }} "
-            cd /home/deploy/corkboard &&
-            git fetch origin main &&
-            git checkout main &&
-            git pull origin main &&
-            docker build --no-cache --build-arg RELEASE_SHA=${{ github.sha }} -t corkboard-django:${{ github.sha }} . &&
+            # Pull the pre-built image from GitHub Container Registry
+            docker pull ghcr.io/civicband/corkboard:${{ github.sha }} &&
+
+            # Tag it for the deploy script
+            docker tag ghcr.io/civicband/corkboard:${{ github.sha }} corkboard-django:${{ github.sha }} &&
+
+            # Run blue-green deployment with the tagged image
             CANARY_PERIOD=$CANARY_PERIOD /home/deploy/scripts/deploy.sh corkboard-django ${{ github.sha }}
           "
 

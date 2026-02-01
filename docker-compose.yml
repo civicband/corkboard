@@ -14,9 +14,9 @@ services:
       - "./botPolicy.yaml:/data/cfg/botPolicy.yaml:ro"
   django_blue:
     image: corkboard-django:${VERSION:-latest}
-    build: .
+    # Code is baked into the image - no local build or volume mount
     volumes:
-      - .:/app/
+      # Only mount data, not code
       - ../sites:/sites/
     env_file:
       - .env
@@ -45,9 +45,9 @@ services:
       - "./botPolicy.yaml:/data/cfg/botPolicy.yaml:ro"
   django_green:
     image: corkboard-django:${VERSION:-latest}
-    build: .
+    # Code is baked into the image - no local build or volume mount
     volumes:
-      - .:/app/
+      # Only mount data, not code
       - ../sites:/sites/
     env_file:
       - .env

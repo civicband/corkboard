@@ -39,12 +39,14 @@ jobs:
       - name: Run linting in container
         run: |
           docker run --rm \
+            --user root \
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
             uv run ruff check .
 
       - name: Check formatting in container
         run: |
           docker run --rm \
+            --user root \
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
             uv run ruff format --check .
 
@@ -99,6 +101,7 @@ jobs:
       - name: Run unit tests in container
         run: |
           docker run --rm \
+            --user root \
             -v $PWD/sites.db:/app/sites.db \
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
             uv run pytest --cov=django_plugins --cov=plugins --cov=pages --cov=config \

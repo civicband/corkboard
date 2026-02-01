@@ -35,9 +35,13 @@ jobs:
       - name: Deploy pre-built image to VPS
         env:
           CANARY_PERIOD: ${{ inputs.canary_period || '120' }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
             deploy@${{ env.VPS_HOSTNAME }} "
+            # Log in to GitHub Container Registry
+            echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u ${{ github.actor }} --password-stdin &&
+
             # Pull the pre-built image from GitHub Container Registry
             docker pull ghcr.io/civicband/corkboard:${{ github.sha }} &&
 
@@ -45,7 +49,10 @@ jobs:
             docker tag ghcr.io/civicband/corkboard:${{ github.sha }} corkboard-django:${{ github.sha }} &&
 
             # Run blue-green deployment with the tagged image
-            CANARY_PERIOD=$CANARY_PERIOD /home/deploy/scripts/deploy.sh corkboard-django ${{ github.sha }}
+            CANARY_PERIOD=$CANARY_PERIOD /home/deploy/scripts/deploy.sh corkboard-django ${{ github.sha }} &&
+
+            # Logout from registry (cleanup)
+            docker logout ghcr.io
           "
 
       - name: Verify Django deployment

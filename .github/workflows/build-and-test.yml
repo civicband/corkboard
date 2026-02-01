@@ -114,6 +114,11 @@ jobs:
                          --cov-report=term-missing \
                          --cov-report=xml
 
+      - name: Verify test database
+        run: |
+          echo "Verifying sites.db contains test.city..."
+          sqlite3 sites.db "SELECT * FROM sites WHERE subdomain = 'test.city';"
+
       - name: Start application for integration tests
         run: |
           docker run -d --name test-app \

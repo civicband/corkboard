@@ -151,12 +151,14 @@ jobs:
       - name: Test dashboard accessibility (catches permission_allowed errors)
         run: |
           echo "Testing dashboard page..."
+          # Use Host header to simulate subdomain request (test.city subdomain)
           # This would return 500 if permission_allowed is missing
-          curl -f -s -o /dev/null -w "%{http_code}" http://localhost:8000/-/dashboards/ || {
-            echo "Dashboard test failed - likely permission_allowed error"
+          HTTP_CODE=$(curl -f -s -o /dev/null -w "%{http_code}" -H "Host: test.city.civic.band" http://localhost:8000/-/dashboards/)
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "Dashboard test failed with HTTP $HTTP_CODE - likely permission_allowed error"
             docker logs test-app
             exit 1
-          }
+          fi
           echo "Dashboard test passed!"
 
       - name: Show application logs

@@ -22,7 +22,7 @@ RUN --mount=type=cache,target=/root/.cache,sharing=locked,id=pip \
 
 RUN --mount=type=cache,target=/root/.cache,sharing=locked,id=pip \
     cd /tmp && \
-    python -m uv export --no-hashes --no-emit-project --format requirements-txt -o requirements.txt && \
+    python -m uv export --no-hashes --no-emit-project --all-extras --format requirements-txt -o requirements.txt && \
     python -m uv pip install --system -r requirements.txt
 
 # ------------------------------------------------------------

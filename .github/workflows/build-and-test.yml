@@ -64,7 +64,10 @@ jobs:
             country TEXT,
             kind TEXT,
             pages INTEGER,
-            last_updated TEXT
+            last_updated TEXT,
+            lat TEXT,
+            lng TEXT,
+            popup TEXT
           )''')
           c.execute('''INSERT INTO sites VALUES (
             'test.city',
@@ -73,7 +76,10 @@ jobs:
             'US',
             'city',
             100,
-            '2024-01-01'
+            '2024-01-01',
+            '37.7749',
+            '-122.4194',
+            '{}'
           )''')
           conn.commit()
           conn.close()

@@ -76,7 +76,7 @@ class Site(models.Model):
 
     class Meta:
         db_table = "sites"
-        managed = True  # Let Django manage this table for admin
+        managed = False  # Clerk manages schema, Django is read-only consumer
         ordering = ["-pages"]
 
     def __str__(self):

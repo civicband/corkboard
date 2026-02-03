@@ -220,28 +220,56 @@ def django_db_setup(django_db_setup, django_db_blocker):
 
         # Get the default database connection
         with connections["default"].cursor() as cursor:
-            # Create the sites table if it doesn't exist
+            # Create the sites table matching the Site model schema
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS sites (
                     subdomain TEXT PRIMARY KEY,
                     name TEXT,
                     state TEXT,
-                    country TEXT,
                     kind TEXT,
+                    scraper TEXT,
                     pages INTEGER,
-                    last_updated TEXT,
+                    start_year INTEGER,
+                    extra TEXT,
+                    country TEXT,
                     lat TEXT,
                     lng TEXT,
-                    popup TEXT
+                    current_stage TEXT,
+                    started_at TEXT,
+                    updated_at TEXT,
+                    fetch_total INTEGER DEFAULT 0,
+                    fetch_completed INTEGER DEFAULT 0,
+                    fetch_failed INTEGER DEFAULT 0,
+                    ocr_total INTEGER DEFAULT 0,
+                    ocr_completed INTEGER DEFAULT 0,
+                    ocr_failed INTEGER DEFAULT 0,
+                    compilation_total INTEGER DEFAULT 0,
+                    compilation_completed INTEGER DEFAULT 0,
+                    compilation_failed INTEGER DEFAULT 0,
+                    extraction_total INTEGER DEFAULT 0,
+                    extraction_completed INTEGER DEFAULT 0,
+                    extraction_failed INTEGER DEFAULT 0,
+                    deploy_total INTEGER DEFAULT 0,
+                    deploy_completed INTEGER DEFAULT 0,
+                    deploy_failed INTEGER DEFAULT 0,
+                    coordinator_enqueued INTEGER DEFAULT 0,
+                    last_error_stage TEXT,
+                    last_error_message TEXT,
+                    last_error_at TEXT,
+                    status TEXT,
+                    extraction_status TEXT DEFAULT 'pending',
+                    last_updated TEXT,
+                    last_deployed TEXT,
+                    last_extracted TEXT
                 )
             """)
 
             # Insert test data
             cursor.execute("""
                 INSERT OR REPLACE INTO sites
-                (subdomain, name, state, country, kind, pages, last_updated, lat, lng, popup)
+                (subdomain, name, state, country, kind, pages, lat, lng)
                 VALUES
-                ('test.ca', 'Test City', 'California', 'USA', 'city', 100, '2024-01-01', '37.7749', '-122.4194', '{}')
+                ('test.ca', 'Test City', 'California', 'USA', 'city', 100, '37.7749', '-122.4194')
             """)
 
     yield

@@ -17,7 +17,7 @@ Including another URLconf
 
 import djp
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
 
 from config.views import health_check
 from pages.views import (
@@ -31,6 +31,7 @@ from pages.views import (
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("", include("social_django.urls", namespace="social")),
     path("sites/search/", sites_search_view, name="sites_search"),
     path("how.html", how_view),
     path("why.html", why_view),

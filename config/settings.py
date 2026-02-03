@@ -117,9 +117,7 @@ DATABASE_URL = os.environ.get("DATABASE_URL")
 
 if DATABASE_URL:
     # Parse DATABASE_URL using dj-database-url
-    DATABASES = {
-        "default": dj_database_url.parse(DATABASE_URL)
-    }
+    DATABASES = {"default": dj_database_url.parse(DATABASE_URL)}
 else:
     # Fallback to SQLite for local development
     DATABASES = {

@@ -13,7 +13,7 @@ services:
     volumes:
       - "./botPolicy.yaml:/data/cfg/botPolicy.yaml:ro"
   django_blue:
-    image: corkboard-django:${VERSION:-latest}
+    image: ghcr.io/civicband/corkboard:${VERSION:-latest}
     # Code is baked into the image - no local build or volume mount
     volumes:
       # Only mount data, not code
@@ -44,7 +44,7 @@ services:
     volumes:
       - "./botPolicy.yaml:/data/cfg/botPolicy.yaml:ro"
   django_green:
-    image: corkboard-django:${VERSION:-latest}
+    image: ghcr.io/civicband/corkboard:${VERSION:-latest}
     # Code is baked into the image - no local build or volume mount
     volumes:
       # Only mount data, not code

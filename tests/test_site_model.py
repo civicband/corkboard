@@ -39,10 +39,14 @@ class TestSiteModel:
         ]
         # Verify core fields exist
         for field in core_fields:
-            assert field in fields, f"Expected core field '{field}' not found in Site model"
+            assert field in fields, (
+                f"Expected core field '{field}' not found in Site model"
+            )
         # Verify some pipeline fields exist (not all to keep test maintainable)
         for field in pipeline_fields[:5]:
-            assert field in fields, f"Expected pipeline field '{field}' not found in Site model"
+            assert field in fields, (
+                f"Expected pipeline field '{field}' not found in Site model"
+            )
 
     def test_site_model_str(self):
         """Site model should have string representation."""

@@ -48,6 +48,9 @@ COPY . /app/
 
 ENV DJP_PLUGINS_DIR=django_plugins
 
+# Create dist directory for static files and give appuser ownership
+RUN mkdir -p /app/dist && chown -R appuser:appuser /app
+
 # Switch to non-root user
 USER appuser
 

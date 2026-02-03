@@ -2,13 +2,5 @@ from config.settings import *
 
 DEBUG = False
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "sites.db",
-    },
-    "sites": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "sites.db",
-    },
-}
+# DATABASES is already configured in config.settings with DATABASE_URL support
+# Don't override it here - let the base settings handle Postgres vs SQLite fallback

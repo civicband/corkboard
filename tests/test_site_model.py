@@ -37,14 +37,6 @@ class TestSiteModel:
             "deploy_total",
             "coordinator_enqueued",
         ]
-        # Deprecated/legacy fields
-        legacy_fields = [
-            "status",
-            "extraction_status",
-            "last_updated",
-            "last_deployed",
-            "last_extracted",
-        ]
         # Verify core fields exist
         for field in core_fields:
             assert field in fields, f"Expected core field '{field}' not found in Site model"

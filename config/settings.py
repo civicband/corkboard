@@ -71,6 +71,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.humanize",
+    "social_django",
     "pages",
 ]
 
@@ -98,6 +99,8 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "social_django.context_processors.backends",
+                "social_django.context_processors.login_redirect",
             ],
         },
     },
@@ -145,6 +148,41 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
+
+
+# Authentication backends
+# https://python-social-auth.readthedocs.io/en/latest/configuration/django.html
+AUTHENTICATION_BACKENDS = (
+    "social_core.backends.open_id_connect.OpenIdConnectAuth",
+    "django.contrib.auth.backends.ModelBackend",
+)
+
+# Social Auth Configuration
+SOCIAL_AUTH_OIDC_OIDC_ENDPOINT = os.environ.get("OIDC_ENDPOINT")
+SOCIAL_AUTH_OIDC_KEY = os.environ.get("OIDC_CLIENT_ID")
+SOCIAL_AUTH_OIDC_SECRET = os.environ.get("OIDC_CLIENT_SECRET")
+
+# Additional OIDC settings
+SOCIAL_AUTH_OIDC_SCOPE = ["openid", "email", "profile"]
+SOCIAL_AUTH_OIDC_ID_TOKEN_DECRYPTION_KEY = SOCIAL_AUTH_OIDC_SECRET
+
+# Redirect URLs after authentication
+LOGIN_URL = "/admin/login/"
+LOGIN_REDIRECT_URL = "/admin/"
+LOGOUT_REDIRECT_URL = "/"
+
+# Social Auth pipeline (default pipeline, can be customized)
+SOCIAL_AUTH_PIPELINE = (
+    "social_core.pipeline.social_auth.social_details",
+    "social_core.pipeline.social_auth.social_uid",
+    "social_core.pipeline.social_auth.auth_allowed",
+    "social_core.pipeline.social_auth.social_user",
+    "social_core.pipeline.user.get_username",
+    "social_core.pipeline.user.create_user",
+    "social_core.pipeline.social_auth.associate_user",
+    "social_core.pipeline.social_auth.load_extra_data",
+    "social_core.pipeline.user.user_details",
+)
 
 
 # Internationalization

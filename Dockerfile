@@ -40,13 +40,21 @@ RUN useradd --no-create-home --no-log-init --shell /usr/sbin/nologin --uid 1000 
 
 WORKDIR /app
 
+# Copy entrypoint script and make it executable (before switching to appuser)
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
 COPY . /app/
 
 ENV DJP_PLUGINS_DIR=django_plugins
+
+# Create dist directory for static files and give appuser ownership
+RUN mkdir -p /app/dist && chown -R appuser:appuser /app
 
 # Switch to non-root user
 USER appuser
 
 EXPOSE 8000
 
+ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["uvicorn", "config.asgi:application", "--host", "0.0.0.0", "--limit-max-requests", "1000", "--timeout-graceful-shutdown", "7"]

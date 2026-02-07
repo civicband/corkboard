@@ -57,4 +57,4 @@ USER appuser
 EXPOSE 8000
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
-CMD ["gunicorn", "config.asgi:application", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000", "--max-requests", "1000", "--max-requests-jitter", "100", "--timeout", "30", "--graceful-timeout", "7"]
+CMD ["gunicorn", "config.asgi:application", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000", "--max-requests", "200", "--max-requests-jitter", "50", "--timeout", "30", "--graceful-timeout", "10", "--worker-tmp-dir", "/dev/shm"]

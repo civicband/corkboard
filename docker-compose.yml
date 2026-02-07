@@ -26,7 +26,7 @@ services:
       - DJP_PLUGINS_DIR=django_plugins
       - WEB_CONCURRENCY=4
       - REDIS_URL=redis://redis:6379
-    command: gunicorn config.asgi:application -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --max-requests 1000 --max-requests-jitter 100 --timeout 30 --graceful-timeout 7
+    command: gunicorn config.asgi:application -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --max-requests 200 --max-requests-jitter 50 --timeout 30 --graceful-timeout 10 --worker-tmp-dir /dev/shm
     ports:
       - 9000:8000
     depends_on:
@@ -58,7 +58,7 @@ services:
       - DJP_PLUGINS_DIR=django_plugins
       - WEB_CONCURRENCY=4
       - REDIS_URL=redis://redis:6379
-    command: gunicorn config.asgi:application -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --max-requests 1000 --max-requests-jitter 100 --timeout 30 --graceful-timeout 7
+    command: gunicorn config.asgi:application -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --max-requests 200 --max-requests-jitter 50 --timeout 30 --graceful-timeout 10 --worker-tmp-dir /dev/shm
     ports:
       - 9001:8000
     depends_on:

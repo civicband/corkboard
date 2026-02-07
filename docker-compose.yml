@@ -18,6 +18,7 @@ services:
     volumes:
       # Only mount data, not code
       - ../sites:/sites/
+      - ./sites.db:/app/sites.db:ro
     env_file:
       - .env
     environment:
@@ -49,6 +50,7 @@ services:
     volumes:
       # Only mount data, not code
       - ../sites:/sites/
+      - ./sites.db:/app/sites.db:ro
     env_file:
       - .env
     environment:

@@ -1,0 +1,55 @@
+# Exclude sites.db from Docker image - it should be mounted as a volume
+sites.db
+
+# Exclude git directory
+.git
+.gitignore
+
+# Exclude Python cache
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info
+dist
+build
+*.whl
+
+# Exclude virtual environments
+.venv
+venv
+ENV
+
+# Exclude development files
+.env
+.env.local
+*.log
+
+# Exclude test and coverage files
+.pytest_cache
+.coverage
+htmlcov
+.tox
+
+# Exclude editor files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Exclude documentation
+*.md
+!README.md
+
+# Exclude CI/CD files
+.github
+.gitlab-ci.yml
+
+# Exclude docker files
+docker-compose.yml
+Dockerfile
+.dockerignore

@@ -6,6 +6,7 @@ from datasette import hookimpl
 
 @hookimpl
 def render_cell(row, value, column, table, database, datasette, request):
+    print(row["meeting"])
     if column != "date":
         return None
     parts = urlparse(request.url)
@@ -15,7 +16,9 @@ def render_cell(row, value, column, table, database, datasette, request):
         path = "/".join(path_parts[:3])
     if "agendas" not in path or "minutes" not in path:
         path = path.replace("upcoming", "agendas")
-    url = f"{path}/?date__exact={value}&_sort=meeting"
+    url = f"{path}/?date__exact={value}&_sort=page"
+    if row and row.keys() and "meeting" in row.keys():  # noqa: SIM118
+        url += f"&meeting__exact={row['meeting']}"
     if "_search" in request.args:
         url += f"&_highlight={request.args['_search']}"
     return markupsafe.Markup(f"<a href='{url}'>{value}</a>")

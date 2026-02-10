@@ -6,7 +6,6 @@ from datasette import hookimpl
 
 @hookimpl
 def render_cell(row, value, column, table, database, datasette, request):
-    print(row["meeting"])
     if column != "date":
         return None
     parts = urlparse(request.url)

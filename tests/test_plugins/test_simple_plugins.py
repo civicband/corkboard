@@ -273,7 +273,7 @@ class TestDateLink:
         assert isinstance(result, markupsafe.Markup)
         assert "<a href=" in str(result)
         assert "date__exact=2024-01-15" in str(result)
-        assert "_sort=meeting" in str(result)
+        assert "_sort=page" in str(result)
 
     def test_include_highlight_with_search(self):
         """Include highlight parameter when search present."""

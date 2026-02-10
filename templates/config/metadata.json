@@ -48,38 +48,12 @@
           ]
         ],
         "charts": {
-          "minutes-page-count": {
-            "title": "Total pages of minutes tracked",
+          "agendas-count-table": {
+            "title": "Pages of agendas by meeting type (Top 40)",
             "db": "meetings",
-            "query": "select count(*) as page_count from minutes",
-            "library": "metric",
-            "display": {
-              "field": "page_count",
-              "prefix": null,
-              "suffix": " pages"
-            }
-          },
-          "agendas-page-count": {
-            "title": "Total pages of agendas tracked",
-            "db": "meetings",
-            "query": "select count(*) as page_count from agendas",
-            "library": "metric",
-            "display": {
-              "field": "page_count",
-              "prefix": null,
-              "suffix": " pages"
-            }
-          },
-          "minutes-meeting-count": {
-            "title": "Number of meetings with minutes",
-            "db": "meetings",
-            "query": "select count(distinct date) as meeting_count from minutes",
-            "library": "metric",
-            "display": {
-              "field": "meeting_count",
-              "prefix": null,
-              "suffix": " meetings"
-            }
+            "query": "select '<a href=\"/meetings?sql=select%0D%0A++*%0D%0Afrom%0D%0A++agendas%0D%0Awhere%0D%0A++meeting+%3D+%27'||meeting||'%27%0D%0Aorder+by%0D%0A++date+desc%2C%0D%0A++page+ASC\">' || substr(meeting, 1, 42) || '</a>' as meeting, count(*) as page_count from agendas group by meeting order by page_count DESC limit 40",
+            "library": "table",
+            "display": ""
           },
           "agendas-meeting-count": {
             "title": "Number of meetings with agendas",
@@ -90,46 +64,6 @@
               "field": "meeting_count",
               "prefix": null,
               "suffix": " meetings"
-            }
-          },
-          "agendas-pages-by-meeting": {
-            "title": "Agenda pages by meeting type",
-            "db": "meetings",
-            "query": "select meeting, count(*) as meeting_count from agendas group by meeting order by meeting_count DESC",
-            "library": "vega-lite",
-            "display": {
-              "mark": {
-                "type": "arc",
-                "tooltip": true
-              },
-              "params": [
-                {
-                  "name": "highlight",
-                  "select": {
-                    "fields": ["meeting"],
-                    "type": "point",
-                    "on": "mouseover"
-                  },
-                  "bind": "legend"
-                }
-              ],
-              "encoding": {
-                "color": {
-                  "field": "meeting",
-                  "type": "nominal"
-                },
-                "theta": {
-                  "field": "meeting_count",
-                  "type": "quantitative"
-                },
-                "opacity": {
-                  "condition": {
-                    "param": "highlight",
-                    "value": 1
-                  },
-                  "value": 0.2
-                }
-              }
             }
           },
           "agendas-meetings-by-meeting": {
@@ -172,14 +106,14 @@
               }
             }
           },
-          "minutes-pages-by-meeting": {
-            "title": "Minutes pages by meeting type",
+          "agendas-meetings-by-year": {
+            "title": "Meetings with agendas per year by meeting type",
             "db": "meetings",
-            "query": "select meeting, count(*) as meeting_count from minutes group by meeting order by meeting_count DESC",
+            "query": "select count(distinct date) as meeting_count, meeting, strftime(\"%Y\", date) as year from agendas group by strftime(\"%Y\", date), meeting order by year",
             "library": "vega-lite",
             "display": {
               "mark": {
-                "type": "arc",
+                "type": "bar",
                 "tooltip": true
               },
               "params": [
@@ -194,13 +128,18 @@
                 }
               ],
               "encoding": {
+                "x": {
+                  "field": "year",
+                  "type": "ordinal",
+                  "timeUnit": "year"
+                },
+                "y": {
+                  "field": "meeting_count",
+                  "type": "quantitative"
+                },
                 "color": {
                   "field": "meeting",
                   "type": "nominal"
-                },
-                "theta": {
-                  "field": "meeting_count",
-                  "type": "quantitative"
                 },
                 "opacity": {
                   "condition": {
@@ -212,10 +151,21 @@
               }
             }
           },
-          "minutes-meetings-by-meeting": {
-            "title": "Meeting with minutes by meeting type",
+          "agendas-page-count": {
+            "title": "Total pages of agendas tracked",
             "db": "meetings",
-            "query": "select meeting, count(distinct date) as meeting_count from minutes group by meeting order by meeting_count DESC",
+            "query": "select count(*) as page_count from agendas",
+            "library": "metric",
+            "display": {
+              "field": "page_count",
+              "prefix": null,
+              "suffix": " pages"
+            }
+          },
+          "agendas-pages-by-meeting": {
+            "title": "Agenda pages by meeting type",
+            "db": "meetings",
+            "query": "select meeting, count(*) as meeting_count from agendas group by meeting order by meeting_count DESC",
             "library": "vega-lite",
             "display": {
               "mark": {
@@ -297,59 +247,32 @@
               }
             }
           },
-          "agendas-meetings-by-year": {
-            "title": "Meetings with agendas per year by meeting type",
+          "minutes-count-table": {
+            "title": "Pages of minutes by meeting type (Top 40)",
             "db": "meetings",
-            "query": "select count(distinct date) as meeting_count, meeting, strftime(\"%Y\", date) as year from agendas group by strftime(\"%Y\", date), meeting order by year",
-            "library": "vega-lite",
+            "query": "select '<a href=\"/meetings?sql=select%0D%0A++*%0D%0Afrom%0D%0A++minutes%0D%0Awhere%0D%0A++meeting+%3D+%27'||meeting||'%27%0D%0Aorder+by%0D%0A++date+desc%2C%0D%0A++page+ASC\">' || substr(meeting, 1, 42) || '</a>' as meeting, count(*) as page_count from minutes group by meeting order by page_count DESC limit 40",
+            "library": "table",
+            "display": ""
+          },
+          "minutes-meeting-count": {
+            "title": "Number of meetings with minutes",
+            "db": "meetings",
+            "query": "select count(distinct date) as meeting_count from minutes",
+            "library": "metric",
             "display": {
-              "mark": {
-                "type": "bar",
-                "tooltip": true
-              },
-              "params": [
-                {
-                  "name": "highlight",
-                  "select": {
-                    "fields": ["meeting"],
-                    "type": "point",
-                    "on": "mouseover"
-                  },
-                  "bind": "legend"
-                }
-              ],
-              "encoding": {
-                "x": {
-                  "field": "year",
-                  "type": "ordinal",
-                  "timeUnit": "year"
-                },
-                "y": {
-                  "field": "meeting_count",
-                  "type": "quantitative"
-                },
-                "color": {
-                  "field": "meeting",
-                  "type": "nominal"
-                },
-                "opacity": {
-                  "condition": {
-                    "param": "highlight",
-                    "value": 1
-                  },
-                  "value": 0.2
-                }
-              }
+              "field": "meeting_count",
+              "prefix": null,
+              "suffix": " meetings"
             }
           },
-          "minutes-pages-by-year": {
-            "title": "Minutes pages per year by meeting type",
+          "minutes-meetings-by-meeting": {
+            "title": "Meeting with minutes by meeting type",
             "db": "meetings",
-            "query": "select count(*) as meeting_count, meeting, strftime(\"%Y\", date) as year from minutes group by strftime(\"%Y\", date), meeting order by year",
+            "query": "select meeting, count(distinct date) as meeting_count from minutes group by meeting order by meeting_count DESC",
             "library": "vega-lite",
             "display": {
               "mark": {
-                "type": "bar",
+                "type": "arc",
                 "tooltip": true
               },
               "params": [
@@ -364,18 +287,13 @@
                 }
               ],
               "encoding": {
-                "x": {
-                  "field": "year",
-                  "type": "ordinal",
-                  "timeUnit": "year"
-                },
-                "y": {
-                  "field": "meeting_count",
-                  "type": "quantitative"
-                },
                 "color": {
                   "field": "meeting",
                   "type": "nominal"
+                },
+                "theta": {
+                  "field": "meeting_count",
+                  "type": "quantitative"
                 },
                 "opacity": {
                   "condition": {
@@ -432,19 +350,101 @@
               }
             }
           },
-          "minutes-count-table": {
-            "title": "Pages of minutes by meeting type (Top 40)",
+          "minutes-page-count": {
+            "title": "Total pages of minutes tracked",
             "db": "meetings",
-            "query": "select '<a href=\"/meetings?sql=select%0D%0A++*%0D%0Afrom%0D%0A++minutes%0D%0Awhere%0D%0A++meeting+%3D+%27'||meeting||'%27%0D%0Aorder+by%0D%0A++date+desc%2C%0D%0A++page+ASC\">' || substr(meeting, 1, 42) || '</a>' as meeting, count(*) as page_count from minutes group by meeting order by page_count DESC limit 40",
-            "library": "table",
-            "display": ""
+            "query": "select count(*) as page_count from minutes",
+            "library": "metric",
+            "display": {
+              "field": "page_count",
+              "prefix": null,
+              "suffix": " pages"
+            }
           },
-          "agendas-count-table": {
-            "title": "Pages of agendas by meeting type (Top 40)",
+          "minutes-pages-by-meeting": {
+            "title": "Minutes pages by meeting type",
             "db": "meetings",
-            "query": "select '<a href=\"/meetings?sql=select%0D%0A++*%0D%0Afrom%0D%0A++agendas%0D%0Awhere%0D%0A++meeting+%3D+%27'||meeting||'%27%0D%0Aorder+by%0D%0A++date+desc%2C%0D%0A++page+ASC\">' || substr(meeting, 1, 42) || '</a>' as meeting, count(*) as page_count from agendas group by meeting order by page_count DESC limit 40",
-            "library": "table",
-            "display": ""
+            "query": "select meeting, count(*) as meeting_count from minutes group by meeting order by meeting_count DESC",
+            "library": "vega-lite",
+            "display": {
+              "mark": {
+                "type": "arc",
+                "tooltip": true
+              },
+              "params": [
+                {
+                  "name": "highlight",
+                  "select": {
+                    "fields": ["meeting"],
+                    "type": "point",
+                    "on": "mouseover"
+                  },
+                  "bind": "legend"
+                }
+              ],
+              "encoding": {
+                "color": {
+                  "field": "meeting",
+                  "type": "nominal"
+                },
+                "theta": {
+                  "field": "meeting_count",
+                  "type": "quantitative"
+                },
+                "opacity": {
+                  "condition": {
+                    "param": "highlight",
+                    "value": 1
+                  },
+                  "value": 0.2
+                }
+              }
+            }
+          },
+          "minutes-pages-by-year": {
+            "title": "Minutes pages per year by meeting type",
+            "db": "meetings",
+            "query": "select count(*) as meeting_count, meeting, strftime(\"%Y\", date) as year from minutes group by strftime(\"%Y\", date), meeting order by year",
+            "library": "vega-lite",
+            "display": {
+              "mark": {
+                "type": "bar",
+                "tooltip": true
+              },
+              "params": [
+                {
+                  "name": "highlight",
+                  "select": {
+                    "fields": ["meeting"],
+                    "type": "point",
+                    "on": "mouseover"
+                  },
+                  "bind": "legend"
+                }
+              ],
+              "encoding": {
+                "x": {
+                  "field": "year",
+                  "type": "ordinal",
+                  "timeUnit": "year"
+                },
+                "y": {
+                  "field": "meeting_count",
+                  "type": "quantitative"
+                },
+                "color": {
+                  "field": "meeting",
+                  "type": "nominal"
+                },
+                "opacity": {
+                  "condition": {
+                    "param": "highlight",
+                    "value": 1
+                  },
+                  "value": 0.2
+                }
+              }
+            }
           }
         }
       }
@@ -454,7 +454,7 @@
     "meetings": {
       "queries": {
         "upcoming": {
-          "sql": "select meeting, date, count(page) as pages from agendas where date >= current_date group by date, meeting order by date desc",
+          "sql": "select meeting, date, count(page) as pages from agendas where date >= current_date group by date, meeting order by date, meeting desc",
           "title": "Upcoming agendas",
           "hide_sql": true
         }

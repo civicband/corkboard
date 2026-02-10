@@ -332,29 +332,6 @@ async def datasette_by_subdomain_wrapper(scope, receive, send, app):
             },
         )
 
-        # Compatibility shim for datasette-dashboards 0.8.0 with Datasette 1.0+
-        # datasette-dashboards uses the deprecated permission_allowed() method
-        # that was removed in Datasette 1.0a20. Add it back as a wrapper.
-        async def permission_allowed(actor, action, resource=None, default=False):
-            """Compatibility wrapper for the old permission_allowed() API."""
-            # New API: allowed(action, resource=None, actor=None)
-            # Old API: permission_allowed(actor, action, resource=None, default=False)
-
-            # The new allowed() API accepts resource objects directly, including
-            # Database objects. No need to convert to DatabaseResource (which
-            # no longer exists in Datasette 1.0a19+)
-
-            result = await datasette_instance.allowed(
-                action=action, resource=resource, actor=actor
-            )
-            # allowed() returns True/False, permission_allowed() returned True/False/None
-            # If default=None, we should return None when permission is denied
-            if default is None and not result:
-                return None
-            return result
-
-        datasette_instance.permission_allowed = permission_allowed
-
         ds = datasette_instance.app()
 
         # Import NotFound to catch 404s before they hit Datasette's

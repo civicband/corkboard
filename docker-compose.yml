@@ -64,6 +64,27 @@ services:
     depends_on:
       - redis
 
+  django_staging:
+    image: corkboard:${VERSION:-latest}
+    # Code is baked into the image - no local build or volume mount
+    volumes:
+      # Only mount data, not code
+      - ../sites:/sites/
+      - ./sites.db:/app/sites.db:ro
+    env_file:
+      - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.prod_settings
+      - DJP_PLUGINS_DIR=django_plugins
+      - WEB_CONCURRENCY=4
+      - REDIS_URL=redis://redis:6379
+      - CDN_URL=https://cdn-staging.civic.band
+    command: gunicorn config.asgi:application -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --max-requests 200 --max-requests-jitter 50 --timeout 30 --graceful-timeout 10 --worker-tmp-dir /dev/shm
+    ports:
+      - 9999:8000
+    depends_on:
+      - redis
+
   redis:
     image: redis:7-alpine
     ports:

@@ -311,7 +311,21 @@ async def datasette_by_subdomain_wrapper(scope, receive, send, app):
             jinja_env.get_template("metadata.json").render(context=context_blob)
         )
 
-        db_list = [f"../sites/{subdomain}/meetings.db"]
+        # Build list of databases - always include meetings.db, optionally include finance
+        db_list = []
+        meetings_db = f"../sites/{subdomain}/meetings.db"
+        if os.path.exists(meetings_db):
+            db_list.append(meetings_db)
+
+        # Check for finance database
+        finance_db = f"../sites/{subdomain}/finance/election_finance.db"
+        if os.path.exists(finance_db):
+            db_list.append(finance_db)
+            logger.info(f"Found finance database for {subdomain}")
+
+        # If no databases found, use meetings.db as fallback (will 404 if doesn't exist)
+        if not db_list:
+            db_list = [meetings_db]
 
         from datasette.app import Datasette  # noqa: PLC0415
 

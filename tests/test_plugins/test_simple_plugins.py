@@ -9,7 +9,6 @@ Tests cover:
 - umami.py - Analytics script injection
 """
 
-import os
 from unittest.mock import MagicMock, patch
 
 import markupsafe

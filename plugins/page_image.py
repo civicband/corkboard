@@ -1,6 +1,7 @@
+import os
+
 import markupsafe
 from datasette import hookimpl
-import os
 
 
 @hookimpl
@@ -15,5 +16,5 @@ def render_cell(row, value, column, table, database, datasette):
     if not value.startswith("/"):
         value = f"/{value}"
 
-    url = os.getenv("CDN_URL", "https://cdn.civic.band")
+    url = os.getenv("CDN_URL", "https://cdn-staging.civic.band")
     return markupsafe.Markup(f'<img src="{url}/{subdomain}{value}?width=800">')

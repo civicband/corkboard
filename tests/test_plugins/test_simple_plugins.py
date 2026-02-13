@@ -9,7 +9,8 @@ Tests cover:
 - umami.py - Analytics script injection
 """
 
-from unittest.mock import MagicMock
+import os
+from unittest.mock import MagicMock, patch
 
 import markupsafe
 import pytest
@@ -178,6 +179,7 @@ class TestRobots:
 class TestPageImage:
     """Test page_image.py plugin."""
 
+    @patch.dict("os.environ", {"CDN_URL": "https://cdn.civic.band"})
     def test_render_page_image(self):
         """Render page_image as img tag."""
         mock_datasette = MagicMock()
@@ -198,6 +200,7 @@ class TestPageImage:
             in str(result)
         )
 
+    @patch.dict("os.environ", {"CDN_URL": "https://cdn.civic.band"})
     def test_render_with_leading_slash(self):
         """Handle value with leading slash."""
         mock_datasette = MagicMock()
@@ -217,6 +220,7 @@ class TestPageImage:
         assert "alameda.ca/meetings" in str(result)
         assert "alameda.ca//meetings" not in str(result)
 
+    @patch.dict("os.environ", {"CDN_URL": "https://cdn.civic.band"})
     def test_fallback_to_config_subdomain(self):
         """Use plugin config subdomain when row doesn't have it."""
         mock_datasette = MagicMock()

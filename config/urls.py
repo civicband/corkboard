@@ -24,6 +24,7 @@ from pages.views import (
     feed_view,
     home_view,
     how_view,
+    map_view,
     researchers_view,
     sites_search_view,
     why_view,
@@ -37,6 +38,7 @@ urlpatterns = [
     path("why.html", why_view),
     path("researchers", researchers_view),
     path("rss.xml", feed_view),
+    path("map", map_view, name="map"),
     path("health/", health_check, name="health_check"),
     path("", home_view, name="home"),
 ] + djp.urlpatterns()

@@ -86,3 +86,9 @@ def researchers_view(request):
 
 def feed_view(request):
     return render(request, "pages/rss.xml")
+
+
+def map_view(request):
+    """Full-page map of all CivicBand sites."""
+    sites = Site.objects.filter(lat__isnull=False, lng__isnull=False)
+    return render(request, "pages/map.html", {"sites": sites})

@@ -140,7 +140,14 @@
       maxZoom: 19
     }).addTo(map);
 
-    markers = L.markerClusterGroup();
+    // Configure marker cluster with less aggressive grouping
+    markers = L.markerClusterGroup({
+      maxClusterRadius: 20,  // Reduced from default 80 - much less aggressive grouping
+      disableClusteringAtZoom: 8,  // Stop clustering at zoom level 8
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+      zoomToBoundsOnClick: true
+    });
     markers.addTo(map);
   } catch (error) {
     console.error('Failed to initialize map:', error);

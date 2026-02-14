@@ -1,0 +1,139 @@
+{% extends "pages/base.html" %}
+
+{% block title %}Map - CivicBand{% endblock %}
+
+{% block content %}
+<!-- Full-page map layout -->
+<div class="relative h-screen flex flex-col">
+  <!-- Compact header -->
+  <div class="bg-white border-b-2 border-gray-300 z-10 shadow-md">
+    <div class="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between">
+        <!-- Title and back link -->
+        <div class="flex items-center gap-4">
+          <a href="/" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm">← Back to Home</a>
+          <h1 class="text-xl font-bold text-gray-900">CivicBand Sites Map</h1>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="hidden sm:block">
+          <ul class="flex gap-2 text-sm">
+            <li><a href="/how.html" class="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-2 py-1 rounded transition" data-umami-event="map_nav" data-umami-event-target="how">How it works</a></li>
+            <li><a href="/why.html" class="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-2 py-1 rounded transition" data-umami-event="map_nav" data-umami-event-target="why">Why?</a></li>
+            <li><a href="https://opencollective.com/civicband" class="bg-indigo-500 text-white hover:bg-indigo-600 px-2 py-1 rounded font-medium transition" data-umami-event="map_support">Support!</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full-page map -->
+  <div class="flex-1 relative">
+    <div id="full-map" class="absolute inset-0"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- Map data -->
+{% include 'pages/_map_data.html' %}
+
+<script>
+(function() {
+  // Initialize full-page map
+  let map, markers;
+
+  try {
+    map = L.map('full-map').setView([39.8283, -98.5795], 4);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 19
+    }).addTo(map);
+
+    // Configure marker cluster with less aggressive grouping
+    // Higher maxClusterRadius means points need to be closer to cluster
+    // Lower values = more individual markers visible
+    markers = L.markerClusterGroup({
+      maxClusterRadius: 20,  // Reduced from default 80 - much less aggressive grouping
+      disableClusteringAtZoom: 8,  // Stop clustering at zoom level 8
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+      zoomToBoundsOnClick: true,
+      iconCreateFunction: function(cluster) {
+        var childCount = cluster.getChildCount();
+        var c = ' marker-cluster-';
+        if (childCount < 5) {
+          c += 'small';
+        } else if (childCount < 20) {
+          c += 'medium';
+        } else {
+          c += 'large';
+        }
+        return new L.DivIcon({
+          html: '<div><span>' + childCount + '</span></div>',
+          className: 'marker-cluster' + c,
+          iconSize: new L.Point(40, 40)
+        });
+      }
+    });
+    markers.addTo(map);
+  } catch (error) {
+    console.error('Failed to initialize map:', error);
+    return;
+  }
+
+  // Load markers
+  function loadMarkers(geojson) {
+    if (!map || !markers) {
+      console.warn('Map not initialized, cannot load markers');
+      return;
+    }
+
+    try {
+      // Clear existing markers
+      markers.clearLayers();
+
+      // Validate GeoJSON data
+      if (!geojson || typeof geojson !== 'object') {
+        console.warn('Invalid geojson data:', geojson);
+        return;
+      }
+
+      if (!geojson.features || !Array.isArray(geojson.features)) {
+        console.warn('GeoJSON missing features array:', geojson);
+        return;
+      }
+
+      if (geojson.features.length === 0) {
+        console.warn('No features to display');
+        return;
+      }
+
+      // Add GeoJSON to map
+      L.geoJSON(geojson, {
+        onEachFeature: function(feature, layer) {
+          if (feature.properties && feature.properties.popup) {
+            layer.bindPopup(feature.properties.popup);
+          }
+        }
+      }).addTo(markers);
+
+      // Fit bounds if we have markers
+      if (markers.getLayers().length > 0) {
+        map.fitBounds(markers.getBounds(), { padding: [50, 50] });
+      }
+    } catch (error) {
+      console.error('Failed to load markers:', error);
+    }
+  }
+
+  // Load initial data
+  setTimeout(function() {
+    if (window.sitesGeoJSON) {
+      loadMarkers(window.sitesGeoJSON);
+    }
+  }, 100);
+})();
+</script>
+{% endblock %}

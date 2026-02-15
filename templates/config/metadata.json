@@ -477,6 +477,157 @@
           "facets": ["meeting"]
         }
       }
+    },
+    "election_finance": {
+      "tables": {
+        "monetary_contributions": {
+          "description": "FPPC Form 460, Schedule A",
+          "source": "A_Contributions",
+          "source_url": "/election_finance/A_Contributions",
+          "sort_desc": "report_date"
+        },
+        "non_monetary_contributions": {
+          "description": "FPPC Form 460, Schedule C",
+          "source": "C_Contributions",
+          "source_url": "/election_finance/C_Contributions",
+          "sort_desc": "report_date"
+        },
+        "misc_cash_increases": {
+          "description": "FPPC Form 460, Schedule I",
+          "source": "I_Contributions",
+          "source_url": "/election_finance/I_Contributions",
+          "sort_desc": "report_date"
+        },
+        "ie_contributions": {
+          "description": "FPPC Form 496, Part 3 Contributions",
+          "source": "F496P3_Contributions",
+          "source_url": "/election_finance/F496P3_Contributions",
+          "sort_desc": "report_date"
+        },
+        "ie_expenditures": {
+          "description": "FPPC Form 465, Part 3 Expenditure",
+          "source": "F465P3_Expenditures",
+          "source_url": "/election_finance/F465P3_Expenditures",
+          "sort_desc": "report_date"
+        },
+        "major_donor_ie_statements": {
+          "description": "FPPC Form 461, Part 5 Expenditure",
+          "source": "F461P5_Expenditures",
+          "source_url": "/election_finance/F461P5_Expenditures",
+          "sort_desc": "report_date"
+        },
+        "expenditure_summaries": {
+          "description": "FPPC Form 460, Schedule D",
+          "source": "D_Expenditure",
+          "source_url": "/election_finance/D_Expenditure",
+          "sort_desc": "report_date"
+        },
+        "on_behalf_of_expenditures": {
+          "description": "FPPC Form 460, Schedule G",
+          "source": "G_Expenditure",
+          "source_url": "/election_finance/G_Expenditure",
+          "sort_desc": "report_date"
+        },
+        "payments_made": {
+          "description": "",
+          "sort_desc": "report_date"
+        },
+        "accrued_expenses": {
+          "description": "FPPC Form 460, Schedule F",
+          "source": "F_Expenses",
+          "source_url": "/election_finance/F_Expenses",
+          "sort_desc": "report_date"
+        },
+        "received_loans": {
+          "description": "FPPC Form 460, Schedule B Part 1",
+          "source": "B1_Loans",
+          "source_url": "/election_finance/B1_Loans",
+          "sort_desc": "report_date"
+        },
+        "loan_guarantors": {
+          "description": "FPPC Form 460, Schedule B Part 2",
+          "source": "B2_Loans",
+          "source_url": "/election_finance/B2_Loans",
+          "sort_desc": "report_date"
+        },
+        "loans_made": {
+          "description": "FPPC Form 460, Schedule H",
+          "source": "H_Loans",
+          "source_url": "/election_finance/H_Loans",
+          "sort_desc": "report_date"
+        },
+        "summaries": {
+          "description": "Summary, FPPC Form 460, Summary Page",
+          "source": "Summary",
+          "source_url": "/election_finance/Summary",
+          "sort_desc": "report_date"
+        },
+        "contribution_reports_24_hours": {
+          "description": "FPPC Form 497",
+          "source": "497",
+          "source_url": "/election_finance/497",
+          "sort_desc": "report_date"
+        },
+        "ie_reports_24_hours": {
+          "description": "FPPC Form 496",
+          "source": "496",
+          "source_url": "/election_finance/496",
+          "sort_desc": "report_date"
+        },
+        "zipcodes": {
+          "description": "Zip code to city mapping",
+          "source": "simplemaps",
+          "source_url": "https://simplemaps.com/data/us-zips"
+        },
+        "496": {
+          "hidden": true
+        },
+        "497": {
+          "hidden": true
+        },
+        "A_Contributions": {
+          "hidden": true
+        },
+        "B1_Loans": {
+          "hidden": true
+        },
+        "B2_Loans": {
+          "hidden": true
+        },
+        "C_Contributions": {
+          "hidden": true
+        },
+        "D_Expenditure": {
+          "hidden": true
+        },
+        "E_Expenditure": {
+          "hidden": true
+        },
+        "F_Expenses": {
+          "hidden": true
+        },
+        "F461P5_Expenditure": {
+          "hidden": true
+        },
+        "F465P3_Expenditure": {
+          "hidden": true
+        },
+        "F496P3_Contributions": {
+          "hidden": true
+        },
+        "G_Expenditure": {
+          "hidden": true
+        },
+        "H_Loans": {
+          "hidden": true
+        },
+        "I_Contributions": {
+          "hidden": true
+        },
+        "Summary": {
+          "hidden": true
+        }
+      }
     }
   }
 }

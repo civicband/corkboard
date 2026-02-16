@@ -234,6 +234,7 @@ def django_db_setup(django_db_setup, django_db_blocker):
                     country TEXT,
                     lat TEXT,
                     lng TEXT,
+                    has_finance_data INTEGER DEFAULT 0,
                     current_stage TEXT,
                     started_at TEXT,
                     updated_at TEXT,

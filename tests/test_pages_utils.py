@@ -15,7 +15,7 @@ class TestApplySiteFilters:
         factory = RequestFactory()
         request = factory.get("/", {"sort": "pages"})
 
-        sites, query, state, kind, sort = apply_site_filters(request)
+        sites, query, state, kind, sort, has_finance = apply_site_filters(request)
 
         assert sort == "pages"
         assert sites is not None
@@ -25,25 +25,25 @@ class TestApplySiteFilters:
         factory = RequestFactory()
         request = factory.get("/", {"sort": "invalid_field"})
 
-        sites, query, state, kind, sort = apply_site_filters(request)
+        sites, query, state, kind, sort, has_finance = apply_site_filters(request)
 
         assert sort == "pages"  # Should default to 'pages'
 
-    def test_apply_filters_with_last_updated_sort(self):
-        """Should accept 'last_updated' as valid sort parameter."""
+    def test_apply_filters_with_updated_at_sort(self):
+        """Should accept 'updated_at' as valid sort parameter."""
         factory = RequestFactory()
-        request = factory.get("/", {"sort": "last_updated"})
+        request = factory.get("/", {"sort": "updated_at"})
 
-        sites, query, state, kind, sort = apply_site_filters(request)
+        sites, query, state, kind, sort, has_finance = apply_site_filters(request)
 
-        assert sort == "last_updated"
+        assert sort == "updated_at"
 
     def test_apply_filters_with_query(self):
         """Should return query parameter."""
         factory = RequestFactory()
         request = factory.get("/", {"q": "berkeley"})
 
-        sites, query, state, kind, sort = apply_site_filters(request)
+        sites, query, state, kind, sort, has_finance = apply_site_filters(request)
 
         assert query == "berkeley"
 
@@ -52,7 +52,7 @@ class TestApplySiteFilters:
         factory = RequestFactory()
         request = factory.get("/", {"state": "CA"})
 
-        sites, query, state, kind, sort = apply_site_filters(request)
+        sites, query, state, kind, sort, has_finance = apply_site_filters(request)
 
         assert state == "CA"
 
@@ -61,7 +61,7 @@ class TestApplySiteFilters:
         factory = RequestFactory()
         request = factory.get("/", {"kind": "city"})
 
-        sites, query, state, kind, sort = apply_site_filters(request)
+        sites, query, state, kind, sort, has_finance = apply_site_filters(request)
 
         assert kind == "city"
 
@@ -69,15 +69,23 @@ class TestApplySiteFilters:
         """Should handle all parameters together."""
         factory = RequestFactory()
         request = factory.get(
-            "/", {"q": "test", "state": "CA", "kind": "city", "sort": "last_updated"}
+            "/",
+            {
+                "q": "test",
+                "state": "CA",
+                "kind": "city",
+                "sort": "updated_at",
+                "has_finance": "1",
+            },
         )
 
-        sites, query, state, kind, sort = apply_site_filters(request)
+        sites, query, state, kind, sort, has_finance = apply_site_filters(request)
 
         assert query == "test"
         assert state == "CA"
         assert kind == "city"
-        assert sort == "last_updated"
+        assert sort == "updated_at"
+        assert has_finance == "1"
         assert sites is not None
 
     def test_apply_filters_with_no_parameters(self):
@@ -85,12 +93,13 @@ class TestApplySiteFilters:
         factory = RequestFactory()
         request = factory.get("/")
 
-        sites, query, state, kind, sort = apply_site_filters(request)
+        sites, query, state, kind, sort, has_finance = apply_site_filters(request)
 
         assert query == ""
         assert state == ""
         assert kind == ""
         assert sort == "pages"  # Default sort
+        assert has_finance == ""
         assert sites is not None
 
     def test_sql_injection_attempt_in_query(self):
@@ -99,7 +108,7 @@ class TestApplySiteFilters:
         request = factory.get("/", {"q": "'; DROP TABLE sites; --"})
 
         # Should not raise an exception
-        sites, query, state, kind, sort = apply_site_filters(request)
+        sites, query, state, kind, sort, has_finance = apply_site_filters(request)
 
         assert query == "'; DROP TABLE sites; --"
         # Query should be safely escaped by Django ORM

@@ -94,12 +94,28 @@
         {% endfor %}
       </select>
 
+      <!-- Finance Filter Checkbox -->
+      <label class="flex items-center gap-1 px-2 py-1 text-sm border border-gray-300 rounded bg-white cursor-pointer hover:bg-gray-50 transition">
+        <input type="checkbox"
+               name="has_finance"
+               id="finance-filter"
+               value="1"
+               {% if has_finance %}checked{% endif %}
+               hx-get="/sites/search/"
+               hx-trigger="change"
+               hx-target="#sites-table-container"
+               hx-include="[name='q'], [name='state'], [name='kind'], [name='sort']"
+               hx-push-url="true"
+               class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+        <span class="whitespace-nowrap">Finance data ({{ finance_sites_count }})</span>
+      </label>
+
       <!-- Clear Filters Button -->
       <button type="button"
               id="clear-filters-btn"
               class="px-2 py-1 text-xs rounded bg-red-100 text-red-700 hover:bg-red-200 border border-red-300"
-              style="display: {% if query or state or kind %}inline-block{% else %}none{% endif %};"
-              onclick="document.getElementById('search-input').value=''; document.getElementById('state-filter').value=''; document.getElementById('kind-filter').value=''; this.style.display='none';"
+              style="display: {% if query or state or kind or has_finance %}inline-block{% else %}none{% endif %};"
+              onclick="document.getElementById('search-input').value=''; document.getElementById('state-filter').value=''; document.getElementById('kind-filter').value=''; document.getElementById('finance-filter').checked=false; this.style.display='none';"
               hx-get="/sites/search/"
               hx-trigger="click"
               hx-target="#sites-table-container"
@@ -227,9 +243,10 @@
   const searchInput = document.getElementById('search-input');
   const stateFilter = document.getElementById('state-filter');
   const kindFilter = document.getElementById('kind-filter');
+  const financeFilter = document.getElementById('finance-filter');
 
   function updateClearButton() {
-    const hasFilters = searchInput.value || stateFilter.value || kindFilter.value;
+    const hasFilters = searchInput.value || stateFilter.value || kindFilter.value || financeFilter.checked;
     clearBtn.style.display = hasFilters ? 'inline-block' : 'none';
   }
 
@@ -237,6 +254,7 @@
   searchInput.addEventListener('input', updateClearButton);
   stateFilter.addEventListener('change', updateClearButton);
   kindFilter.addEventListener('change', updateClearButton);
+  financeFilter.addEventListener('change', updateClearButton);
 
   // Also check after HTMX requests complete
   document.body.addEventListener('htmx:afterSwap', updateClearButton);

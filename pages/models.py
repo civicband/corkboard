@@ -26,6 +26,7 @@ class Site(models.Model):
     country = models.CharField(max_length=255, null=True, blank=True)
     lat = models.CharField(max_length=255, null=True, blank=True)
     lng = models.CharField(max_length=255, null=True, blank=True)
+    has_finance_data = models.BooleanField(default=False)
 
     # Pipeline state (managed by clerk)
     current_stage = models.CharField(max_length=255, null=True, blank=True)

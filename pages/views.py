@@ -8,12 +8,13 @@ from pages.utils import apply_site_filters
 def home_view(request):
     """Homepage with sites directory."""
     # Apply filters and sorting
-    sites, query, state, kind, sort = apply_site_filters(request)
+    sites, query, state, kind, sort, has_finance = apply_site_filters(request)
 
     # Get aggregate stats (from all sites, not filtered)
     all_sites = Site.objects.all()
     num_sites = all_sites.count()
     total_pages = all_sites.aggregate(total=Sum("pages"))["total"] or 0
+    finance_sites_count = all_sites.filter(has_finance_data=True).count()
 
     # Get unique states and kinds for filter dropdowns
     states = Site.objects.values_list("state", flat=True).distinct().order_by("state")
@@ -31,6 +32,8 @@ def home_view(request):
         "kinds": kinds,
         "visible_count": sites.count(),
         "total_count": num_sites,
+        "finance_sites_count": finance_sites_count,
+        "has_finance": has_finance,
     }
 
     return render(request, "pages/home.html", context)
@@ -50,7 +53,7 @@ def sites_search_view(request):
         return redirect("/")
 
     # Apply filters and sorting
-    sites, query, state, kind, sort = apply_site_filters(request)
+    sites, query, state, kind, sort, has_finance = apply_site_filters(request)
 
     # Get total count for stats
     total_sites = Site.objects.count()
@@ -63,6 +66,7 @@ def sites_search_view(request):
         "state": state,
         "kind": kind,
         "sort": sort,
+        "has_finance": has_finance,
     }
 
     return render(request, "pages/_sites_table_only.html", context)

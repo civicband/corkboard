@@ -18,7 +18,7 @@
     <div class="intro-content">
         <h1 class="intro-title">{{ site_name}} Meeting Archive</h1>
         <p class="intro-description">A fully searchable collection of meeting minutes and agendas from {{ site_name }}. Access public records, track government decisions, and stay informed about your community.</p>
-        
+
         <div class="quick-links">
             <a href="/-/dashboards/meetings-stats" class="quick-link primary" data-umami-event="muni_quicklink" data-umami-event-target="dashboard">
                 <span class="link-icon">📊</span>
@@ -36,6 +36,12 @@
                 <span class="link-icon">📝</span>
                 <span class="link-text">Browse Minutes</span>
             </a>
+            {% if databases|selectattr('name', 'equalto', 'election_finance')|list %}
+            <a href="/election_finance/" class="quick-link" data-umami-event="muni_quicklink" data-umami-event-target="finance">
+                <span class="link-icon">💰</span>
+                <span class="link-text">Campaign Finance</span>
+            </a>
+            {% endif %}
         </div>
 
         <p class="help-text">Need help? Contact us at <a href="mailto:hello@civic.band" data-umami-event="muni_contact">hello@civic.band</a></p>
@@ -59,7 +65,7 @@
 
 <div class="recent-content-section">
     <h2>Recent Activity</h2>
-    
+
     {% if upcoming_agendas %}
     <div class="upcoming-meetings">
         <h3>📅 Upcoming Meetings</h3>
@@ -76,7 +82,7 @@
         </ul>
     </div>
     {% endif %}
-    
+
     {% if recent_minutes %}
     <div class="recent-minutes">
         <h3>📝 Recently Published Minutes</h3>
@@ -96,7 +102,7 @@
         </ul>
     </div>
     {% endif %}
-    
+
     {% if recent_activity %}
     <div class="recent-activity">
         <h3>🏛️ Past Week's Activity</h3>

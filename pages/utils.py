@@ -19,7 +19,7 @@ def apply_site_filters(request):
         tuple: (filtered_sites_queryset, query, state, kind, sort, has_finance)
     """
     # Get filter params
-    query = request.GET.get("q", "")
+    query = request.GET.get("q", "").strip()
     state = request.GET.get("state", "")
     kind = request.GET.get("kind", "")
     sort = request.GET.get("sort", "pages")

@@ -39,3 +39,53 @@ class TestSitesSearchView:
         assert response.status_code == 302
         assert "state=CA" in response.url
         assert "q=test" in response.url
+
+    def test_sites_search_strips_whitespace_from_query(self, client: Client):
+        """Search should strip trailing/leading whitespace from query."""
+        from pages.models import Site
+
+        # Create test sites
+        Site.objects.create(
+            subdomain="oakland.ca",
+            name="Oakland, CA",
+            state="California",
+            kind="city",
+            pages=100,
+        )
+        Site.objects.create(
+            subdomain="oakland-county.mi",
+            name="Oakland County, MI",
+            state="Michigan",
+            kind="county",
+            pages=200,
+        )
+
+        # Test with trailing space
+        response = client.get(
+            reverse("sites_search") + "?q=oakland%20", HTTP_HX_REQUEST="true"
+        )
+        content = response.content.decode()
+
+        # Both Oakland sites should be in the results
+        assert "Oakland, CA" in content
+        assert "Oakland County, MI" in content
+
+        # Test with leading space
+        response = client.get(
+            reverse("sites_search") + "?q=%20oakland", HTTP_HX_REQUEST="true"
+        )
+        content = response.content.decode()
+
+        # Both Oakland sites should still be in the results
+        assert "Oakland, CA" in content
+        assert "Oakland County, MI" in content
+
+        # Test with both leading and trailing spaces
+        response = client.get(
+            reverse("sites_search") + "?q=%20oakland%20", HTTP_HX_REQUEST="true"
+        )
+        content = response.content.decode()
+
+        # Both Oakland sites should still be in the results
+        assert "Oakland, CA" in content
+        assert "Oakland County, MI" in content

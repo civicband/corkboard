@@ -48,7 +48,7 @@
                data-umami-event-subdomain="{{ site.subdomain }}">
               {{ site.name }}
               {% if site.has_finance_data %}
-              <span class="inline-flex items-center px-1.5 py-0.5 ml-2 text-xs font-medium bg-green-100 text-green-800 rounded border border-green-200" title="Campaign finance data available: contribution and spending records">Finance data</span>
+              <span class="inline-flex items-center px-1.5 py-0.5 ml-2 text-xs font-medium bg-green-100 text-green-800 rounded border border-green-200" role="note" aria-label="Campaign finance data available" title="Campaign finance data available: contribution and spending records">Finance data</span>
               {% endif %}
               <span class="text-gray-500 sm:hidden">, {{ site.state }}</span>
             </a>

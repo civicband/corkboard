@@ -48,7 +48,7 @@ def apply_site_filters(request):
 
     # Apply sorting
     if sort == "updated_at":
-        sites = sites.order_by("-updated_at")
+        sites = sites.order_by("-last_updated")
     else:
         sites = sites.order_by("-pages")
 

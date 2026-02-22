@@ -24,6 +24,7 @@ class Site(models.Model):
     last_updated = models.CharField(max_length=255, null=True, blank=True)
     lat = models.CharField(max_length=255, null=True, blank=True)
     lng = models.CharField(max_length=255, null=True, blank=True)
+    popup = models.TextField(null=True, blank=True)  # JSON data for map popup
     has_finance_data = models.BooleanField(default=False)
 
     objects = SiteManager()

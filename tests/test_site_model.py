@@ -23,6 +23,7 @@ class TestSiteModel:
             "last_updated",
             "lat",
             "lng",
+            "popup",
             "has_finance_data",
         ]
         # Verify all expected fields exist

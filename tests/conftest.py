@@ -220,48 +220,20 @@ def django_db_setup(django_db_setup, django_db_blocker):
 
         # Get the default database connection
         with connections["default"].cursor() as cursor:
-            # Create the sites table matching the Site model schema
+            # Create the sites table matching the actual sites.db schema
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS sites (
                     subdomain TEXT PRIMARY KEY,
                     name TEXT,
                     state TEXT,
-                    kind TEXT,
-                    scraper TEXT,
-                    pages INTEGER,
-                    start_year INTEGER,
-                    extra TEXT,
                     country TEXT,
+                    kind TEXT,
+                    pages INTEGER,
+                    last_updated TEXT,
                     lat TEXT,
                     lng TEXT,
-                    has_finance_data INTEGER DEFAULT 0,
-                    current_stage TEXT,
-                    started_at TEXT,
-                    updated_at TEXT,
-                    fetch_total INTEGER DEFAULT 0,
-                    fetch_completed INTEGER DEFAULT 0,
-                    fetch_failed INTEGER DEFAULT 0,
-                    ocr_total INTEGER DEFAULT 0,
-                    ocr_completed INTEGER DEFAULT 0,
-                    ocr_failed INTEGER DEFAULT 0,
-                    compilation_total INTEGER DEFAULT 0,
-                    compilation_completed INTEGER DEFAULT 0,
-                    compilation_failed INTEGER DEFAULT 0,
-                    extraction_total INTEGER DEFAULT 0,
-                    extraction_completed INTEGER DEFAULT 0,
-                    extraction_failed INTEGER DEFAULT 0,
-                    deploy_total INTEGER DEFAULT 0,
-                    deploy_completed INTEGER DEFAULT 0,
-                    deploy_failed INTEGER DEFAULT 0,
-                    coordinator_enqueued INTEGER DEFAULT 0,
-                    last_error_stage TEXT,
-                    last_error_message TEXT,
-                    last_error_at TEXT,
-                    status TEXT,
-                    extraction_status TEXT DEFAULT 'pending',
-                    last_updated TEXT,
-                    last_deployed TEXT,
-                    last_extracted TEXT
+                    popup TEXT,
+                    has_finance_data INTEGER DEFAULT 0
                 )
             """)
 

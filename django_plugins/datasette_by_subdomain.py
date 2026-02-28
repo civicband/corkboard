@@ -219,8 +219,8 @@ async def datasette_by_subdomain_wrapper(scope, receive, send, app):
         for domain in ROOT_DOMAINS.split(","):
             if host.endswith(domain):
                 host: str = host.replace(domain, "")
-        parts = host.split(("."))
-        subdomain: str = ".".join(parts[:-2])
+                break
+        subdomain: str = host.rstrip(".")
 
         jinja_env = Environment(
             loader=FileSystemLoader("templates/config"),

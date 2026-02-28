@@ -1,0 +1,173 @@
+<!-- Municipality Finder Section -->
+<div class="bg-white border-b border-gray-200">
+  <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+
+    <!-- Section Header -->
+    <div class="text-center mb-6">
+      <h2 class="text-3xl font-bold text-gray-900 mb-2">Find Your Municipality</h2>
+      <p class="text-gray-600">Search {{ num_sites|default:0 }} cities and counties</p>
+    </div>
+
+    <!-- Primary Search Input -->
+    <div class="max-w-3xl mx-auto mb-6">
+      <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+          <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+        <input type="text"
+               name="q"
+               id="search-input"
+               value="{{ query }}"
+               placeholder="Search by city, town, or county name..."
+               class="block w-full pl-12 pr-4 py-4 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"
+               hx-get="/sites/search/"
+               hx-trigger="keyup changed delay:300ms"
+               hx-target="#sites-table-container"
+               hx-include="[name='state'], [name='kind'], [name='sort'], [name='has_finance']"
+               hx-push-url="true"
+               aria-label="Search municipalities">
+      </div>
+    </div>
+
+    <!-- Quick-Start Options -->
+    <div class="max-w-3xl mx-auto mb-8">
+      <div class="text-center mb-4">
+        <button type="button"
+                id="use-location-btn"
+                class="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition shadow-sm"
+                data-umami-event="homepage_geolocation">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          Use My Location
+        </button>
+      </div>
+
+      <div class="text-center text-sm text-gray-500 mb-3">Or try these popular municipalities:</div>
+
+      <div class="flex flex-wrap justify-center gap-2">
+        <button type="button"
+                class="quick-start-btn px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full text-sm font-medium transition"
+                data-search="Oakland, CA"
+                data-umami-event="homepage_quickstart" data-umami-event-city="oakland">
+          Oakland, CA
+        </button>
+        <button type="button"
+                class="quick-start-btn px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full text-sm font-medium transition"
+                data-search="Berkeley, CA"
+                data-umami-event="homepage_quickstart" data-umami-event-city="berkeley">
+          Berkeley, CA
+        </button>
+        <button type="button"
+                class="quick-start-btn px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full text-sm font-medium transition"
+                data-search="San Francisco, CA"
+                data-umami-event="homepage_quickstart" data-umami-event-city="sanfrancisco">
+          San Francisco, CA
+        </button>
+        <button type="button"
+                class="quick-start-btn px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full text-sm font-medium transition"
+                data-search="Chicago, IL"
+                data-umami-event="homepage_quickstart" data-umami-event-city="chicago">
+          Chicago, IL
+        </button>
+        <button type="button"
+                class="quick-start-btn px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full text-sm font-medium transition"
+                data-search="New York, NY"
+                data-umami-event="homepage_quickstart" data-umami-event-city="newyork">
+          New York, NY
+        </button>
+      </div>
+    </div>
+
+    <!-- Advanced Filters (Collapsible) -->
+    <div class="max-w-3xl mx-auto">
+      <div class="text-center mb-3">
+        <button type="button"
+                id="toggle-filters-btn"
+                class="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+                aria-expanded="false"
+                aria-controls="advanced-filters">
+          <span class="show-text">Show advanced filters</span>
+          <span class="hide-text hidden">Hide advanced filters</span>
+        </button>
+      </div>
+
+      <div id="advanced-filters" class="hidden">
+        <div class="flex flex-wrap gap-3 items-center justify-center p-4 bg-gray-50 rounded-lg border border-gray-200">
+
+          <!-- State Filter -->
+          <div>
+            <label for="state-filter" class="sr-only">Filter by state</label>
+            <select name="state"
+                    id="state-filter"
+                    class="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    hx-get="/sites/search/"
+                    hx-trigger="change"
+                    hx-target="#sites-table-container"
+                    hx-include="[name='q'], [name='kind'], [name='sort'], [name='has_finance']"
+                    hx-push-url="true">
+              <option value="">All states</option>
+              {% for st in states %}
+              <option value="{{ st }}" {% if st == state %}selected{% endif %}>{{ st }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Type Filter -->
+          <div>
+            <label for="kind-filter" class="sr-only">Filter by type</label>
+            <select name="kind"
+                    id="kind-filter"
+                    class="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    hx-get="/sites/search/"
+                    hx-trigger="change"
+                    hx-target="#sites-table-container"
+                    hx-include="[name='q'], [name='state'], [name='sort'], [name='has_finance']"
+                    hx-push-url="true">
+              <option value="">All types</option>
+              {% for k in kinds %}
+              <option value="{{ k }}" {% if k == kind %}selected{% endif %}>{{ k|title }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Finance Filter Checkbox -->
+          <div>
+            <label class="inline-flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white cursor-pointer hover:bg-gray-50 transition">
+              <input type="checkbox"
+                     name="has_finance"
+                     id="finance-filter"
+                     value="1"
+                     {% if has_finance %}checked{% endif %}
+                     hx-get="/sites/search/"
+                     hx-trigger="change"
+                     hx-target="#sites-table-container"
+                     hx-include="[name='q'], [name='state'], [name='kind'], [name='sort']"
+                     hx-push-url="true"
+                     class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+              <span>Has finance data ({{ finance_sites_count }})</span>
+            </label>
+          </div>
+
+          <!-- Clear Filters Button -->
+          <button type="button"
+                  id="clear-filters-btn"
+                  class="px-4 py-2 text-sm rounded-lg bg-red-100 text-red-700 hover:bg-red-200 border border-red-300 transition"
+                  style="display: {% if query or state or kind or has_finance %}inline-block{% else %}none{% endif %};"
+                  onclick="document.getElementById('search-input').value=''; document.getElementById('state-filter').value=''; document.getElementById('kind-filter').value=''; document.getElementById('finance-filter').checked=false; this.style.display='none';"
+                  hx-get="/sites/search/"
+                  hx-trigger="click"
+                  hx-target="#sites-table-container"
+                  hx-push-url="true">
+            Clear filters
+          </button>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

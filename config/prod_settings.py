@@ -10,3 +10,10 @@ DEBUG = False
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
+
+ALLOWED_HOSTS = [
+    "civic.band",
+    "*.civic.band",
+    "adversely-star-koala.edgecompute.app",
+    "*.adversely-star-koala.edgecompute.app",
+]

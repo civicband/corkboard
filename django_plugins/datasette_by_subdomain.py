@@ -6,12 +6,16 @@ from urllib.parse import parse_qs
 import djp
 import sqlite_utils
 from jinja2 import Environment, FileSystemLoader
+from sqlite_utils.db import Database
 
 logger = logging.getLogger(__name__)
 
 # Bot protection: max length for text search queries
 MAX_QUERY_TEXT_LENGTH = int(os.getenv("MAX_QUERY_TEXT_LENGTH", "500"))
 API_SIGNUP_URL = os.getenv("API_SIGNUP_URL", "https://civic.observer/api")
+ROOT_DOMAINS = os.getenv(
+    "ROOT_DOMAINS", "civic.band,adversely-star-koala.edgecompute.app"
+)
 
 # Patch rich.Console.print_exception to prevent errors in Datasette.
 # Datasette's handle_exception calls rich.print_exception() outside of an
@@ -211,20 +215,23 @@ async def datasette_by_subdomain_wrapper(scope, receive, send, app):
         if host.split(":")[0] in ("localhost", "127.0.0.1", "0.0.0.0"):
             await app(scope, receive, send)
             return  # Early return for localhost to avoid unnecessary processing
-        db = sqlite_utils.Database("sites.db")
+
+        for domain in ROOT_DOMAINS.split(","):
+            if host.endswith(domain):
+                host: str = host.replace(domain, "")
         parts = host.split(("."))
-        subdomain = ".".join(parts[:-2])
+        subdomain: str = ".".join(parts[:-2])
 
         jinja_env = Environment(
             loader=FileSystemLoader("templates/config"),
         )
 
-        subdomain = ".".join(parts[:-2])
-
         # If no subdomain, fall back to Django app (main site)
         if not subdomain:
             await app(scope, receive, send)
             return
+
+        db: Database = sqlite_utils.Database("sites.db")
 
         try:
             site = db["sites"].get(subdomain)

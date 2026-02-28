@@ -49,16 +49,18 @@ SECRET_KEY = get_env_variable(
 
 
 ALLOWED_HOSTS = [
-    "magmell.nebulosa-moth.ts.net",
-    "100.82.245.33",
-    "100.113.235.36",
     "localhost",
     "127.0.0.1",
-    "alameda.ca.civic.org",
+    "alameda.ca.civic.dev",
     "0.0.0.0",
     "civic.band",
     "*.civic.band",
+    "vscode.civic.town",
+    "adversely-star-koala.edgecompute.app",
+    "*.adversely-star-koala.edgecompute.app",
 ]
+
+ROOT_DOMAINS = ["civic.band", "adversely-star-koala.edgecompute.app"]
 
 
 # Application definition

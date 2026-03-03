@@ -192,6 +192,13 @@
   let popupQueue = [];
   let isShowingPopup = false;
   let pollTimer = null;
+  let refreshTimer = null;
+
+  function esc(str) {
+    var el = document.createElement('span');
+    el.textContent = str || '';
+    return el.innerHTML;
+  }
 
   function relativeTime(dateStr) {
     var now = Date.now();
@@ -233,8 +240,8 @@
     const entry = document.createElement('div');
     entry.className = 'deploy-entry px-4 py-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition';
     entry.innerHTML =
-      '<div class="text-sm font-medium text-gray-900">' + deploy.name + '</div>' +
-      '<div class="text-xs text-gray-500">' + deploy.state + ' \u00b7 <span class="deploy-time">' + relativeTime(deploy.updated_at) + '</span></div>';
+      '<div class="text-sm font-medium text-gray-900">' + esc(deploy.name) + '</div>' +
+      '<div class="text-xs text-gray-500">' + esc(deploy.state) + ' \u00b7 <span class="deploy-time">' + relativeTime(deploy.updated_at) + '</span></div>';
     entry.dataset.updatedAt = deploy.updated_at;
     entry.dataset.lat = deploy.lat;
     entry.dataset.lng = deploy.lng;
@@ -242,7 +249,10 @@
     entry.addEventListener('click', function() {
       var map = getMap();
       if (map) {
-        map.flyTo([parseFloat(deploy.lat), parseFloat(deploy.lng)], 12);
+        var cLat = parseFloat(deploy.lat);
+        var cLng = parseFloat(deploy.lng);
+        if (isNaN(cLat) || isNaN(cLng)) return;
+        map.flyTo([cLat, cLng], 12);
         var marker = getMarkerBySubdomain(deploy.subdomain);
         if (marker) {
           marker.openPopup();
@@ -268,6 +278,7 @@
 
     var lat = parseFloat(deploy.lat);
     var lng = parseFloat(deploy.lng);
+    if (isNaN(lat) || isNaN(lng)) { processQueue(); return; }
 
     map.flyTo([lat, lng], 10, { duration: 1 });
 
@@ -280,8 +291,8 @@
         .setLatLng([lat, lng])
         .setContent(
           '<div class="p-1">' +
-            '<div style="font-weight:600;font-size:14px;">' + deploy.name + '</div>' +
-            '<div style="color:#6b7280;font-size:12px;">' + deploy.state + '</div>' +
+            '<div style="font-weight:600;font-size:14px;">' + esc(deploy.name) + '</div>' +
+            '<div style="color:#6b7280;font-size:12px;">' + esc(deploy.state) + '</div>' +
             '<div style="margin-top:4px;font-size:11px;color:#6366f1;font-weight:500;">Deployed</div>' +
           '</div>'
         )
@@ -315,6 +326,7 @@
 
       if (response.status === 403) {
         if (pollTimer) clearInterval(pollTimer);
+        if (refreshTimer) clearInterval(refreshTimer);
         return;
       }
 
@@ -339,7 +351,7 @@
 
   pollTimer = setInterval(poll, POLL_INTERVAL);
 
-  setInterval(function() {
+  refreshTimer = setInterval(function() {
     var entries = document.querySelectorAll('.deploy-entry');
     entries.forEach(function(entry) {
       if (entry.dataset.updatedAt) {

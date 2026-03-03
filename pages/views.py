@@ -118,7 +118,9 @@ def recent_deploys_view(request):
         # URL query strings decode '+' as space; restore it for ISO parsing
         since = parse_datetime(since_param.replace(" ", "+"))
         if since is None:
-            since = timezone.now()
+            return JsonResponse(
+                {"error": f"Invalid 'since' parameter: {since_param}"}, status=400
+            )
     else:
         since = timezone.now()
 
@@ -127,7 +129,7 @@ def recent_deploys_view(request):
         updated_at__gt=since,
         lat__isnull=False,
         lng__isnull=False,
-    )
+    ).order_by("-updated_at")[:50]
 
     data = [
         {

@@ -106,3 +106,11 @@ class TestRecentDeploys:
         response = authenticated_client.get(f"/api/recent-deploys/?since={since}")
         data = json.loads(response.content)
         assert data == []
+
+    @pytest.mark.django_db
+    def test_invalid_since_returns_400(self, authenticated_client):
+        """Invalid since parameter returns 400."""
+        response = authenticated_client.get("/api/recent-deploys/?since=not-a-date")
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert "error" in data

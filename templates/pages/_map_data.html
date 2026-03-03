@@ -13,7 +13,9 @@
             "coordinates": [{{ site.lng }}, {{ site.lat }}]
           },
           "properties": {
+            "subdomain": "{{ site.subdomain|escapejs }}",
             "name": "{{ site.name|escapejs }}",
+            "state": "{{ site.state }}",
             "popup": "<a href='https://{{ site.subdomain }}.civic.band'>{{ site.name|escapejs }}, {{ site.state }}</a>",
             "link": "https://{{ site.subdomain }}.civic.band"
           }

@@ -193,6 +193,17 @@
   let isShowingPopup = false;
   let pollTimer = null;
 
+  function relativeTime(dateStr) {
+    var now = Date.now();
+    var then = new Date(dateStr).getTime();
+    var seconds = Math.floor((now - then) / 1000);
+    if (seconds < 60) return 'just now';
+    var minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return minutes + 'm ago';
+    var hours = Math.floor(minutes / 60);
+    return hours + 'h ago';
+  }
+
   function getMap() {
     return window._civicMap || null;
   }
@@ -223,7 +234,8 @@
     entry.className = 'deploy-entry px-4 py-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition';
     entry.innerHTML =
       '<div class="text-sm font-medium text-gray-900">' + deploy.name + '</div>' +
-      '<div class="text-xs text-gray-500">' + deploy.state + ' \u00b7 just now</div>';
+      '<div class="text-xs text-gray-500">' + deploy.state + ' \u00b7 <span class="deploy-time">' + relativeTime(deploy.updated_at) + '</span></div>';
+    entry.dataset.updatedAt = deploy.updated_at;
     entry.dataset.lat = deploy.lat;
     entry.dataset.lng = deploy.lng;
     entry.dataset.subdomain = deploy.subdomain;
@@ -326,6 +338,16 @@
   }
 
   pollTimer = setInterval(poll, POLL_INTERVAL);
+
+  setInterval(function() {
+    var entries = document.querySelectorAll('.deploy-entry');
+    entries.forEach(function(entry) {
+      if (entry.dataset.updatedAt) {
+        var timeEl = entry.querySelector('.deploy-time');
+        if (timeEl) timeEl.textContent = relativeTime(entry.dataset.updatedAt);
+      }
+    });
+  }, 30000);
 })();
 </script>
 {% endif %}

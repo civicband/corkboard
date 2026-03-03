@@ -1,5 +1,8 @@
 from django.db.models import Sum
+from django.http import JsonResponse
 from django.shortcuts import render
+from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 
 from pages.models import Site
 from pages.utils import apply_site_filters
@@ -96,3 +99,47 @@ def map_view(request):
     """Full-page map of all CivicBand sites."""
     sites = Site.objects.filter(lat__isnull=False, lng__isnull=False)
     return render(request, "pages/map.html", {"sites": sites})
+
+
+def recent_deploys_view(request):
+    """API endpoint returning recently deployed sites.
+
+    Query params:
+        since: ISO timestamp — only return sites updated after this time.
+               Defaults to now (returns empty).
+
+    Returns 403 for anonymous users.
+    """
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "Authentication required"}, status=403)
+
+    since_param = request.GET.get("since")
+    if since_param:
+        # URL query strings decode '+' as space; restore it for ISO parsing
+        since = parse_datetime(since_param.replace(" ", "+"))
+        if since is None:
+            since = timezone.now()
+    else:
+        since = timezone.now()
+
+    sites = Site.objects.filter(
+        current_stage="deploy",
+        updated_at__gt=since,
+        lat__isnull=False,
+        lng__isnull=False,
+    )
+
+    data = [
+        {
+            "subdomain": site.subdomain,
+            "name": site.name,
+            "state": site.state,
+            "lat": site.lat,
+            "lng": site.lng,
+            "deploy_completed": site.deploy_completed,
+            "updated_at": site.updated_at.isoformat() if site.updated_at else None,
+        }
+        for site in sites
+    ]
+
+    return JsonResponse(data, safe=False)

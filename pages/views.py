@@ -125,7 +125,8 @@ def recent_deploys_view(request):
         since = timezone.now()
 
     sites = Site.objects.filter(
-        current_stage="deploy",
+        current_stage="completed",
+        status="deployed",
         updated_at__gt=since,
         lat__isnull=False,
         lng__isnull=False,

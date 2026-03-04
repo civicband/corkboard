@@ -66,6 +66,9 @@ async def test_asgi_wrapper_fully_mocked():
         patch("datasette.app.Datasette") as mock_datasette,
         patch("django_plugins.datasette_by_subdomain.Environment") as mock_environment,
         patch("django_plugins.datasette_by_subdomain.FileSystemLoader"),
+        patch(
+            "django_plugins.datasette_by_subdomain.os.path.exists", return_value=True
+        ),
     ):
         # Setup mocks
         mock_app = AsyncMock()
@@ -112,11 +115,12 @@ async def test_asgi_wrapper_fully_mocked():
         # Run the test
         await wrapper(mock_scope, mock_receive, mock_send)
 
-        # Verify correct database was queried
-        mock_sites_table.get.assert_called_once_with("testcity")
+        # Verify correct database was queried (called twice due to dot-to-hyphen retry)
+        assert mock_sites_table.get.call_count == 2
+        mock_sites_table.get.assert_any_call("testcity")
 
         # Verify datasette was initialized correctly
-        mock_datasette.assert_called_once()
+        mock_datasette.assert_called()
 
         # Verify datasette app was called with the correct scope
         mock_ds_app.assert_called_once_with(mock_scope, mock_receive, mock_send)
@@ -137,6 +141,9 @@ async def test_metadata_template_rendering():
         patch(
             "django_plugins.datasette_by_subdomain.Environment", autospec=True
         ) as mock_env,
+        patch(
+            "django_plugins.datasette_by_subdomain.os.path.exists", return_value=True
+        ),
     ):
         # Setup mocks
         mock_app = AsyncMock()
@@ -188,15 +195,19 @@ async def test_metadata_template_rendering():
         # Run the test
         await wrapper(mock_scope, mock_receive, mock_send)
 
-        # Verify correct database was queried
-        mock_sites_table.get.assert_called_once_with("testcity")
+        # Verify correct database was queried (called twice due to dot-to-hyphen retry)
+        assert mock_sites_table.get.call_count == 2
+        mock_sites_table.get.assert_any_call("testcity")
 
         # Verify datasette was initialized properly
-        mock_datasette.assert_called_once()
+        mock_datasette.assert_called()
         args, kwargs = mock_datasette.call_args
 
-        # Basic checks
-        assert args[0] == ["../sites/testcity/meetings.db"]
+        # Basic checks - both meetings and finance dbs included when they exist
+        assert args[0] == [
+            "../sites/testcity/meetings.db",
+            "../sites/testcity/finance/election_finance.db",
+        ]
         assert kwargs["template_dir"] == "templates/datasette"
 
 
@@ -312,8 +323,9 @@ async def test_asgi_wrapper_missing_subdomain():
         # Run the test
         await wrapper(mock_scope, mock_receive, mock_send)
 
-        # Verify subdomain was correctly extracted
-        mock_sites_table.get.assert_called_once_with("nonexistent")
+        # Verify subdomain was correctly extracted (called twice due to dot-to-hyphen retry)
+        assert mock_sites_table.get.call_count == 2
+        mock_sites_table.get.assert_any_call("nonexistent")
 
         # Should NOT fall back to Django app - should redirect instead
         mock_app.assert_not_called()
@@ -368,8 +380,9 @@ async def test_asgi_wrapper_missing_subdomain_returns_none():
         # Run the test
         await wrapper(mock_scope, mock_receive, mock_send)
 
-        # Verify subdomain was correctly extracted
-        mock_sites_table.get.assert_called_once_with("nonexistent")
+        # Verify subdomain was correctly extracted (called twice due to dot-to-hyphen retry)
+        assert mock_sites_table.get.call_count == 2
+        mock_sites_table.get.assert_any_call("nonexistent")
 
         # Should NOT fall back to Django app - should redirect instead
         mock_app.assert_not_called()

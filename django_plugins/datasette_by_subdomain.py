@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from typing import Any
 from urllib.parse import parse_qs
 
 import djp
@@ -220,7 +221,7 @@ async def datasette_by_subdomain_wrapper(scope, receive, send, app):
             if host.endswith(domain):
                 host: str = host.replace(domain, "")
                 break
-        subdomain: str = host.rstrip(".")
+        subdomain: str | Any = host.rstrip(".")
 
         jinja_env = Environment(
             loader=FileSystemLoader("templates/config"),
@@ -234,6 +235,11 @@ async def datasette_by_subdomain_wrapper(scope, receive, send, app):
         db: Database = sqlite_utils.Database("sites.db")
 
         try:
+            site = db["sites"].get(subdomain)
+        except Exception:
+            site = None
+        try:
+            subdomain = subdomain.replace(".", "-", 1)
             site = db["sites"].get(subdomain)
         except Exception:
             site = None

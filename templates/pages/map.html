@@ -2,6 +2,32 @@
 
 {% block title %}Map - CivicBand{% endblock %}
 
+{% block extra_head %}
+{% if user.is_authenticated %}
+<style>
+  .deploy-popup .leaflet-popup-content-wrapper {
+    animation: deploy-glow 1s ease-in-out 2;
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.6);
+  }
+  @keyframes deploy-glow {
+    0%, 100% { box-shadow: 0 0 5px rgba(99, 102, 241, 0.3); }
+    50% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.8); }
+  }
+  .deploy-popup-fading {
+    opacity: 0;
+    transition: opacity 0.5s ease-out;
+  }
+  .deploy-entry {
+    animation: slide-in 0.3s ease-out;
+  }
+  @keyframes slide-in {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+</style>
+{% endif %}
+{% endblock %}
+
 {% block content %}
 <!-- Full-page map layout -->
 <div class="relative h-screen flex flex-col">
@@ -27,9 +53,23 @@
     </div>
   </div>
 
-  <!-- Full-page map -->
-  <div class="flex-1 relative">
-    <div id="full-map" class="absolute inset-0"></div>
+  <!-- Full-page map with optional sidebar -->
+  <div class="flex-1 relative flex">
+    <div id="full-map" class="{% if user.is_authenticated %}flex-1{% else %}absolute inset-0{% endif %}"></div>
+
+    {% if user.is_authenticated %}
+    <!-- Deploy log sidebar -->
+    <div id="deploy-sidebar" class="w-72 bg-white border-l border-gray-200 flex flex-col overflow-hidden">
+      <div class="px-4 py-3 border-b border-gray-200 bg-gray-50">
+        <h2 class="text-sm font-semibold text-gray-700">Deploy Log</h2>
+      </div>
+      <div id="deploy-log" class="flex-1 overflow-y-auto">
+        <p id="deploy-log-empty" class="px-4 py-8 text-sm text-gray-400 text-center">
+          Watching for deploys...
+        </p>
+      </div>
+    </div>
+    {% endif %}
   </div>
 </div>
 {% endblock %}
@@ -78,6 +118,10 @@
       }
     });
     markers.addTo(map);
+
+    // Expose for deploy monitor
+    window._civicMap = map;
+    window._civicMarkers = markers;
   } catch (error) {
     console.error('Failed to initialize map:', error);
     return;
@@ -136,4 +180,189 @@
   }, 100);
 })();
 </script>
+
+{% if user.is_authenticated %}
+<script>
+(function() {
+  const POLL_INTERVAL = 5000;
+  const POPUP_DURATION = 5000;
+  const FADE_DURATION = 500;
+
+  let lastPollTime = new Date().toISOString();
+  let popupQueue = [];
+  let isShowingPopup = false;
+  let pollTimer = null;
+  let refreshTimer = null;
+
+  function esc(str) {
+    var el = document.createElement('span');
+    el.textContent = str || '';
+    return el.innerHTML;
+  }
+
+  function relativeTime(dateStr) {
+    var now = Date.now();
+    var then = new Date(dateStr).getTime();
+    var seconds = Math.floor((now - then) / 1000);
+    if (seconds < 60) return 'just now';
+    var minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return minutes + 'm ago';
+    var hours = Math.floor(minutes / 60);
+    return hours + 'h ago';
+  }
+
+  function getMap() {
+    return window._civicMap || null;
+  }
+
+  function getMarkerBySubdomain(subdomain) {
+    if (!window._civicMarkers) return null;
+    let found = null;
+    window._civicMarkers.eachLayer(function(layer) {
+      if (layer.eachLayer) {
+        layer.eachLayer(function(marker) {
+          if (marker.feature &&
+              marker.feature.properties &&
+              marker.feature.properties.subdomain === subdomain) {
+            found = marker;
+          }
+        });
+      }
+    });
+    return found;
+  }
+
+  function addSidebarEntry(deploy) {
+    const log = document.getElementById('deploy-log');
+    const empty = document.getElementById('deploy-log-empty');
+    if (empty) empty.remove();
+
+    const entry = document.createElement('div');
+    entry.className = 'deploy-entry px-4 py-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition';
+    entry.innerHTML =
+      '<div class="text-sm font-medium text-gray-900">' + esc(deploy.name) + '</div>' +
+      '<div class="text-xs text-gray-500">' + esc(deploy.state) + (deploy.kind ? ' \u00b7 ' + esc(deploy.kind) : '') + '</div>' +
+      (deploy.pages ? '<div class="text-xs text-gray-400">' + deploy.pages.toLocaleString() + ' pages</div>' : '') +
+      '<div class="text-xs text-gray-400"><span class="deploy-time">' + relativeTime(deploy.updated_at) + '</span></div>';
+    entry.dataset.updatedAt = deploy.updated_at;
+    entry.dataset.lat = deploy.lat;
+    entry.dataset.lng = deploy.lng;
+    entry.dataset.subdomain = deploy.subdomain;
+    entry.addEventListener('click', function() {
+      var map = getMap();
+      if (map) {
+        var cLat = parseFloat(deploy.lat);
+        var cLng = parseFloat(deploy.lng);
+        if (isNaN(cLat) || isNaN(cLng)) return;
+        map.flyTo([cLat, cLng], 12);
+        var marker = getMarkerBySubdomain(deploy.subdomain);
+        if (marker) {
+          marker.openPopup();
+        }
+      }
+    });
+
+    log.insertBefore(entry, log.firstChild);
+  }
+
+  function showDeployPopup(deploy) {
+    var map = getMap();
+    if (!map) { processQueue(); return; }
+
+    if (document.hidden) {
+      addSidebarEntry(deploy);
+      processQueue();
+      return;
+    }
+
+    isShowingPopup = true;
+    addSidebarEntry(deploy);
+
+    var lat = parseFloat(deploy.lat);
+    var lng = parseFloat(deploy.lng);
+    if (isNaN(lat) || isNaN(lng)) { processQueue(); return; }
+
+    map.flyTo([lat, lng], 7, { duration: 1 });
+
+    setTimeout(function() {
+      var popup = L.popup({
+        className: 'deploy-popup',
+        closeOnClick: false,
+        autoClose: false,
+      })
+        .setLatLng([lat, lng])
+        .setContent(
+          '<div class="p-1">' +
+            '<div style="font-weight:600;font-size:14px;">' + esc(deploy.name) + '</div>' +
+            '<div style="color:#6b7280;font-size:12px;">' + esc(deploy.state) + (deploy.kind ? ' · ' + esc(deploy.kind) : '') + '</div>' +
+            (deploy.pages ? '<div style="color:#6b7280;font-size:11px;">' + deploy.pages.toLocaleString() + ' pages</div>' : '') +
+          '</div>'
+        )
+        .openOn(map);
+
+      setTimeout(function() {
+        var el = popup.getElement();
+        if (el) el.classList.add('deploy-popup-fading');
+        setTimeout(function() {
+          map.closePopup(popup);
+          isShowingPopup = false;
+          processQueue();
+        }, FADE_DURATION);
+      }, POPUP_DURATION);
+    }, 1000);
+  }
+
+  function processQueue() {
+    if (popupQueue.length === 0) {
+      isShowingPopup = false;
+      return;
+    }
+    var next = popupQueue.shift();
+    showDeployPopup(next);
+  }
+
+  async function poll() {
+    try {
+      var url = '/api/recent-deploys/?since=' + encodeURIComponent(lastPollTime);
+      var response = await fetch(url);
+
+      if (response.status === 403) {
+        if (pollTimer) clearInterval(pollTimer);
+        if (refreshTimer) clearInterval(refreshTimer);
+        return;
+      }
+
+      if (!response.ok) return;
+
+      var deploys = await response.json();
+      lastPollTime = new Date().toISOString();
+
+      if (deploys.length === 0) return;
+
+      for (var i = 0; i < deploys.length; i++) {
+        popupQueue.push(deploys[i]);
+      }
+
+      if (!isShowingPopup) {
+        processQueue();
+      }
+    } catch (e) {
+      // Network error — skip silently
+    }
+  }
+
+  pollTimer = setInterval(poll, POLL_INTERVAL);
+
+  refreshTimer = setInterval(function() {
+    var entries = document.querySelectorAll('.deploy-entry');
+    entries.forEach(function(entry) {
+      if (entry.dataset.updatedAt) {
+        var timeEl = entry.querySelector('.deploy-time');
+        if (timeEl) timeEl.textContent = relativeTime(entry.dataset.updatedAt);
+      }
+    });
+  }, 30000);
+})();
+</script>
+{% endif %}
 {% endblock %}

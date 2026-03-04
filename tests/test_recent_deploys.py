@@ -68,7 +68,7 @@ class TestRecentDeploys:
             state="CA",
             lat="38.0",
             lng="-121.0",
-            current_stage="fetch",
+            deploy_completed=0,
             updated_at=now,
         )
 

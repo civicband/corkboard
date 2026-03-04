@@ -126,7 +126,6 @@ def recent_deploys_view(request):
 
     sites = Site.objects.filter(
         current_stage="completed",
-        deploy_completed__gt=0,
         updated_at__gt=since,
         lat__isnull=False,
         lng__isnull=False,

@@ -136,6 +136,8 @@ def recent_deploys_view(request):
             "subdomain": site.subdomain,
             "name": site.name,
             "state": site.state,
+            "kind": site.kind,
+            "pages": site.pages,
             "lat": site.lat,
             "lng": site.lng,
             "deploy_completed": site.deploy_completed,

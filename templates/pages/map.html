@@ -241,7 +241,9 @@
     entry.className = 'deploy-entry px-4 py-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition';
     entry.innerHTML =
       '<div class="text-sm font-medium text-gray-900">' + esc(deploy.name) + '</div>' +
-      '<div class="text-xs text-gray-500">' + esc(deploy.state) + ' \u00b7 <span class="deploy-time">' + relativeTime(deploy.updated_at) + '</span></div>';
+      '<div class="text-xs text-gray-500">' + esc(deploy.state) + (deploy.kind ? ' \u00b7 ' + esc(deploy.kind) : '') + '</div>' +
+      (deploy.pages ? '<div class="text-xs text-gray-400">' + deploy.pages.toLocaleString() + ' pages</div>' : '') +
+      '<div class="text-xs text-gray-400"><span class="deploy-time">' + relativeTime(deploy.updated_at) + '</span></div>';
     entry.dataset.updatedAt = deploy.updated_at;
     entry.dataset.lat = deploy.lat;
     entry.dataset.lng = deploy.lng;
@@ -280,7 +282,7 @@
     var lng = parseFloat(deploy.lng);
     if (isNaN(lat) || isNaN(lng)) { processQueue(); return; }
 
-    map.flyTo([lat, lng], 10, { duration: 1 });
+    map.flyTo([lat, lng], 7, { duration: 1 });
 
     setTimeout(function() {
       var popup = L.popup({
@@ -292,8 +294,8 @@
         .setContent(
           '<div class="p-1">' +
             '<div style="font-weight:600;font-size:14px;">' + esc(deploy.name) + '</div>' +
-            '<div style="color:#6b7280;font-size:12px;">' + esc(deploy.state) + '</div>' +
-            '<div style="margin-top:4px;font-size:11px;color:#6366f1;font-weight:500;">Deployed</div>' +
+            '<div style="color:#6b7280;font-size:12px;">' + esc(deploy.state) + (deploy.kind ? ' · ' + esc(deploy.kind) : '') + '</div>' +
+            (deploy.pages ? '<div style="color:#6b7280;font-size:11px;">' + deploy.pages.toLocaleString() + ' pages</div>' : '') +
           '</div>'
         )
         .openOn(map);

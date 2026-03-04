@@ -58,7 +58,7 @@ class TestRecentDeploys:
             state="CA",
             lat="37.0",
             lng="-122.0",
-            current_stage="deploy",
+            current_stage="completed",
             deploy_completed=5,
             updated_at=now,
         )
@@ -97,7 +97,7 @@ class TestRecentDeploys:
             state="CA",
             lat="37.0",
             lng="-122.0",
-            current_stage="deploy",
+            current_stage="completed",
             deploy_completed=3,
             updated_at=old_time,
         )

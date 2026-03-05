@@ -1,18 +1,18 @@
 <!-- Municipality Finder Section -->
 <div class="bg-white border-b border-gray-200">
-  <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+  <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
 
     <!-- Section Header -->
-    <div class="text-center mb-6">
-      <h2 class="text-3xl font-bold text-gray-900 mb-2">Find Your Municipality</h2>
-      <p class="text-gray-600">Search {{ num_sites|default:0 }} cities and counties</p>
+    <div class="text-center mb-3">
+      {% load humanize %}
+      <h2 class="text-2xl font-bold text-gray-900 mb-1">Tracking {{ num_sites|default:0|intcomma }} municipalities. Find Yours.</h2>
     </div>
 
     <!-- Primary Search Input -->
-    <div class="max-w-3xl mx-auto mb-6">
+    <div class="max-w-3xl mx-auto mb-4">
       <div class="relative">
         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-          <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
         </div>
@@ -21,7 +21,7 @@
                id="search-input"
                value="{{ query }}"
                placeholder="Search by city, town, or county name..."
-               class="block w-full pl-12 pr-4 py-4 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"
+               class="block w-full pl-11 pr-4 py-3 text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"
                hx-get="/sites/search/"
                hx-trigger="keyup changed delay:300ms"
                hx-target="#sites-table-container"
@@ -32,59 +32,22 @@
     </div>
 
     <!-- Quick-Start Options -->
-    <div class="max-w-3xl mx-auto mb-8">
-      <div class="text-center mb-4">
+    <div class="max-w-3xl mx-auto mb-4">
+
+    <!-- Location + Filters row -->
+    <div class="max-w-3xl mx-auto mb-3">
+      <div class="flex items-center justify-center gap-4">
         <button type="button"
                 id="use-location-btn"
-                class="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition shadow-sm"
+                class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium text-sm transition shadow-sm"
                 data-umami-event="homepage_geolocation">
-          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
           Use My Location
         </button>
-      </div>
-
-      <div class="text-center text-sm text-gray-500 mb-3">Or try these popular municipalities:</div>
-
-      <div class="flex flex-wrap justify-center gap-2">
-        <button type="button"
-                class="quick-start-btn px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full text-sm font-medium transition"
-                data-search="Oakland, CA"
-                data-umami-event="homepage_quickstart" data-umami-event-city="oakland">
-          Oakland, CA
-        </button>
-        <button type="button"
-                class="quick-start-btn px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full text-sm font-medium transition"
-                data-search="Berkeley, CA"
-                data-umami-event="homepage_quickstart" data-umami-event-city="berkeley">
-          Berkeley, CA
-        </button>
-        <button type="button"
-                class="quick-start-btn px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full text-sm font-medium transition"
-                data-search="San Francisco, CA"
-                data-umami-event="homepage_quickstart" data-umami-event-city="sanfrancisco">
-          San Francisco, CA
-        </button>
-        <button type="button"
-                class="quick-start-btn px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full text-sm font-medium transition"
-                data-search="Chicago, IL"
-                data-umami-event="homepage_quickstart" data-umami-event-city="chicago">
-          Chicago, IL
-        </button>
-        <button type="button"
-                class="quick-start-btn px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full text-sm font-medium transition"
-                data-search="New York, NY"
-                data-umami-event="homepage_quickstart" data-umami-event-city="newyork">
-          New York, NY
-        </button>
-      </div>
-    </div>
-
-    <!-- Advanced Filters (Collapsible) -->
-    <div class="max-w-3xl mx-auto">
-      <div class="text-center mb-3">
+        <span class="text-gray-300">|</span>
         <button type="button"
                 id="toggle-filters-btn"
                 class="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
@@ -94,6 +57,10 @@
           <span class="hide-text hidden">Hide advanced filters</span>
         </button>
       </div>
+    </div>
+
+    <!-- Advanced Filters (Collapsible) -->
+    <div class="max-w-3xl mx-auto">
 
       <div id="advanced-filters" class="hidden">
         <div class="flex flex-wrap gap-3 items-center justify-center p-4 bg-gray-50 rounded-lg border border-gray-200">

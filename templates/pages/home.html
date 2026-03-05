@@ -1,151 +1,19 @@
 {% extends "pages/base.html" %}
 
 {% block content %}
-<!-- Compact Header -->
-<div class="bg-white border-b-2 border-gray-300">
-  <div class="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
-    <!-- Navigation -->
-    <nav class="mb-3 pb-2 border-b border-gray-200">
-      <ul class="flex flex-wrap gap-2 text-sm">
-        <li><a href="/how.html" class="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-2 py-0.5 rounded transition" data-umami-event="homepage_nav" data-umami-event-target="how">How it works</a></li>
-        <li><a href="/why.html" class="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-2 py-0.5 rounded transition" data-umami-event="homepage_nav" data-umami-event-target="why">Why?</a></li>
-        <li><a href="/rss.xml" class="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-2 py-0.5 rounded transition" data-umami-event="homepage_nav" data-umami-event-target="rss">RSS Feed</a></li>
-        <li><a rel="me" href="https://sfba.social/@civicband" class="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-2 py-0.5 rounded transition" data-umami-event="homepage_social" data-umami-event-platform="mastodon">Mastodon</a></li>
-        <li><a rel="me" href="https://bsky.app/profile/civic.band" class="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-2 py-0.5 rounded transition" data-umami-event="homepage_social" data-umami-event-platform="bluesky">Bluesky</a></li>
-        <li><a href="https://opencollective.com/civicband" class="bg-indigo-500 text-white hover:bg-indigo-600 px-2 py-0.5 rounded font-medium transition" data-umami-event="homepage_support">Support!</a></li>
-      </ul>
-    </nav>
 
-    <!-- Title and Description -->
-    <h1 class="text-2xl font-bold text-gray-900 mb-2">CivicBand</h1>
-    <div class="text-sm text-gray-700 space-y-2">
-      <p>The largest collection of civic meeting data in the United States and Canada. A project from the <a href="https://raft.foundation" class="text-indigo-600 hover:text-indigo-800 underline" data-umami-event="homepage_external" data-umami-event-target="raft-foundation">Raft Foundation</a>. Email hello @ civic dot band with questions.</p>
+{% include 'pages/_hero.html' %}
 
-      <!-- Newsletter Form -->
-      <form action="https://buttondown.com/api/emails/embed-subscribe/civicband"
-            method="post"
-            target="popupwindow"
-            onsubmit="window.open('https://buttondown.com/civicband', 'popupwindow')"
-            class="flex flex-wrap gap-2 items-center">
-        <label for="bd-email" class="sr-only">Email address</label>
-        <input id="bd-email" name="email" type="email" autocomplete="email" required
-               class="px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-               placeholder="Enter your email">
-        <button type="submit"
-                class="px-2 py-1 text-sm bg-indigo-500 text-white rounded hover:bg-indigo-600 font-medium transition"
-                data-umami-event="homepage_newsletter">Subscribe</button>
-        <span class="text-xs text-gray-600">
-          We care about your data. Read our <a href="/privacy.html" class="text-indigo-600 hover:text-indigo-800 underline" data-umami-event="homepage_nav" data-umami-event-target="privacy">privacy policy</a>.
-        </span>
-      </form>
+{% include 'pages/_finder.html' %}
 
-      <!-- Stats -->
-      <h3 class="text-base font-semibold text-gray-900">
-        {% load humanize %}Tracking {{ total_pages|default:0|intcomma }} pages across {{ num_sites|default:0|intcomma }} municipalities
-      </h3>
-    </div>
-  </div>
-</div>
+{% include 'pages/_results.html' %}
 
-<!-- Compact Search and Filters -->
-<div class="bg-gray-100 border-b border-gray-300">
-  <div class="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
-    <div class="flex flex-wrap gap-2 items-center text-sm">
-      <!-- Search -->
-      <input type="text"
-             name="q"
-             id="search-input"
-             value="{{ query }}"
-             placeholder="Search municipalities..."
-             class="px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 min-w-[200px]"
-             hx-get="/sites/search/"
-             hx-trigger="keyup changed delay:300ms"
-             hx-target="#sites-table-container"
-             hx-include="[name='state'], [name='kind'], [name='sort']"
-             hx-push-url="true">
-
-      <!-- State Filter -->
-      <select name="state"
-              id="state-filter"
-              class="px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-              hx-get="/sites/search/"
-              hx-trigger="change"
-              hx-target="#sites-table-container"
-              hx-include="[name='q'], [name='kind'], [name='sort']"
-              hx-push-url="true">
-        <option value="">All states</option>
-        {% for st in states %}
-        <option value="{{ st }}" {% if st == state %}selected{% endif %}>{{ st }}</option>
-        {% endfor %}
-      </select>
-
-      <!-- Type Filter -->
-      <select name="kind"
-              id="kind-filter"
-              class="px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-              hx-get="/sites/search/"
-              hx-trigger="change"
-              hx-target="#sites-table-container"
-              hx-include="[name='q'], [name='state'], [name='sort']"
-              hx-push-url="true">
-        <option value="">All types</option>
-        {% for k in kinds %}
-        <option value="{{ k }}" {% if k == kind %}selected{% endif %}>{{ k|title }}</option>
-        {% endfor %}
-      </select>
-
-      <!-- Finance Filter Checkbox -->
-      <label class="flex items-center gap-1 px-2 py-1 text-sm border border-gray-300 rounded bg-white cursor-pointer hover:bg-gray-50 transition">
-        <input type="checkbox"
-               name="has_finance"
-               id="finance-filter"
-               value="1"
-               {% if has_finance %}checked{% endif %}
-               hx-get="/sites/search/"
-               hx-trigger="change"
-               hx-target="#sites-table-container"
-               hx-include="[name='q'], [name='state'], [name='kind'], [name='sort']"
-               hx-push-url="true"
-               class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
-        <span class="whitespace-nowrap">Finance data ({{ finance_sites_count }})</span>
-      </label>
-
-      <!-- Clear Filters Button -->
-      <button type="button"
-              id="clear-filters-btn"
-              class="px-2 py-1 text-xs rounded bg-red-100 text-red-700 hover:bg-red-200 border border-red-300"
-              style="display: {% if query or state or kind or has_finance %}inline-block{% else %}none{% endif %};"
-              onclick="document.getElementById('search-input').value=''; document.getElementById('state-filter').value=''; document.getElementById('kind-filter').value=''; document.getElementById('finance-filter').checked=false; this.style.display='none';"
-              hx-get="/sites/search/"
-              hx-trigger="click"
-              hx-target="#sites-table-container"
-              hx-push-url="true">Clear filters</button>
-    </div>
-  </div>
-</div>
-
-<!-- Content -->
-<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-    <!-- Table Column - HTMX replaces this -->
-    <div class="lg:col-span-2 order-2 lg:order-1">
-      <div id="sites-table-container">
-        {% include 'pages/_sites_table_only.html' %}
-      </div>
-    </div>
-
-    <!-- Map Column - Static, never replaced -->
-    <div class="lg:col-span-1 order-1 lg:order-2">
-      <div id="sites-map" class="h-64 lg:h-[600px] rounded border border-gray-200 lg:sticky lg:top-4"></div>
-    </div>
-  </div>
-</div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
 (function() {
-  // Initialize map with error handling
+  // ===== MAP INITIALIZATION =====
   let map, markers;
 
   try {
@@ -156,10 +24,9 @@
       maxZoom: 19
     }).addTo(map);
 
-    // Configure marker cluster with less aggressive grouping
     markers = L.markerClusterGroup({
-      maxClusterRadius: 20,  // Reduced from default 80 - much less aggressive grouping
-      disableClusteringAtZoom: 8,  // Stop clustering at zoom level 8
+      maxClusterRadius: 20,
+      disableClusteringAtZoom: 8,
       spiderfyOnMaxZoom: true,
       showCoverageOnHover: false,
       zoomToBoundsOnClick: true
@@ -167,10 +34,9 @@
     markers.addTo(map);
   } catch (error) {
     console.error('Failed to initialize map:', error);
-    return;
   }
 
-  // Load markers with robust error handling
+  // ===== MAP DATA LOADING =====
   function loadMarkers(geojson) {
     if (!map || !markers) {
       console.warn('Map not initialized, cannot load markers');
@@ -178,18 +44,10 @@
     }
 
     try {
-      // Clear existing markers
       markers.clearLayers();
 
-      // Validate GeoJSON data
-      if (!geojson || typeof geojson !== 'object') {
-        console.warn('Invalid geojson data:', geojson);
-        map.setView([39.8283, -98.5795], 4);
-        return;
-      }
-
-      if (!geojson.features || !Array.isArray(geojson.features)) {
-        console.warn('GeoJSON missing features array:', geojson);
+      if (!geojson || !geojson.features || !Array.isArray(geojson.features)) {
+        console.warn('Invalid geojson data');
         map.setView([39.8283, -98.5795], 4);
         return;
       }
@@ -199,7 +57,6 @@
         return;
       }
 
-      // Add GeoJSON to map
       L.geoJSON(geojson, {
         onEachFeature: function(feature, layer) {
           if (feature.properties && feature.properties.popup) {
@@ -208,13 +65,11 @@
         }
       }).addTo(markers);
 
-      // Fit bounds if we have markers
       if (markers.getLayers().length > 0) {
         map.fitBounds(markers.getBounds(), { padding: [50, 50] });
       }
     } catch (error) {
       console.error('Failed to load markers:', error);
-      // Reset to default view on error
       try {
         map.setView([39.8283, -98.5795], 4);
       } catch (e) {
@@ -228,17 +83,36 @@
     loadMarkers(event.detail);
   });
 
-  // Load initial data if available (from _map_data.html)
-  // Wait a bit to ensure DOM is ready
+  // Load initial data
   setTimeout(function() {
     if (window.sitesGeoJSON) {
       loadMarkers(window.sitesGeoJSON);
     }
   }, 100);
-})();
 
-// Update clear filters button visibility
-(function() {
+  // ===== FILTER TOGGLE =====
+  const toggleBtn = document.getElementById('toggle-filters-btn');
+  const filtersPanel = document.getElementById('advanced-filters');
+  const showText = toggleBtn.querySelector('.show-text');
+  const hideText = toggleBtn.querySelector('.hide-text');
+
+  toggleBtn.addEventListener('click', function() {
+    const isHidden = filtersPanel.classList.contains('hidden');
+
+    if (isHidden) {
+      filtersPanel.classList.remove('hidden');
+      toggleBtn.setAttribute('aria-expanded', 'true');
+      showText.classList.add('hidden');
+      hideText.classList.remove('hidden');
+    } else {
+      filtersPanel.classList.add('hidden');
+      toggleBtn.setAttribute('aria-expanded', 'false');
+      showText.classList.remove('hidden');
+      hideText.classList.add('hidden');
+    }
+  });
+
+  // ===== CLEAR FILTERS BUTTON VISIBILITY =====
   const clearBtn = document.getElementById('clear-filters-btn');
   const searchInput = document.getElementById('search-input');
   const stateFilter = document.getElementById('state-filter');
@@ -250,14 +124,152 @@
     clearBtn.style.display = hasFilters ? 'inline-block' : 'none';
   }
 
-  // Check on input changes
   searchInput.addEventListener('input', updateClearButton);
   stateFilter.addEventListener('change', updateClearButton);
   kindFilter.addEventListener('change', updateClearButton);
   financeFilter.addEventListener('change', updateClearButton);
-
-  // Also check after HTMX requests complete
   document.body.addEventListener('htmx:afterSwap', updateClearButton);
+
+  // ===== QUICK-START BUTTONS =====
+  const quickStartButtons = document.querySelectorAll('.quick-start-btn');
+
+  quickStartButtons.forEach(function(button) {
+    button.addEventListener('click', function() {
+      const searchTerm = this.getAttribute('data-search');
+      searchInput.value = searchTerm;
+
+      // Trigger HTMX request
+      htmx.trigger(searchInput, 'keyup');
+
+      // Scroll to results
+      setTimeout(function() {
+        document.getElementById('sites-table-container').scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }, 300);
+    });
+  });
+
+  // ===== GEOLOCATION =====
+  const useLocationBtn = document.getElementById('use-location-btn');
+
+  useLocationBtn.addEventListener('click', function() {
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your browser');
+      return;
+    }
+
+    // Show loading state
+    useLocationBtn.disabled = true;
+    useLocationBtn.innerHTML = `
+      <svg class="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      Finding your location...
+    `;
+
+    navigator.geolocation.getCurrentPosition(
+      function(position) {
+        const userLat = position.coords.latitude;
+        const userLng = position.coords.longitude;
+
+        // Find nearest municipalities (this is a simple implementation)
+        // In production, you might want a backend endpoint for this
+        findNearestMunicipalities(userLat, userLng);
+      },
+      function(error) {
+        console.error('Geolocation error:', error);
+        let message = 'Unable to get your location. ';
+
+        switch(error.code) {
+          case error.PERMISSION_DENIED:
+            message += 'Please allow location access and try again.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            message += 'Location information is unavailable.';
+            break;
+          case error.TIMEOUT:
+            message += 'Location request timed out.';
+            break;
+          default:
+            message += 'An unknown error occurred.';
+        }
+
+        alert(message);
+        resetLocationButton();
+      },
+      {
+        timeout: 10000,
+        maximumAge: 60000
+      }
+    );
+  });
+
+  function findNearestMunicipalities(userLat, userLng) {
+    // Get all sites with coordinates from the current page data
+    if (!window.sitesGeoJSON || !window.sitesGeoJSON.features) {
+      alert('Unable to find nearby municipalities. Please try searching manually.');
+      resetLocationButton();
+      return;
+    }
+
+    // Calculate distances
+    const sitesWithDistance = window.sitesGeoJSON.features
+      .filter(f => f.geometry && f.geometry.coordinates)
+      .map(function(feature) {
+        const [lng, lat] = feature.geometry.coordinates;
+        const distance = calculateDistance(userLat, userLng, lat, lng);
+        return {
+          name: feature.properties.name,
+          distance: distance
+        };
+      })
+      .sort((a, b) => a.distance - b.distance)
+      .slice(0, 1); // Get closest municipality
+
+    if (sitesWithDistance.length > 0) {
+      const nearest = sitesWithDistance[0];
+      searchInput.value = nearest.name;
+      htmx.trigger(searchInput, 'keyup');
+
+      setTimeout(function() {
+        document.getElementById('sites-table-container').scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }, 300);
+    } else {
+      alert('No municipalities found near your location. Try searching manually.');
+    }
+
+    resetLocationButton();
+  }
+
+  function calculateDistance(lat1, lon1, lat2, lon2) {
+    // Haversine formula for distance between two points
+    const R = 6371; // Earth's radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  }
+
+  function resetLocationButton() {
+    useLocationBtn.disabled = false;
+    useLocationBtn.innerHTML = `
+      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+      Use My Location
+    `;
+  }
+
 })();
 </script>
 {% endblock %}

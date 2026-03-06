@@ -19,22 +19,28 @@
             Type
           </th>
           <th scope="col"
+              role="button"
+              tabindex="0"
+              aria-sort="{% if sort == 'pages' or not sort %}descending{% else %}none{% endif %}"
               class="px-2 py-2 text-right text-xs font-medium uppercase cursor-pointer hover:bg-gray-100 select-none {% if sort == 'pages' or not sort %}text-indigo-600{% else %}text-gray-700{% endif %}"
               hx-get="/sites/search/?sort=pages"
-              hx-trigger="click"
+              hx-trigger="click, keydown[key=='Enter']"
               hx-target="#sites-table-container"
               hx-include="[name='q'], [name='state'], [name='kind']"
               hx-push-url="true">
-            Pages {% if sort == 'pages' or not sort %}↓{% endif %}
+            Pages {% if sort == 'pages' or not sort %}<span aria-hidden="true">↓</span>{% endif %}
           </th>
           <th scope="col"
+              role="button"
+              tabindex="0"
+              aria-sort="{% if sort == 'updated_at' %}descending{% else %}none{% endif %}"
               class="px-2 py-2 text-right text-xs font-medium uppercase cursor-pointer hover:bg-gray-100 select-none hidden lg:table-cell {% if sort == 'updated_at' %}text-indigo-600{% else %}text-gray-700{% endif %}"
               hx-get="/sites/search/?sort=updated_at"
-              hx-trigger="click"
+              hx-trigger="click, keydown[key=='Enter']"
               hx-target="#sites-table-container"
               hx-include="[name='q'], [name='state'], [name='kind']"
               hx-push-url="true">
-            Last Updated {% if sort == 'updated_at' %}↓{% endif %}
+            Last Updated {% if sort == 'updated_at' %}<span aria-hidden="true">↓</span>{% endif %}
           </th>
         </tr>
       </thead>
@@ -73,7 +79,7 @@
 {% else %}
   <div class="px-6 py-12 text-center border border-gray-200 rounded bg-white">
     <p class="text-gray-500">No municipalities match your search.</p>
-    <p class="text-sm text-gray-400 mt-2">Try adjusting your filters</p>
+    <p class="text-sm text-gray-500 mt-2">Try adjusting your filters</p>
   </div>
 {% endif %}
 

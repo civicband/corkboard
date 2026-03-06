@@ -282,7 +282,7 @@
     var lng = parseFloat(deploy.lng);
     if (isNaN(lat) || isNaN(lng)) { processQueue(); return; }
 
-    map.flyTo([lat, lng], 7, { duration: 1 });
+    map.flyTo([lat, lng], 4, { duration: 1 });
 
     setTimeout(function() {
       var popup = L.popup({

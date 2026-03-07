@@ -84,3 +84,11 @@
 {% endif %}
 
 {% include 'pages/_map_data.html' %}
+
+{% if query %}
+<script>
+if (typeof umami !== 'undefined') {
+  umami.track('homepage_search', { query: '{{ query|escapejs }}', results: {{ visible_count }} });
+}
+</script>
+{% endif %}

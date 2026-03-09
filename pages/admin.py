@@ -60,6 +60,7 @@ class SiteAdmin(admin.ModelAdmin):
                     "start_year",
                     "lat",
                     "lng",
+                    "extra",
                 ]
             },
         ),

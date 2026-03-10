@@ -179,3 +179,5 @@ analytics/summary_*.json
 
 # Git worktrees
 .worktrees/umami.dump
+
+.claude

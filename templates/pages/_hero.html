@@ -13,8 +13,7 @@
     <!-- Brief Explanation -->
     <div class="text-base text-white mb-4 max-w-3xl">
       <p>
-        The largest collection of searchable civic meeting data in the US and Canada.
-        Meeting minutes, agendas, and campaign finance data from {{ num_sites|default:0|intcomma }} municipalities. {{ total_pages|default:0|intcomma }} pages and counting. A project from the <a href="https://raft.foundation" class="text-white hover:text-white underline" data-umami-event="homepage_external" data-umami-event-target="raft-foundation">Raft Foundation</a>.
+        CivicBand is a project of the Raft Foundation dedicated to municipal transparency and civic participation. We host the largest public collection of civic meeting and election finance data for the US and Canada.
       </p>
     </div>
 
@@ -24,6 +23,10 @@
         Learn more about CivicBand
       </summary>
       <div class="mt-2 text-sm text-white space-y-2 pl-4">
+        <p>
+        The largest collection of searchable civic meeting data in the US and Canada.
+        Meeting minutes, agendas, and campaign finance data from {{ num_sites|default:0|intcomma }} municipalities. {{ total_pages|default:0|intcomma }} pages and counting. A project from the <a href="https://raft.foundation" class="text-white hover:text-white underline" data-umami-event="homepage_external" data-umami-event-target="raft-foundation">Raft Foundation</a>.
+      </p>
         <p>
           Local government decisions affect everything from housing to transportation to schools,
           but finding out what your city council is discussing shouldn't require hours of digging
@@ -54,8 +57,40 @@
 
     <!-- Newsletter Signup + Secondary CTAs row -->
     <div class="flex flex-wrap gap-4 items-start mb-4 max-w-4xl">
-      <!-- Newsletter Signup (Primary CTA) -->
-      <div class="bg-indigo-900/40 backdrop-blur-sm border border-indigo-400/30 rounded-lg p-4 flex-1 min-w-[300px]">
+      <!-- Newsletter Signup: collapsible on mobile, visible on desktop -->
+      <details class="sm:hidden text-sm flex-1 min-w-[300px]">
+        <summary class="text-white hover:text-white cursor-pointer font-medium text-sm underline decoration-indigo-300">
+          Stay updated — subscribe to our newsletter
+        </summary>
+        <div class="bg-indigo-900/40 backdrop-blur-sm border border-indigo-400/30 rounded-lg p-4 mt-2">
+          <p class="text-xs text-white mb-2">
+            New municipalities and features. No spam.
+          </p>
+          <form action="https://buttondown.com/api/emails/embed-subscribe/civicband"
+                method="post"
+                target="popupwindow"
+                onsubmit="window.open('https://buttondown.com/civicband', 'popupwindow')"
+                class="flex flex-wrap gap-2 items-center">
+            <label for="bd-email-mobile" class="sr-only">Email address</label>
+            <input id="bd-email-mobile"
+                   name="email"
+                   type="email"
+                   autocomplete="email"
+                   required
+                   class="flex-1 min-w-[180px] px-3 py-1.5 text-sm border border-indigo-300/50 rounded-lg bg-white/90 focus:ring-2 focus:ring-white focus:border-white placeholder-gray-600"
+                   placeholder="your@email.com">
+            <button type="submit"
+                    class="px-4 py-1.5 bg-amber-500 text-gray-900 rounded-lg hover:bg-amber-400 font-medium text-sm transition shadow-sm"
+                    data-umami-event="homepage_newsletter">
+              Subscribe
+            </button>
+          </form>
+          <p class="text-xs text-white mt-1">
+            <a href="/privacy.html" class="text-white hover:text-white underline" data-umami-event="homepage_nav" data-umami-event-target="privacy">Privacy policy</a>
+          </p>
+        </div>
+      </details>
+      <div class="hidden sm:block bg-indigo-900/40 backdrop-blur-sm border border-indigo-400/30 rounded-lg p-4 flex-1 min-w-[300px]">
         <h3 class="text-sm font-semibold text-white mb-1">Stay Updated</h3>
         <p class="text-xs text-white mb-2">
           New municipalities and features. No spam.

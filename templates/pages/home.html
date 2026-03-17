@@ -48,12 +48,12 @@
 
       if (!geojson || !geojson.features || !Array.isArray(geojson.features)) {
         console.warn('Invalid geojson data');
-        map.setView([39.8283, -98.5795], 4);
+        map.setView([39.8283, -98.5795], 5);
         return;
       }
 
       if (geojson.features.length === 0) {
-        map.setView([39.8283, -98.5795], 4);
+        map.setView([39.8283, -98.5795], 5);
         return;
       }
 
@@ -71,7 +71,7 @@
     } catch (error) {
       console.error('Failed to load markers:', error);
       try {
-        map.setView([39.8283, -98.5795], 4);
+        map.setView([39.8283, -98.5795], 5);
       } catch (e) {
         console.error('Failed to reset map view:', e);
       }

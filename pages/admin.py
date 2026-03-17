@@ -13,12 +13,13 @@ class SiteAdmin(admin.ModelAdmin):
         "subdomain",
         "name",
         "state",
+        "scraper",
         "pages",
         "current_stage",
         "updated_at",
         "get_progress",
     ]
-    list_filter = ["state", "country", "kind", "current_stage"]
+    list_filter = ["state", "country", "kind", "current_stage", "scraper"]
     search_fields = ["subdomain", "name", "state"]
     readonly_fields = [
         "subdomain",

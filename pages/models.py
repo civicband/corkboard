@@ -22,7 +22,7 @@ class Site(models.Model):
     scraper = models.CharField(max_length=255, null=True, blank=True)
     pages = models.IntegerField(null=True, blank=True)
     start_year = models.IntegerField(null=True, blank=True)
-    extra = models.CharField(max_length=255, null=True, blank=True)
+    extra = models.JSONField(max_length=255, null=True, blank=True)
     country = models.CharField(max_length=255, null=True, blank=True)
     lat = models.CharField(max_length=255, null=True, blank=True)
     lng = models.CharField(max_length=255, null=True, blank=True)

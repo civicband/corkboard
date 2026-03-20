@@ -1,6 +1,8 @@
 """Django admin configuration for pages app."""
 
 from django.contrib import admin
+from django.db.models import JSONField
+from django_json_widget.widgets import JSONEditorWidget
 
 from .models import Site
 
@@ -8,6 +10,10 @@ from .models import Site
 @admin.register(Site)
 class SiteAdmin(admin.ModelAdmin):
     """Admin interface for Site model."""
+
+    formfield_overrides = {
+        JSONField: {"widget": JSONEditorWidget},
+    }
 
     list_display = [
         "subdomain",

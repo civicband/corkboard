@@ -26,7 +26,9 @@ Each card has three rows:
 - Page badge: "Page X" grey pill
 
 **Behavior:**
-- Meeting name links to the detail page
+- ID and meeting name both link to the row detail page (provides two click targets for navigation)
+- ID link: subtle, muted styling
+- Meeting name link: bold, primary link styling
 - Bottom border separates from content row
 
 ### 2. Content Row
@@ -117,7 +119,7 @@ templates/datasette/
 <article class="page-card" data-type="{{ document_type }}">
   <header class="card-metadata">
     <div class="card-meta-left">
-      <span class="card-id">ID: {{ row.id }}</span>
+      <a href="{{ row_url }}" class="card-id">ID: {{ row.id }}</a>
       <span class="card-separator">·</span>
       <a href="{{ row_url }}" class="card-meeting">{{ row.meeting }}</a>
       <span class="card-separator">·</span>

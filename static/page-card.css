@@ -167,7 +167,6 @@
 
 .card-text summary::marker {
     display: none;
-    content: '';
 }
 
 /* Image section */
@@ -268,7 +267,6 @@
         float: right;
         margin-left: 1rem;
         margin-bottom: 0.5rem;
-        order: 0;
     }
 
     .card-image img {

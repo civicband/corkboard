@@ -71,19 +71,52 @@ context = {
 }
 ```
 
+## Project Paths
+
+All paths are relative to the Django project root (`/home/phildini/code/civicband/corkboard/`):
+
+| Resource | Path |
+|----------|------|
+| Management command | `home/management/commands/datasette.py` |
+| Sites database | `sites.db` (project root) |
+| Sites data | `../sites/{subdomain}/meetings.db` |
+| Metadata template | `templates/config/metadata.json` (Jinja2) |
+| Datasette plugins | `plugins/` |
+| Datasette templates | `templates/datasette/` |
+
+### sites.db Schema
+
+The `sites.db` SQLite database contains a `sites` table with the subdomain as primary key:
+
+```sql
+-- Query to look up a site
+SELECT name, state, subdomain, last_updated FROM sites WHERE subdomain = ?
+```
+
+Columns used:
+- `subdomain` (TEXT, PK): e.g., "alameda.ca"
+- `name` (TEXT): e.g., "Alameda"
+- `state` (TEXT): e.g., "CA"
+- `last_updated` (TEXT): Date string
+
+To list available sites for error messages:
+```sql
+SELECT subdomain, name FROM sites ORDER BY subdomain
+```
+
 ## Implementation
 
 ### Command Flow
 
 1. **Parse arguments** - Validate that site or --db is provided
-2. **Resolve database path**
-   - If `--db` provided: use that path
-   - Else: construct `../sites/{site}/meetings.db`
+2. **Resolve database path** (relative to project root)
+   - If `--db` provided: use that path (absolute or relative to cwd)
+   - Else: construct `../sites/{site}/meetings.db` relative to project root
 3. **Verify database exists** - Exit with error if not found
 4. **Build metadata context**
-   - If site provided: look up in `sites.db`, extract name/state/subdomain/last_updated
+   - If site provided: query `sites.db` (in project root) for name/state/subdomain/last_updated
    - Else: use placeholder defaults
-5. **Render metadata template** - `templates/config/metadata.json` with context
+5. **Render metadata template** - Load `templates/config/metadata.json` via Jinja2, render with context
 6. **Create Datasette instance** with:
    - Database file(s)
    - Rendered metadata as `config`
@@ -138,7 +171,7 @@ if os.path.exists(items_db):
 home/management/commands/datasette.py
 ```
 
-Following Django's management command convention.
+This is relative to the Django project root. The `home` app already exists with other management commands. Following Django's management command convention, this file will be auto-discovered.
 
 ## Error Handling
 

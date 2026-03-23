@@ -1,26 +1,44 @@
 {# Page Card Partial Template
    Variables expected:
-   - row: dict with id, meeting, date, page, text, page_image, entities_json, votes_json
+   - row: list of cell objects from Datasette's display_rows
+     Each cell has: column, value, value_type, and optionally raw
    - document_type: "minutes" or "agenda"
    - database: database name
    - table: table name
-   - datasette: datasette instance
-   - request: request object
+   - datasette: datasette instance (available from context)
+   - request: request object (available from context)
 #}
-{% set row_url = "/" ~ database ~ "/" ~ table ~ "/" ~ (row.id|urlencode) %}
+
+{# Helper macro to get cell value by column name #}
+{% macro get_cell(row, column_name) -%}
+  {%- for cell in row if cell.column == column_name -%}
+    {{ cell.value }}
+  {%- endfor -%}
+{%- endmacro %}
+
+{# Helper macro to get raw cell value by column name #}
+{% macro get_cell_raw(row, column_name) -%}
+  {%- for cell in row if cell.column == column_name -%}
+    {{ cell.raw if cell.raw is defined else cell.value }}
+  {%- endfor -%}
+{%- endmacro %}
+
+{# Get the ID for building the row URL #}
+{% set row_id = get_cell_raw(row, "id")|string %}
+{% set row_url = "/" ~ database ~ "/" ~ table ~ "/" ~ (row_id|urlencode) %}
 
 <article class="page-card" data-type="{{ document_type }}">
   <header class="card-metadata">
     <div class="card-meta-left">
-      <a href="{{ row_url }}" class="card-id">ID: {{ row.id[:12] }}{% if row.id|length > 12 %}...{% endif %}</a>
+      <a href="{{ row_url }}" class="card-id">ID: {{ row_id[:12] }}{% if row_id|length > 12 %}...{% endif %}</a>
       <span class="card-separator">·</span>
-      <a href="{{ row_url }}" class="card-meeting">{{ row.meeting }}</a>
+      <a href="{{ row_url }}" class="card-meeting">{{ get_cell_raw(row, "meeting") }}</a>
       <span class="card-separator">·</span>
-      <span class="card-date">{{ row.date }}</span>
+      <span class="card-date">{{ get_cell_raw(row, "date") }}</span>
     </div>
     <div class="card-meta-right">
       <span class="card-type-badge card-type-{{ document_type }}">{{ document_type|upper }}</span>
-      <span class="card-page-badge">Page {{ row.page }}</span>
+      <span class="card-page-badge">Page {{ get_cell_raw(row, "page") }}</span>
     </div>
   </header>
 
@@ -28,26 +46,31 @@
     <div class="card-text">
       <details>
         <summary>Show more</summary>
-        <div class="card-text-content">{{ row.text or "" }}</div>
+        <div class="card-text-content">{{ get_cell_raw(row, "text") or "" }}</div>
       </details>
     </div>
     <div class="card-image" onclick="this.classList.toggle('expanded')">
       <div class="card-image-overlay" onclick="event.stopPropagation(); this.parentElement.classList.remove('expanded')"></div>
-      {{ render_cell(row.page_image, row, "page_image", table, database, datasette, request)|safe }}
+      {# page_image cell value is already rendered HTML from the render_cell plugin hook #}
+      {{ get_cell(row, "page_image")|safe }}
     </div>
   </div>
 
   <footer class="card-json">
     <div class="card-entities">
-      {% if row.entities_json %}
-        {{ render_cell(row.entities_json, row, "entities_json", table, database, datasette, request)|safe }}
+      {# entities_json cell value is already rendered HTML from the render_cell plugin hook #}
+      {% set entities_cell = get_cell(row, "entities_json") %}
+      {% if entities_cell %}
+        {{ entities_cell|safe }}
       {% else %}
         <span class="card-json-empty">No entities extracted</span>
       {% endif %}
     </div>
     <div class="card-votes">
-      {% if row.votes_json %}
-        {{ render_cell(row.votes_json, row, "votes_json", table, database, datasette, request)|safe }}
+      {# votes_json cell value is already rendered HTML from the render_cell plugin hook #}
+      {% set votes_cell = get_cell(row, "votes_json") %}
+      {% if votes_cell %}
+        {{ votes_cell|safe }}
       {% else %}
         <span class="card-json-empty">No votes recorded</span>
       {% endif %}

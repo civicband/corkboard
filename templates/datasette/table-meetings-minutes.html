@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}{{ table }} - {{ database }}{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ urls.static_plugins('corkboard', 'page-card.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="page-container" style="max-width: 1200px; margin: 0 auto; padding: 1rem;">
+    <div class="page-header" style="margin-bottom: 1.5rem;">
+        <h1 style="font-size: 1.75rem; font-weight: 600; color: #1a365d; margin: 0;">
+            Meeting Minutes
+        </h1>
+        {% if filtered_table_rows_count is defined %}
+        <p style="color: #6c757d; margin-top: 0.5rem;">
+            {{ "{:,}".format(filtered_table_rows_count) }} page{% if filtered_table_rows_count != 1 %}s{% endif %}
+            {% if request.args.get('meeting__exact') %}
+            for {{ request.args.get('meeting__exact') }}
+            {% endif %}
+            {% if request.args.get('date__exact') %}
+            on {{ request.args.get('date__exact') }}
+            {% endif %}
+        </p>
+        {% endif %}
+    </div>
+
+    {% if display_rows %}
+    <div class="page-cards">
+        {% for row in display_rows %}
+            {% with document_type="minutes" %}
+                {% include "_page_card.html" %}
+            {% endwith %}
+        {% endfor %}
+    </div>
+
+    {% if next_url %}
+    <div style="text-align: center; margin-top: 1.5rem;">
+        <a href="{{ next_url }}" style="display: inline-block; padding: 0.75rem 1.5rem; background: #007bff; color: white; text-decoration: none; border-radius: 6px; font-weight: 500;">
+            Load more
+        </a>
+    </div>
+    {% endif %}
+    {% else %}
+    <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 6px; padding: 1.5rem; text-align: center; color: #856404;">
+        <p>No minutes found matching your criteria.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,56 @@
+{# Page Card Partial Template
+   Variables expected:
+   - row: dict with id, meeting, date, page, text, page_image, entities_json, votes_json
+   - document_type: "minutes" or "agenda"
+   - database: database name
+   - table: table name
+   - datasette: datasette instance
+   - request: request object
+#}
+{% set row_url = "/" ~ database ~ "/" ~ table ~ "/" ~ (row.id|urlencode) %}
+
+<article class="page-card" data-type="{{ document_type }}">
+  <header class="card-metadata">
+    <div class="card-meta-left">
+      <a href="{{ row_url }}" class="card-id">ID: {{ row.id[:12] }}{% if row.id|length > 12 %}...{% endif %}</a>
+      <span class="card-separator">·</span>
+      <a href="{{ row_url }}" class="card-meeting">{{ row.meeting }}</a>
+      <span class="card-separator">·</span>
+      <span class="card-date">{{ row.date }}</span>
+    </div>
+    <div class="card-meta-right">
+      <span class="card-type-badge card-type-{{ document_type }}">{{ document_type|upper }}</span>
+      <span class="card-page-badge">Page {{ row.page }}</span>
+    </div>
+  </header>
+
+  <div class="card-content">
+    <div class="card-text">
+      <details>
+        <div class="card-text-content">{{ row.text or "" }}</div>
+        <summary>Show more</summary>
+      </details>
+    </div>
+    <div class="card-image" onclick="this.classList.toggle('expanded')">
+      <div class="card-image-overlay" onclick="event.stopPropagation(); this.parentElement.classList.remove('expanded')"></div>
+      {{ render_cell(row.page_image, row, "page_image", table, database, datasette, request)|safe }}
+    </div>
+  </div>
+
+  <footer class="card-json">
+    <div class="card-entities">
+      {% if row.entities_json %}
+        {{ render_cell(row.entities_json, row, "entities_json", table, database, datasette, request)|safe }}
+      {% else %}
+        <span class="card-json-empty">No entities extracted</span>
+      {% endif %}
+    </div>
+    <div class="card-votes">
+      {% if row.votes_json %}
+        {{ render_cell(row.votes_json, row, "votes_json", table, database, datasette, request)|safe }}
+      {% else %}
+        <span class="card-json-empty">No votes recorded</span>
+      {% endif %}
+    </div>
+  </footer>
+</article>

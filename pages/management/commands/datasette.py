@@ -1,9 +1,13 @@
 """Django management command to run Datasette for local development."""
 
+import json
 import os
 
 import sqlite_utils
+import uvicorn
+from datasette.app import Datasette
 from django.core.management.base import BaseCommand, CommandError
+from jinja2 import Environment, FileSystemLoader
 
 
 class Command(BaseCommand):
@@ -42,7 +46,6 @@ class Command(BaseCommand):
         if not os.path.exists(resolved_db):
             raise CommandError(f"Database not found: {resolved_db}")
 
-        # Build metadata context
         if site:
             context = self.get_site_context(site)
         else:
@@ -78,5 +81,45 @@ class Command(BaseCommand):
         }
 
     def start_server(self, db_path, site, port, context):
-        """Start the Datasette server. Stubbed for testing."""
-        pass
+        """Start the Datasette server."""
+        db_list = [db_path]
+
+        if site:
+            finance_db = f"../sites/{site}/finance/election_finance.db"
+            if os.path.exists(finance_db):
+                db_list.append(finance_db)
+
+            items_db = f"../sites/{site}/finance/items.db"
+            if os.path.exists(items_db):
+                db_list.append(items_db)
+
+        jinja_env = Environment(loader=FileSystemLoader("templates/config"))
+        template = jinja_env.get_template("metadata.json")
+        metadata = json.loads(template.render(context=context))
+
+        datasette_instance = Datasette(
+            db_list,
+            config=metadata,
+            plugins_dir="plugins",
+            template_dir="templates/datasette",
+            settings={
+                "force_https_urls": False,
+                "default_page_size": 100,
+                "sql_time_limit_ms": 3000,
+                "num_sql_threads": 5,
+                "default_facet_size": 10,
+                "facet_time_limit_ms": 100,
+                "allow_download": True,
+                "allow_csv_stream": True,
+            },
+        )
+
+        site_name = context.get("name", "Local Dev")
+        self.stdout.write(f"Starting Datasette for {site_name}")
+        self.stdout.write(f"Database: {db_path}")
+        self.stdout.write(f"Metadata: {site_name} Civic Data")
+        self.stdout.write("")
+        self.stdout.write(f"Running at http://localhost:{port}/")
+        self.stdout.write("Press Ctrl+C to stop.")
+
+        uvicorn.run(datasette_instance.app(), host="127.0.0.1", port=port)

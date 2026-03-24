@@ -229,3 +229,85 @@ class TestMetadataTemplateRendering:
             assert context["name"] == "Local Dev"
             assert context["state"] == ""
             assert context["subdomain"] == "local"
+
+
+class TestDatasetteServerSetup:
+    """Test Datasette instance configuration."""
+
+    def test_creates_datasette_with_correct_settings(self):
+        """Datasette instance created with dev-friendly settings."""
+        mock_table = MagicMock()
+        mock_table.get.return_value = {
+            "name": "Test",
+            "state": "CA",
+            "subdomain": "test.ca",
+            "last_updated": "2026-01-01",
+        }
+        mock_db = MagicMock()
+        mock_db.__getitem__.return_value = mock_table
+
+        mock_template = MagicMock()
+        mock_template.render.return_value = '{"title": "Test"}'
+        mock_env = MagicMock()
+        mock_env.get_template.return_value = mock_template
+
+        with (
+            patch("os.path.exists", return_value=True),
+            patch("sqlite_utils.Database", return_value=mock_db),
+            patch("pages.management.commands.datasette.Datasette") as datasette_mock,
+            patch("pages.management.commands.datasette.uvicorn.run"),
+            patch(
+                "pages.management.commands.datasette.Environment", return_value=mock_env
+            ),
+        ):
+            call_command("datasette", "test.ca")
+
+            datasette_mock.assert_called_once()
+            call_kwargs = datasette_mock.call_args.kwargs
+            assert call_kwargs["settings"]["force_https_urls"] is False
+            assert call_kwargs["settings"]["allow_download"] is True
+            assert call_kwargs["plugins_dir"] == "plugins"
+            assert call_kwargs["template_dir"] == "templates/datasette"
+
+    def test_includes_additional_databases_if_present(self):
+        """Finance and items databases included if they exist."""
+
+        def path_exists(path):
+            return path in [
+                "../sites/test.ca/meetings.db",
+                "../sites/test.ca/finance/election_finance.db",
+                "../sites/test.ca/finance/items.db",
+            ]
+
+        mock_table = MagicMock()
+        mock_table.get.return_value = {
+            "name": "Test",
+            "state": "CA",
+            "subdomain": "test.ca",
+            "last_updated": "2026-01-01",
+        }
+        mock_db = MagicMock()
+        mock_db.__getitem__.return_value = mock_table
+
+        mock_template = MagicMock()
+        mock_template.render.return_value = '{"title": "Test"}'
+        mock_env = MagicMock()
+        mock_env.get_template.return_value = mock_template
+
+        with (
+            patch("os.path.exists", side_effect=path_exists),
+            patch("sqlite_utils.Database", return_value=mock_db),
+            patch("pages.management.commands.datasette.Datasette") as datasette_mock,
+            patch("pages.management.commands.datasette.uvicorn.run"),
+            patch(
+                "pages.management.commands.datasette.Environment", return_value=mock_env
+            ),
+        ):
+            call_command("datasette", "test.ca")
+
+            call_args = datasette_mock.call_args
+            db_list = call_args[0][0]
+            assert len(db_list) == 3
+            assert "../sites/test.ca/meetings.db" in db_list
+            assert "../sites/test.ca/finance/election_finance.db" in db_list
+            assert "../sites/test.ca/finance/items.db" in db_list

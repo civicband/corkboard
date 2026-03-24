@@ -32,11 +32,18 @@ class Command(BaseCommand):
             default=8001,
             help="Port to run Datasette on (default: 8001).",
         )
+        parser.add_argument(
+            "--base-url",
+            dest="base_url",
+            default="/",
+            help="Base URL path (e.g., /proxy/8001/ for VS Code tunnels).",
+        )
 
     def handle(self, **options):
         site = options.get("site")
         db_path = options.get("db")
         port = options.get("port")
+        base_url = options.get("base_url")
 
         if not site and not db_path:
             raise CommandError("You must provide either a site subdomain or --db path.")
@@ -51,7 +58,7 @@ class Command(BaseCommand):
         else:
             context = self.get_placeholder_context()
 
-        self.start_server(resolved_db, site, port, context)
+        self.start_server(resolved_db, site, port, context, base_url)
 
     def get_site_context(self, subdomain):
         """Look up site in sites.db and return context dict."""
@@ -80,7 +87,7 @@ class Command(BaseCommand):
             "last_updated": "",
         }
 
-    def start_server(self, db_path, site, port, context):
+    def start_server(self, db_path, site, port, context, base_url="/"):
         """Start the Datasette server."""
         db_list = [db_path]
 
@@ -103,6 +110,7 @@ class Command(BaseCommand):
             plugins_dir="plugins",
             template_dir="templates/datasette",
             settings={
+                "base_url": base_url,
                 "force_https_urls": False,
                 "default_page_size": 100,
                 "sql_time_limit_ms": 3000,

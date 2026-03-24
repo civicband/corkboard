@@ -1,5 +1,6 @@
 """Django management command to run Datasette for local development."""
 
+import asyncio
 import json
 import os
 
@@ -121,5 +122,8 @@ class Command(BaseCommand):
         self.stdout.write("")
         self.stdout.write(f"Running at http://localhost:{port}/")
         self.stdout.write("Press Ctrl+C to stop.")
+
+        # Initialize Datasette (loads plugins, runs startup hooks)
+        asyncio.run(datasette_instance.invoke_startup())
 
         uvicorn.run(datasette_instance.app(), host="127.0.0.1", port=port)

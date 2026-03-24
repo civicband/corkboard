@@ -182,3 +182,50 @@ class TestMetadataContext:
             call_command("datasette", db="/path/to/test.db")
 
             db_mock.assert_not_called()
+
+
+class TestMetadataTemplateRendering:
+    """Test Jinja2 metadata template rendering."""
+
+    def test_renders_metadata_template_with_context(self):
+        """Metadata template is rendered with site context."""
+        mock_table = MagicMock()
+        mock_table.get.return_value = {
+            "name": "Alameda",
+            "state": "CA",
+            "subdomain": "alameda.ca",
+            "last_updated": "2026-03-15",
+        }
+        mock_db = MagicMock()
+        mock_db.__getitem__.return_value = mock_table
+
+        with (
+            patch(
+                "pages.management.commands.datasette.Command.start_server"
+            ) as start_mock,
+            patch("os.path.exists", return_value=True),
+            patch("sqlite_utils.Database", return_value=mock_db),
+        ):
+            call_command("datasette", "alameda.ca")
+
+            call_args = start_mock.call_args
+            context = call_args[0][3]  # Fourth positional arg
+            assert context["name"] == "Alameda"
+            assert context["state"] == "CA"
+            assert context["subdomain"] == "alameda.ca"
+
+    def test_placeholder_context_used_for_db_only(self):
+        """Placeholder context used when only --db provided."""
+        with (
+            patch(
+                "pages.management.commands.datasette.Command.start_server"
+            ) as start_mock,
+            patch("os.path.exists", return_value=True),
+        ):
+            call_command("datasette", db="/path/to/test.db")
+
+            call_args = start_mock.call_args
+            context = call_args[0][3]
+            assert context["name"] == "Local Dev"
+            assert context["state"] == ""
+            assert context["subdomain"] == "local"

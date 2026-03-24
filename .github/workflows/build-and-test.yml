@@ -36,19 +36,12 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Run linting in container
+      - name: Run linting and formatting in container
         run: |
           docker run --rm \
             --user root \
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
-            uv run ruff check .
-
-      - name: Check formatting in container
-        run: |
-          docker run --rm \
-            --user root \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
-            uv run ruff format --check .
+            bash -c "uv run pip install pre-commit && uv run pre-commit run ruff --all-files && uv run pre-commit run ruff-format --all-files"
 
       - name: Create test database
         run: |

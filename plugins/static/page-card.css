@@ -1,0 +1,320 @@
+/* Page Card Component Styles */
+
+/* Card container */
+.page-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.page-card {
+    background: #ffffff;
+    border: 1px solid #e1ecf4;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.2s ease;
+}
+
+.page-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+}
+
+/* Metadata row */
+.card-metadata {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #e1ecf4;
+    gap: 0.5rem;
+}
+
+.card-meta-left {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.95rem;
+}
+
+.card-meta-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.card-id {
+    color: #6c757d;
+    text-decoration: none;
+    font-size: 0.85rem;
+}
+
+.card-id:hover {
+    color: #007bff;
+    text-decoration: underline;
+}
+
+.card-meeting {
+    font-weight: 600;
+    color: #1a365d;
+    text-decoration: none;
+}
+
+.card-meeting:hover {
+    color: #007bff;
+    text-decoration: underline;
+}
+
+.card-date {
+    color: #495057;
+}
+
+.card-separator {
+    color: #adb5bd;
+    margin: 0 0.25rem;
+}
+
+/* Type badges */
+.card-type-badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.card-type-minutes {
+    background: #007bff;
+    color: white;
+}
+
+.card-type-agenda {
+    background: #28a745;
+    color: white;
+}
+
+.card-page-badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    background: #e9ecef;
+    color: #6c757d;
+}
+
+/* Content row */
+.card-content {
+    display: flex;
+    padding: 1rem;
+    gap: 1rem;
+    border-bottom: 1px solid #f1f3f4;
+}
+
+.card-text {
+    flex: 1 1 0%;
+    min-width: 0;
+}
+
+.card-text-content {
+    max-height: 300px;
+    overflow: hidden;
+    position: relative;
+    line-height: 1.5;
+    color: #333;
+    white-space: pre-wrap;
+}
+
+.card-text-content::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
+    background: linear-gradient(transparent, white);
+    pointer-events: none;
+}
+
+.card-text.expanded .card-text-content {
+    max-height: none;
+}
+
+.card-text.expanded .card-text-content::after {
+    display: none;
+}
+
+.card-text-toggle {
+    cursor: pointer;
+    color: #007bff;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    display: inline-block;
+    user-select: none;
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+.card-text-toggle:hover {
+    text-decoration: underline;
+}
+
+/* Image section — starts as thumbnail, expands on click */
+.card-image {
+    flex: 0 0 auto;
+    width: 512px;
+    min-width: 0;
+    align-self: flex-start;
+}
+
+.card-image img {
+    width: 512px;
+    height: auto;
+    border-radius: 4px;
+    border: 1px solid #e1ecf4;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.card-image img:hover {
+    transform: scale(1.02);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Page-level lightbox (appended to body via JS to escape overflow/transform) */
+.card-lightbox-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 9999;
+    cursor: pointer;
+    justify-content: center;
+    align-items: center;
+}
+
+.card-lightbox-overlay.active {
+    display: flex;
+}
+
+.card-lightbox-overlay img {
+    max-width: 90vw;
+    max-height: 90vh;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    object-fit: contain;
+}
+
+/* JSON row */
+.card-json {
+    display: flex;
+    padding: 1rem;
+    gap: 1rem;
+    background: #fafbfc;
+}
+
+.card-entities {
+    flex: 1;
+    min-width: 0;
+}
+
+.card-votes {
+    flex: 1;
+    min-width: 0;
+}
+
+.card-json-empty {
+    color: #6c757d;
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
+/* Pagination */
+.page-cards-pagination {
+    text-align: center;
+    margin-top: 1.5rem;
+}
+
+.page-cards-next {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.page-cards-next:hover {
+    background: #0056b3;
+}
+
+/* Responsive styles */
+@media (max-width: 767px) {
+    .card-metadata {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .card-meta-right {
+        margin-top: 0.5rem;
+    }
+
+    .card-content {
+        flex-direction: column;
+    }
+
+    .card-text {
+        flex: none;
+        width: 100%;
+        order: 1;
+    }
+
+    .card-image {
+        flex: none;
+        width: 48px;
+        order: -1;
+        align-self: flex-end;
+    }
+
+    .card-image img {
+        width: 48px;
+        height: auto;
+        max-height: none;
+    }
+
+    /* Mobile: lightbox image fills more of the screen */
+    .card-lightbox-overlay img {
+        max-width: 95vw;
+        max-height: 85vh;
+        border-radius: 4px;
+    }
+
+    .card-json {
+        flex-direction: column;
+    }
+
+    .card-entities,
+    .card-votes {
+        flex: none;
+        width: 100%;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+    .card-image {
+        width: 384px;
+    }
+
+    .card-image img {
+        width: 384px;
+    }
+}

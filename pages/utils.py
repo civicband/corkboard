@@ -35,7 +35,7 @@ def apply_site_filters(request):
     # Apply filters
     if query:
         sites = sites.filter(
-            Q(name__icontains=query)
+            Q(name__icontains=query)  # pyright: ignore[reportOperatorIssue]
             | Q(subdomain__icontains=query)
             | Q(state__icontains=query)
         )

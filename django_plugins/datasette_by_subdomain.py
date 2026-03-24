@@ -330,6 +330,11 @@ async def datasette_by_subdomain_wrapper(scope, receive, send, app):
             db_list.append(finance_db)
             logger.info(f"Found finance database for {subdomain}")
 
+        # Check for items db
+        items_db = f"../sites/{subdomain}/finance/items.db"
+        if os.path.exists(items_db):
+            db_list.append(items_db)
+
         # If no databases found, use meetings.db as fallback (will 404 if doesn't exist)
         if not db_list:
             db_list = [meetings_db]
@@ -341,6 +346,7 @@ async def datasette_by_subdomain_wrapper(scope, receive, send, app):
             config=metadata,
             plugins_dir="plugins",
             template_dir="templates/datasette",
+            static_mounts=[("-/static-plugins/corkboard", "plugins/static")],
             settings={
                 "force_https_urls": True,
                 "default_page_size": 100,

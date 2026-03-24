@@ -102,13 +102,13 @@ class UmamiEventTracker:
         self,
         event_name: str,
         url: str,
-        title: str = None,
-        referrer: str = None,
-        hostname: str = "civic.band",
-        event_data: Dict = None,
-        client_ip: str = None,
-        user_agent: str = None,
-        language: str = None,
+        title: str | None = None,
+        referrer: str | None = None,
+        hostname: str | None = "civic.band",
+        event_data: Dict | None = None,
+        client_ip: str | None = None,
+        user_agent: str | None = None,
+        language: str | None = None,
     ):
         """Send an event to Umami Analytics.
 

@@ -1,0 +1,49 @@
+<!-- above-table-panel is a hook node for plugins to attach to . Displays even if no data available -->
+<div class="above-table-panel"> </div>
+{% if display_rows %}
+<link rel="stylesheet" href="{{ urls.static_plugins('corkboard', 'page-card.css') }}">
+<div class="page-cards">
+    {% for row in display_rows %}
+        {% with document_type="agenda" %}
+            {% include "_page_card.html" %}
+        {% endwith %}
+    {% endfor %}
+</div>
+{% if next_url %}
+<div class="page-cards-pagination">
+    <a href="{{ next_url }}" class="page-cards-next">Next page</a>
+</div>
+{% endif %}
+<div class="card-lightbox-overlay" id="card-lightbox">
+    <img src="" alt="Expanded page image">
+</div>
+<script>
+(function() {
+    var lightbox = document.getElementById('card-lightbox');
+    var lightboxImg = lightbox.querySelector('img');
+
+    // Open lightbox when clicking a thumbnail
+    document.querySelectorAll('.card-image img').forEach(function(img) {
+        img.addEventListener('click', function() {
+            lightboxImg.src = this.src;
+            lightboxImg.alt = this.alt || 'Page image';
+            lightbox.classList.add('active');
+        });
+    });
+
+    // Close on overlay click
+    lightbox.addEventListener('click', function() {
+        lightbox.classList.remove('active');
+    });
+
+    // Close on Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            lightbox.classList.remove('active');
+        }
+    });
+})();
+</script>
+{% else %}
+    <p class="zero-results">0 records</p>
+{% endif %}

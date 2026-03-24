@@ -236,10 +236,10 @@ class TestPageCardTemplate:
             '<div class="card-content">' in html
         ), "Card should have .card-content div"
 
-        # Check for text section with details/summary
+        # Check for text section with toggle button
         assert '<div class="card-text">' in html, "Should have .card-text section"
-        assert "<details>" in html, "Text should use details/summary"
-        assert "<summary>" in html, "Should have summary element"
+        assert '<div class="card-text-content">' in html, "Should have text content"
+        assert "card-text-toggle" in html, "Should have text toggle button"
 
         # Check for image section
         assert '<div class="card-image"' in html, "Should have .card-image section"

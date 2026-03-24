@@ -6,6 +6,7 @@ Renders entities_json and votes_json columns with rich HTML formatting:
 - Row detail view: Full display with chips and vote boxes
 """
 
+import contextlib
 import json
 from urllib.parse import quote
 
@@ -406,13 +407,13 @@ def _render_votes_full(data):
                     f'<div class="vote-individual">{" &nbsp; ".join(vote_parts)}</div>'
                 )
 
-        html_parts.append(f'''
+        html_parts.append(f"""
             <div class="{box_class}">
                 <div class="vote-header">{header}</div>
                 {"".join(details)}
                 {individual_html}
             </div>
-        ''')
+        """)
 
     return "".join(html_parts)
 
@@ -478,5 +479,11 @@ def render_cell(row, value, column, table, database, datasette, request):
         f"</details>"
     )
 
-    # Include styles with each render - browser deduplicates identical style blocks
-    return markupsafe.Markup(STYLES + html + raw_html)
+    # Only inject styles once per request to avoid bloating the page
+    styles = ""
+    if getattr(request, "_json_col_styles_injected", False) is not True:
+        styles = STYLES
+        with contextlib.suppress(AttributeError):
+            request._json_col_styles_injected = True
+
+    return markupsafe.Markup(styles + html + raw_html)

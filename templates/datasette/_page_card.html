@@ -44,13 +44,10 @@
 
   <div class="card-content">
     <div class="card-text">
-      <details>
-        <summary>Show more</summary>
-        <div class="card-text-content">{{ get_cell_raw(row, "text") or "" }}</div>
-      </details>
+      <div class="card-text-content">{{ get_cell_raw(row, "text") or "" }}</div>
+      <button class="card-text-toggle" onclick="var t=this.parentElement;t.classList.toggle('expanded');this.textContent=t.classList.contains('expanded')?'Show less':'Show more'" type="button">Show more</button>
     </div>
-    <div class="card-image" onclick="this.classList.toggle('expanded')">
-      <div class="card-image-overlay" onclick="event.stopPropagation(); this.parentElement.classList.remove('expanded')"></div>
+    <div class="card-image">
       {# page_image cell value is already rendered HTML from the render_cell plugin hook #}
       {{ get_cell(row, "page_image")|safe }}
     </div>

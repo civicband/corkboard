@@ -12,13 +12,11 @@
     border: 1px solid #e1ecf4;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    overflow: hidden;
-    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    transition: box-shadow 0.2s ease;
 }
 
 .page-card:hover {
     box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
-    transform: translateY(-1px);
 }
 
 /* Metadata row */
@@ -118,7 +116,7 @@
 }
 
 .card-text {
-    flex: 0 0 60%;
+    flex: 1 1 0%;
     min-width: 0;
 }
 
@@ -128,6 +126,7 @@
     position: relative;
     line-height: 1.5;
     color: #333;
+    white-space: pre-wrap;
 }
 
 .card-text-content::after {
@@ -141,67 +140,56 @@
     pointer-events: none;
 }
 
-.card-text details[open] .card-text-content {
+.card-text.expanded .card-text-content {
     max-height: none;
 }
 
-.card-text details[open] .card-text-content::after {
+.card-text.expanded .card-text-content::after {
     display: none;
 }
 
-.card-text summary {
+.card-text-toggle {
     cursor: pointer;
     color: #007bff;
     font-size: 0.9rem;
     margin-top: 0.5rem;
+    display: inline-block;
     user-select: none;
+    background: none;
+    border: none;
+    padding: 0;
 }
 
-.card-text summary:hover {
+.card-text-toggle:hover {
     text-decoration: underline;
 }
 
-.card-text summary::-webkit-details-marker {
-    display: none;
-}
-
-.card-text summary::marker {
-    display: none;
-}
-
-/* Image section */
+/* Image section — starts as thumbnail, expands on click */
 .card-image {
-    flex: 0 0 40%;
+    flex: 0 0 auto;
+    width: 120px;
     min-width: 0;
+    align-self: flex-start;
 }
 
 .card-image img {
-    width: 100%;
+    width: 120px;
     height: auto;
+    max-height: 160px;
+    object-fit: cover;
     border-radius: 4px;
+    border: 1px solid #e1ecf4;
     cursor: pointer;
     transition: transform 0.2s ease;
 }
 
 .card-image img:hover {
-    transform: scale(1.02);
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.card-image.expanded img {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    max-width: 90vw;
-    max-height: 90vh;
-    width: auto;
-    height: auto;
-    z-index: 1000;
-    border-radius: 8px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-}
-
-.card-image-overlay {
+/* Page-level lightbox (appended to body via JS to escape overflow/transform) */
+.card-lightbox-overlay {
     display: none;
     position: fixed;
     top: 0;
@@ -209,11 +197,22 @@
     right: 0;
     bottom: 0;
     background: rgba(0, 0, 0, 0.7);
-    z-index: 999;
+    z-index: 9999;
+    cursor: pointer;
+    justify-content: center;
+    align-items: center;
 }
 
-.card-image.expanded .card-image-overlay {
-    display: block;
+.card-lightbox-overlay.active {
+    display: flex;
+}
+
+.card-lightbox-overlay img {
+    max-width: 90vw;
+    max-height: 90vh;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    object-fit: contain;
 }
 
 /* JSON row */
@@ -240,6 +239,26 @@
     font-size: 0.9rem;
 }
 
+/* Pagination */
+.page-cards-pagination {
+    text-align: center;
+    margin-top: 1.5rem;
+}
+
+.page-cards-next {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.page-cards-next:hover {
+    background: #0056b3;
+}
+
 /* Responsive styles */
 @media (max-width: 767px) {
     .card-metadata {
@@ -264,14 +283,21 @@
     .card-image {
         flex: none;
         width: 48px;
-        float: right;
-        margin-left: 1rem;
-        margin-bottom: 0.5rem;
+        order: -1;
+        align-self: flex-end;
     }
 
     .card-image img {
         width: 48px;
         height: auto;
+        max-height: none;
+    }
+
+    /* Mobile: lightbox image fills more of the screen */
+    .card-lightbox-overlay img {
+        max-width: 95vw;
+        max-height: 85vh;
+        border-radius: 4px;
     }
 
     .card-json {

@@ -109,6 +109,7 @@ class Command(BaseCommand):
             config=metadata,
             plugins_dir="plugins",
             template_dir="templates/datasette",
+            static_mounts=[("-/static-plugins/corkboard", "plugins/static")],
             settings={
                 "base_url": base_url,
                 "force_https_urls": False,

@@ -44,7 +44,7 @@
 
   <div class="card-content">
     <div class="card-text">
-      <div class="card-text-content">{{ get_cell_raw(row, "text") or "" }}</div>
+      <div class="card-text-content">{{ get_cell(row, "text")|safe or "" }}</div>
       <button class="card-text-toggle" onclick="var t=this.parentElement;t.classList.toggle('expanded');this.textContent=t.classList.contains('expanded')?'Show less':'Show more'" type="button">Show more</button>
     </div>
     <div class="card-image">

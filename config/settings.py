@@ -55,6 +55,7 @@ ALLOWED_HOSTS = [
     "0.0.0.0",
     "civic.band",
     "*.civic.band",
+    "alameda.ca.civic.org",
     "vscode.civic.town",
     "adversely-star-koala.edgecompute.app",
     "*.adversely-star-koala.edgecompute.app",

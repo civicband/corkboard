@@ -251,20 +251,10 @@ class TestDatasetteServerSetup:
         mock_env = MagicMock()
         mock_env.get_template.return_value = mock_template
 
-        # Create async mock for invoke_startup
-        async def mock_invoke_startup():
-            pass
-
-        datasette_instance_mock = MagicMock()
-        datasette_instance_mock.invoke_startup = mock_invoke_startup
-
         with (
             patch("os.path.exists", return_value=True),
             patch("sqlite_utils.Database", return_value=mock_db),
-            patch(
-                "pages.management.commands.datasette.Datasette",
-                return_value=datasette_instance_mock,
-            ) as datasette_mock,
+            patch("pages.management.commands.datasette.Datasette") as datasette_mock,
             patch("pages.management.commands.datasette.uvicorn.run"),
             patch(
                 "pages.management.commands.datasette.Environment", return_value=mock_env
@@ -304,20 +294,10 @@ class TestDatasetteServerSetup:
         mock_env = MagicMock()
         mock_env.get_template.return_value = mock_template
 
-        # Create async mock for invoke_startup
-        async def mock_invoke_startup():
-            pass
-
-        datasette_instance_mock = MagicMock()
-        datasette_instance_mock.invoke_startup = mock_invoke_startup
-
         with (
             patch("os.path.exists", side_effect=path_exists),
             patch("sqlite_utils.Database", return_value=mock_db),
-            patch(
-                "pages.management.commands.datasette.Datasette",
-                return_value=datasette_instance_mock,
-            ) as datasette_mock,
+            patch("pages.management.commands.datasette.Datasette") as datasette_mock,
             patch("pages.management.commands.datasette.uvicorn.run"),
             patch(
                 "pages.management.commands.datasette.Environment", return_value=mock_env

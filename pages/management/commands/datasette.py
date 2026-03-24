@@ -2,6 +2,7 @@
 
 import os
 
+import sqlite_utils
 from django.core.management.base import BaseCommand, CommandError
 
 
@@ -41,8 +42,41 @@ class Command(BaseCommand):
         if not os.path.exists(resolved_db):
             raise CommandError(f"Database not found: {resolved_db}")
 
-        self.start_server(resolved_db, site, port)
+        # Build metadata context
+        if site:
+            context = self.get_site_context(site)
+        else:
+            context = self.get_placeholder_context()
 
-    def start_server(self, db_path, site, port):
+        self.start_server(resolved_db, site, port, context)
+
+    def get_site_context(self, subdomain):
+        """Look up site in sites.db and return context dict."""
+        db = sqlite_utils.Database("sites.db")
+        site = db["sites"].get(subdomain)
+
+        if site is None:
+            raise CommandError(
+                f"Site not found: {subdomain}. "
+                "Run with --db to use a database without site metadata."
+            )
+
+        return {
+            "name": site["name"],
+            "state": site["state"],
+            "subdomain": site["subdomain"],
+            "last_updated": site["last_updated"],
+        }
+
+    def get_placeholder_context(self):
+        """Return placeholder defaults for --db only mode."""
+        return {
+            "name": "Local Dev",
+            "state": "",
+            "subdomain": "local",
+            "last_updated": "",
+        }
+
+    def start_server(self, db_path, site, port, context):
         """Start the Datasette server. Stubbed for testing."""
         pass

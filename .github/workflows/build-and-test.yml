@@ -36,12 +36,20 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Run linting and formatting in container
+      # Pin ruff version to match .pre-commit-config.yaml (v0.8.4)
+      - name: Run linting in container
         run: |
           docker run --rm \
             --user root \
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
-            bash -c "uv run pip install pre-commit && uv run pre-commit run ruff --all-files && uv run pre-commit run ruff-format --all-files"
+            uvx ruff@0.8.4 check .
+
+      - name: Check formatting in container
+        run: |
+          docker run --rm \
+            --user root \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            uvx ruff@0.8.4 format --check .
 
       - name: Create test database
         run: |

@@ -356,6 +356,7 @@ async def datasette_by_subdomain_wrapper(scope, receive, send, app):
                 "facet_time_limit_ms": 100,
                 "allow_download": False,
                 "allow_csv_stream": False,
+                "truncate_cells_html": 0,
             },
         )
 

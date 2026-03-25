@@ -463,7 +463,8 @@
         "agendas": {
           "sort_desc": "date",
           "sort_asc": "page",
-          "facets": ["meeting"]
+          "facets": ["meeting"],
+          "facet_size": 5
         },
         "agendas_fts": {
           "hidden": true
@@ -474,7 +475,8 @@
         "minutes": {
           "sort_desc": "date",
           "sort_asc": "page",
-          "facets": ["meeting"]
+          "facets": ["meeting"],
+          "facet_size": 5
         }
       }
     },

@@ -54,23 +54,28 @@
   </div>
 
   <footer class="card-json">
-    <div class="card-entities">
-      {# entities_json cell value is already rendered HTML from the render_cell plugin hook #}
-      {% set entities_cell = get_cell(row, "entities_json") %}
-      {% if entities_cell %}
-        {{ entities_cell|safe }}
-      {% else %}
-        <span class="card-json-empty">No entities extracted</span>
-      {% endif %}
-    </div>
-    <div class="card-votes">
-      {# votes_json cell value is already rendered HTML from the render_cell plugin hook #}
-      {% set votes_cell = get_cell(row, "votes_json") %}
-      {% if votes_cell %}
-        {{ votes_cell|safe }}
-      {% else %}
-        <span class="card-json-empty">No votes recorded</span>
-      {% endif %}
-    </div>
+    <details class="card-json-drawer">
+      <summary class="card-json-summary">Entities &amp; Votes</summary>
+      <div class="card-json-content">
+        <div class="card-entities">
+          {# entities_json cell value is already rendered HTML from the render_cell plugin hook #}
+          {% set entities_cell = get_cell(row, "entities_json") %}
+          {% if entities_cell %}
+            {{ entities_cell|safe }}
+          {% else %}
+            <span class="card-json-empty">No entities extracted</span>
+          {% endif %}
+        </div>
+        <div class="card-votes">
+          {# votes_json cell value is already rendered HTML from the render_cell plugin hook #}
+          {% set votes_cell = get_cell(row, "votes_json") %}
+          {% if votes_cell %}
+            {{ votes_cell|safe }}
+          {% else %}
+            <span class="card-json-empty">No votes recorded</span>
+          {% endif %}
+        </div>
+      </div>
+    </details>
   </footer>
 </article>

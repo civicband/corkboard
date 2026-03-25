@@ -120,6 +120,7 @@ class Command(BaseCommand):
                 "facet_time_limit_ms": 100,
                 "allow_download": True,
                 "allow_csv_stream": True,
+                "truncate_cells_html": 0,
             },
         )
 

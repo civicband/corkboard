@@ -28,31 +28,11 @@
 {% endif %}
 {% endblock %}
 
+{% block footer %}{% endblock %}
+
 {% block content %}
 <!-- Full-page map layout -->
-<div class="relative h-screen flex flex-col">
-  <!-- Compact header -->
-  <div class="bg-white border-b-2 border-gray-300 z-10 shadow-md">
-    <div class="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between">
-        <!-- Title and back link -->
-        <div class="flex items-center gap-4">
-          <a href="/" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm">← Back to Home</a>
-          <h1 class="text-xl font-bold text-gray-900">CivicBand Sites Map</h1>
-        </div>
-
-        <!-- Navigation -->
-        <nav class="hidden sm:block">
-          <ul class="flex gap-2 text-sm">
-            <li><a href="/how.html" class="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-2 py-1 rounded transition" data-umami-event="map_nav" data-umami-event-target="how">How it works</a></li>
-            <li><a href="/why.html" class="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-2 py-1 rounded transition" data-umami-event="map_nav" data-umami-event-target="why">Why?</a></li>
-            <li><a href="https://opencollective.com/civicband" class="bg-indigo-500 text-white hover:bg-indigo-600 px-2 py-1 rounded font-medium transition" data-umami-event="map_support">Support!</a></li>
-          </ul>
-        </nav>
-      </div>
-    </div>
-  </div>
-
+<div class="relative flex flex-col" style="height: calc(100vh - 52px);">
   <!-- Full-page map with optional sidebar -->
   <div class="flex-1 relative flex">
     <div id="full-map" class="{% if user.is_authenticated %}flex-1{% else %}absolute inset-0{% endif %}"></div>

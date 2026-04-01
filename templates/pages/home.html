@@ -1,13 +1,12 @@
 {% extends "pages/base.html" %}
 
-{% block content %}
-
+{% block navbar %}
 {% include 'pages/_hero.html' %}
+{% endblock %}
 
+{% block content %}
 {% include 'pages/_finder.html' %}
-
 {% include 'pages/_results.html' %}
-
 {% endblock %}
 
 {% block extra_scripts %}
@@ -175,8 +174,6 @@
         const userLat = position.coords.latitude;
         const userLng = position.coords.longitude;
 
-        // Find nearest municipalities (this is a simple implementation)
-        // In production, you might want a backend endpoint for this
         findNearestMunicipalities(userLat, userLng);
       },
       function(error) {
@@ -208,14 +205,12 @@
   });
 
   function findNearestMunicipalities(userLat, userLng) {
-    // Get all sites with coordinates from the current page data
     if (!window.sitesGeoJSON || !window.sitesGeoJSON.features) {
       alert('Unable to find nearby municipalities. Please try searching manually.');
       resetLocationButton();
       return;
     }
 
-    // Calculate distances
     const sitesWithDistance = window.sitesGeoJSON.features
       .filter(f => f.geometry && f.geometry.coordinates)
       .map(function(feature) {
@@ -227,7 +222,7 @@
         };
       })
       .sort((a, b) => a.distance - b.distance)
-      .slice(0, 1); // Get closest municipality
+      .slice(0, 1);
 
     if (sitesWithDistance.length > 0) {
       const nearest = sitesWithDistance[0];
@@ -248,8 +243,7 @@
   }
 
   function calculateDistance(lat1, lon1, lat2, lon2) {
-    // Haversine formula for distance between two points
-    const R = 6371; // Earth's radius in km
+    const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a = Math.sin(dLat/2) * Math.sin(dLat/2) +

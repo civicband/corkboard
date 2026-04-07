@@ -21,10 +21,12 @@ from django.urls import include, path
 
 from config.views import health_check
 from pages.views import (
+    disclaimer_view,
     feed_view,
     home_view,
     how_view,
     map_view,
+    privacy_view,
     recent_deploys_view,
     researchers_view,
     sites_search_view,
@@ -32,15 +34,17 @@ from pages.views import (
 )
 
 urlpatterns = [
+    path(route="privacy.html", view=privacy_view),
+    path("why.html", why_view),
+    path("sites/search/", sites_search_view, name="sites_search"),
+    path("rss.xml", feed_view),
+    path("researchers", researchers_view),
+    path("map", map_view, name="map"),
+    path("how.html", how_view),
+    path("health/", health_check, name="health_check"),
+    path(route="disclaimer.html", view=disclaimer_view),
+    path("api/recent-deploys/", recent_deploys_view, name="recent_deploys"),
     path("admin/", admin.site.urls),
     path("", include("social_django.urls", namespace="social")),
-    path("sites/search/", sites_search_view, name="sites_search"),
-    path("how.html", how_view),
-    path("why.html", why_view),
-    path("researchers", researchers_view),
-    path("rss.xml", feed_view),
-    path("map", map_view, name="map"),
-    path("health/", health_check, name="health_check"),
-    path("api/recent-deploys/", recent_deploys_view, name="recent_deploys"),
     path("", home_view, name="home"),
 ] + djp.urlpatterns()

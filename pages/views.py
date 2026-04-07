@@ -87,6 +87,10 @@ def privacy_view(request):
     return render(request, "pages/privacy.html")
 
 
+def disclaimer_view(request):
+    return render(request, "pages/disclaimer.html")
+
+
 def researchers_view(request):
     return render(request, "pages/researchers.html")
 

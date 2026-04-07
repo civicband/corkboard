@@ -67,7 +67,7 @@
 
           <!-- State Filter -->
           <div>
-            <label for="state-filter" class="sr-only">Filter by state</label>
+            <label for="state-filter" class="sr-only">Filter by state / province</label>
             <select name="state"
                     id="state-filter"
                     class="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
@@ -76,7 +76,7 @@
                     hx-target="#sites-table-container"
                     hx-include="[name='q'], [name='kind'], [name='sort'], [name='has_finance']"
                     hx-push-url="true">
-              <option value="">All states</option>
+              <option value="">All states / provinces</option>
               {% for st in states %}
               <option value="{{ st }}" {% if st == state %}selected{% endif %}>{{ st }}</option>
               {% endfor %}

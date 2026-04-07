@@ -67,7 +67,7 @@ hooks-run:
 
 # Run Django development server
 serve:
-    uv run python manage.py runserver
+    uv run python manage.py runserver 0.0.0.0:8888
 
 # Run Django development server on specific port
 serve-port port:

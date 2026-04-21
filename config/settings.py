@@ -188,6 +188,14 @@ SOCIAL_AUTH_PIPELINE = (
     "social_core.pipeline.user.user_details",
 )
 
+# Django's SecurityMiddleware defaults to "same-origin", which prevents the browser from sending
+# the Referer header on cross-origin requests, e.g. to tile.openstreetmap.org.
+# "strict-origin-when-cross-origin" sends the origin (i.e. up to, and including the tld) as the
+# referer on cross-origin requests.
+# refs:
+#       - https://docs.djangoproject.com/en/5.2/ref/middleware/#referrer-policy
+#       - https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Referrer-Policy
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/

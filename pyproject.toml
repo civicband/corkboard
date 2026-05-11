@@ -18,7 +18,7 @@ license = {file = "LICENSE"}
 
 dependencies = [
     "Django>=4.2.0",
-    "datasette>=1.0a17,<1.0a20",
+    "datasette>=1.0a28,<2.0",
     "datasette-template-sql>=1.0.2",
     "datasette-dashboards>=0.1.0",
     "datasette-search-all==1.1.4",

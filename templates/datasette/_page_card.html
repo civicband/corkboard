@@ -32,9 +32,9 @@
     <div class="card-meta-left">
       <a href="{{ row_url }}" class="card-id">ID: {{ row_id }}</a>
       <span class="card-separator">·</span>
-      <a href="{{ row_url }}" class="card-meeting">{{ get_cell_raw(row, "meeting") }}</a>
+      <span class="card-meeting">{{ get_cell(row, "meeting") }}</span>
       <span class="card-separator">·</span>
-      <span class="card-date">{{ get_cell_raw(row, "date") }}</span>
+      <span class="card-date">{{ get_cell(row, "date") }}</span>
     </div>
     <div class="card-meta-right">
       <span class="card-type-badge card-type-{{ document_type }}">{{ document_type|upper }}</span>

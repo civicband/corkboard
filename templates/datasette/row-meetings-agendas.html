@@ -1,5 +1,6 @@
 {% extends "default:row.html" %}
 
+{% block title %}{{ site_name }}: {{ rows[0].id }} ({{ table|title }}, {{ rows[0].date }}){% endblock %}
 {% block extra_head %}
 <!-- Dublin Core metadata for citation tools -->
 <meta name="DC.title" content="{{ rows[0].meeting }} {{ table|title }}, {{ rows[0].date }}">

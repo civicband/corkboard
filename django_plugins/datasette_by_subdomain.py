@@ -231,8 +231,8 @@ async def datasette_by_subdomain_wrapper(scope, receive, send, app):
             await app(scope, receive, send)
             return
 
-        db: Database = sqlite_utils.Database("sites.db")
-
+        # TODO: no longer rely on this, so we can stop the re-gen churn
+        db: Database = sqlite_utils.Database(filename_or_conn="sites.db")
         try:
             site = db["sites"].get(subdomain)
         except Exception:

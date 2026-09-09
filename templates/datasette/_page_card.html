@@ -30,7 +30,7 @@
 <article class="page-card" data-type="{{ document_type }}">
   <header class="card-metadata">
     <div class="card-meta-left">
-      <a href="{{ row_url }}" class="card-id">ID: {{ row_id[:12] }}{% if row_id|length > 12 %}...{% endif %}</a>
+      <a href="{{ row_url }}" class="card-id">ID: {{ row_id }}</a>
       <span class="card-separator">·</span>
       <a href="{{ row_url }}" class="card-meeting">{{ get_cell_raw(row, "meeting") }}</a>
       <span class="card-separator">·</span>

@@ -15,7 +15,7 @@ sync:
 
 # Run all tests
 test *args:
-    uv run pytest {{args}}
+    uv run pytest {{ args }}
 
 # Run tests with coverage report
 test-cov:
@@ -23,11 +23,11 @@ test-cov:
 
 # Run specific test file
 test-file file:
-    uv run pytest {{file}}
+    uv run pytest {{ file }}
 
 # Run tests matching a pattern
 test-match pattern:
-    uv run pytest -k {{pattern}}
+    uv run pytest -k {{ pattern }}
 
 # Lint code with ruff
 lint:
@@ -67,11 +67,11 @@ hooks-run:
 
 # Run Django development server
 serve:
-    uv run python manage.py runserver 0.0.0.0:8888
+    uv run python manage.py runserver 0.0.0.0:8000
 
 # Run Django development server on specific port
 serve-port port:
-    uv run python manage.py runserver {{port}}
+    uv run python manage.py runserver {{ port }}
 
 # Run Django migrations
 migrate:
@@ -87,7 +87,7 @@ shell:
 
 # Run Django management command
 manage *args:
-    uv run python manage.py {{args}}
+    uv run python manage.py {{ args }}
 
 # Start development environment (Django + Redis in Docker)
 # Configure DEBUG, CIVIC_BAND_DOMAIN, etc. in .env file
@@ -112,7 +112,7 @@ docker-down:
 
 # View Docker logs
 docker-logs *args:
-    docker compose logs -f {{args}}
+    docker compose logs -f {{ args }}
 
 # Rebuild Docker images
 docker-build:
@@ -151,11 +151,11 @@ setup:
 
 # Run analytics retrieval script
 analytics-retrieve days="7":
-    uv run python scripts/retrieve_umami_analytics.py --days {{days}} --events
+    uv run python scripts/retrieve_umami_analytics.py --days {{ days }} --events
 
 # Run analytics retrieval with summary
 analytics-summary days="7":
-    uv run python scripts/retrieve_umami_analytics.py --days {{days}} --events --summary
+    uv run python scripts/retrieve_umami_analytics.py --days {{ days }} --events --summary
 
 # View analytics database with datasette
 analytics-view:

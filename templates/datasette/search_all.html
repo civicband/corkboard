@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Search{% if q %}: {{ q }}{% else %} all tables{% endif %}{% endblock %}
+{% block title %}{{ site_title }}: Search{% if q %}: {{ q }}{% else %} all tables{% endif %}{% endblock %}
 
 {% block extra_head %}
 <style type="text/css">
@@ -493,23 +493,23 @@ function displayCell(cell, columnName, row, database, table) {
     } else {
         value = cell;
     }
-    
+
     // Handle null/undefined values
     if (value === null || value === undefined) {
         return safe('<em class="null">null</em>');
     }
-    
+
     // Handle special column linking for id and date
     if (columnName && columnName.toLowerCase() === 'id' && value) {
         // Link to the specific page/row by ID
         var idUrl = `/${database}/${table}/${encodeURIComponent(value)}`;
         return safe(`<a href="${idUrl}">${htmlEscape(value)}</a>`);
     }
-    
+
     if (columnName && columnName.toLowerCase() === 'date' && value) {
         // Link to query page filtered by meeting and date, ordered by page asc
         var queryUrl = `/${database}/${table}?`;
-        
+
         // Try different possible field names for the meeting/body identifier
         var meetingField = row.meeting || row.body || row.title;
         if (meetingField) {
@@ -517,21 +517,21 @@ function displayCell(cell, columnName, row, database, table) {
         } else {
             queryUrl += `date__exact=${encodeURIComponent(value)}&_sort=page`;
         }
-        
+
         return safe(`<a href="${queryUrl}">${htmlEscape(value)}</a>`);
     }
-    
+
     // Handle URLs
     if (isUrl(value)) {
         return safe(`<a href="${htmlEscape(value)}" target="_blank">${htmlEscape(value)}</a>`);
     }
-    
+
     // Handle images
     if (typeof(value) == "string" && value.endsWith('.png')){
         var subdomain = window.location.hostname.split('.')[0];
         return safe(`<img src="https://cdn.civic.band/{{subdomain}}${value}?width=600" style="max-width: 600px; height: auto;">`);
     }
-    
+
     // Handle numbers - format them nicely
     if (typeof(value) === 'number') {
         if (columnName && columnName.toLowerCase().includes('date')) {
@@ -540,17 +540,17 @@ function displayCell(cell, columnName, row, database, table) {
         }
         return Number(value).toLocaleString();
     }
-    
+
     // Handle dates in string format
     if (typeof(value) === 'string' && value.match(/^\d{4}-\d{2}-\d{2}/)) {
         return value.split('T')[0]; // Just show the date part
     }
-    
+
     // Truncate very long text
     if (typeof(value) === 'string' && value.length > 100) {
         return htmlEscape(value.substring(0, 100) + '...');
     }
-    
+
     return htmlEscape(value);
 }
 
@@ -563,7 +563,7 @@ function displayResults(data, base_url) {
         columns = Object.keys(data.rows[0]);
     }
     var count = data.filtered_table_rows_count || data.count;
-    
+
     // Generate datasette-style table headers with proper CSS classes
     var ths = safe(columns.map(c => autoescape`<th class="col-${c}" scope="col" data-column="${c}">${c}</th>`).join(""));
 
@@ -580,7 +580,7 @@ function displayResults(data, base_url) {
         var more_count = count - NUM_RESULTS;
         view_more = autoescape`<p><a href="${search_url}">${Number(more_count).toLocaleString()} more result${more_count == 1 ? '' : 's'}</a></p>`;
     }
-    
+
     var html, div;
     if (count) {
         // Use datasette-style markup and CSS classes

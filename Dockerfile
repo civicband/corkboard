@@ -2,7 +2,7 @@
 # Base/builder layer
 # ------------------------------------------------------------
 
-FROM python:3.12-slim-bullseye AS builder
+FROM python:3.12-slim-trixie AS builder
 
 # Keeps Python from generating .pyc files in the container
 ENV PYTHONDONTWRITEBYTECODE=1

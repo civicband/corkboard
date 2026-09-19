@@ -71,6 +71,7 @@ async def test_asgi_wrapper_fully_mocked():
     # than what we're patching. Let's fix this based on the implementation.
 
     with (
+        patch("django_plugins.datasette_by_subdomain.sqlite3.connect"),
         patch(
             "django_plugins.datasette_by_subdomain.sqlite_utils"
         ) as mock_sqlite_utils,
@@ -141,6 +142,7 @@ async def test_asgi_wrapper_fully_mocked():
 async def test_metadata_template_rendering():
     """Integration test that uses the real metadata.json template."""
     with (
+        patch("django_plugins.datasette_by_subdomain.sqlite3.connect"),
         patch(
             "django_plugins.datasette_by_subdomain.sqlite_utils.Database"
         ) as mock_sqlite,
@@ -358,9 +360,12 @@ class TestQueryLengthProtection:
 @pytest.mark.asyncio
 async def test_bot_protection_blocks_long_queries():
     """Test that long text queries return 402."""
-    with patch(
-        "django_plugins.datasette_by_subdomain.sqlite_utils.Database"
-    ) as mock_sqlite:
+    with (
+        patch("django_plugins.datasette_by_subdomain.sqlite3.connect"),
+        patch(
+            "django_plugins.datasette_by_subdomain.sqlite_utils.Database"
+        ) as mock_sqlite,
+    ):
         mock_app = AsyncMock()
         long_text = "a" * 600
         mock_scope = {
@@ -406,9 +411,12 @@ async def test_bot_protection_blocks_long_queries():
 @pytest.mark.asyncio
 async def test_asgi_wrapper_missing_subdomain():
     """Test handling when subdomain doesn't exist - should redirect to civic.band."""
-    with patch(
-        "django_plugins.datasette_by_subdomain.sqlite_utils.Database"
-    ) as mock_sqlite:
+    with (
+        patch("django_plugins.datasette_by_subdomain.sqlite3.connect"),
+        patch(
+            "django_plugins.datasette_by_subdomain.sqlite_utils.Database"
+        ) as mock_sqlite,
+    ):
         # Setup mocks
         mock_app = AsyncMock()
         mock_scope = {
@@ -462,9 +470,12 @@ async def test_asgi_wrapper_missing_subdomain():
 @pytest.mark.asyncio
 async def test_asgi_wrapper_missing_subdomain_returns_none():
     """Test handling when subdomain lookup returns None (not exception)."""
-    with patch(
-        "django_plugins.datasette_by_subdomain.sqlite_utils.Database"
-    ) as mock_sqlite:
+    with (
+        patch("django_plugins.datasette_by_subdomain.sqlite3.connect"),
+        patch(
+            "django_plugins.datasette_by_subdomain.sqlite_utils.Database"
+        ) as mock_sqlite,
+    ):
         # Setup mocks
         mock_app = AsyncMock()
         mock_scope = {

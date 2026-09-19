@@ -1,6 +1,8 @@
 import json
 import logging
 import os
+import sqlite3
+from collections import OrderedDict
 from urllib.parse import parse_qs
 
 import djp
@@ -16,6 +18,20 @@ API_SIGNUP_URL = os.getenv("API_SIGNUP_URL", "https://civic.observer/api")
 ROOT_DOMAINS = os.getenv(
     "ROOT_DOMAINS", "civic.band,adversely-star-koala.edgecompute.app"
 )
+# Max number of cached per-subdomain Datasette instances per worker
+DATASETTE_CACHE_SIZE = int(os.getenv("DATASETTE_CACHE_SIZE", "64"))
+
+# Built once instead of per request
+JINJA_ENV = Environment(
+    loader=FileSystemLoader("templates/config"),
+)
+
+# Cache of built Datasette instances keyed by subdomain:
+# {subdomain: (freshness_mtime, Datasette instance, app)}. Building a fresh
+# Datasette (and opening new sqlite connections) per request leaked file
+# descriptors until workers hit RLIMIT_NOFILE and every sqlite3.connect
+# failed with "unable to open database file".
+_datasette_cache: OrderedDict[str, tuple] = OrderedDict()
 
 # Patch rich.Console.print_exception to prevent errors in Datasette.
 # Datasette's handle_exception calls rich.print_exception() outside of an
@@ -205,6 +221,97 @@ def get_client_ip(scope: dict) -> str:
     return "unknown"
 
 
+def _db_freshness(db_list: list[str]) -> float:
+    """Latest mtime across a subdomain's database files."""
+    latest = 0.0
+    for path in db_list:
+        try:
+            latest = max(latest, os.path.getmtime(path))
+        except OSError:
+            continue
+    return latest
+
+
+def _close_datasette_instance(ds_instance) -> None:
+    """Close every database connection held by a Datasette instance."""
+    for database in list(getattr(ds_instance, "databases", {}).values()):
+        try:
+            database.close()
+        except Exception:
+            logger.debug("Failed to close cached Datasette database", exc_info=True)
+
+
+def _build_datasette(db_list: list[str], metadata: dict):
+    from datasette.app import Datasette  # noqa: PLC0415
+
+    datasette_instance = Datasette(
+        db_list,
+        config=metadata,
+        plugins_dir="plugins",
+        template_dir="templates/datasette",
+        static_mounts=[("-/static-plugins/corkboard", "plugins/static")],
+        settings={
+            "force_https_urls": True,
+            "default_page_size": 100,
+            "sql_time_limit_ms": 3000,
+            "num_sql_threads": 5,
+            "default_facet_size": 10,
+            "facet_time_limit_ms": 100,
+            "allow_download": False,
+            "allow_csv_stream": False,
+            "truncate_cells_html": 0,
+        },
+    )
+    return datasette_instance, datasette_instance.app()
+
+
+def _get_datasette_app(subdomain: str, metadata: dict):
+    """Return the ASGI app for a cached Datasette instance for this subdomain.
+
+    Instances are rebuilt when the subdomain's database files change (mtime
+    check) and closed when evicted, so connections are never leaked.
+    """
+    # Build list of databases - always include meetings.db, optionally include finance
+    db_list = []
+    meetings_db = f"../sites/{subdomain}/meetings.db"
+    if os.path.exists(meetings_db):
+        db_list.append(meetings_db)
+
+    # Check for finance database
+    finance_db = f"../sites/{subdomain}/finance/election_finance.db"
+    if os.path.exists(finance_db):
+        db_list.append(finance_db)
+        logger.info(f"Found finance database for {subdomain}")
+
+    # Check for items db
+    items_db = f"../sites/{subdomain}/finance/items.db"
+    if os.path.exists(items_db):
+        db_list.append(items_db)
+
+    # If no databases found, use meetings.db as fallback (will 404 if doesn't exist)
+    if not db_list:
+        db_list = [meetings_db]
+
+    freshness = _db_freshness(db_list)
+
+    cached = _datasette_cache.get(subdomain)
+    if cached is not None:
+        cached_mtime, ds_instance, ds_app = cached
+        if cached_mtime == freshness:
+            _datasette_cache.move_to_end(subdomain)
+            return ds_app
+        # Database files changed - rebuild
+        _datasette_cache.pop(subdomain, None)
+        _close_datasette_instance(ds_instance)
+
+    ds_instance, ds_app = _build_datasette(db_list, metadata)
+    _datasette_cache[subdomain] = (freshness, ds_instance, ds_app)
+    while len(_datasette_cache) > DATASETTE_CACHE_SIZE:
+        _, evicted = _datasette_cache.popitem(last=False)
+        _close_datasette_instance(evicted[1])
+    return ds_app
+
+
 async def datasette_by_subdomain_wrapper(scope, receive, send, app):
     if scope["type"] == "http":
         headers = scope["headers"]
@@ -222,21 +329,30 @@ async def datasette_by_subdomain_wrapper(scope, receive, send, app):
                 break
         subdomain: str = host.rstrip(".")
 
-        jinja_env = Environment(
-            loader=FileSystemLoader("templates/config"),
-        )
-
         # If no subdomain, fall back to Django app (main site)
         if not subdomain:
             await app(scope, receive, send)
             return
 
         # TODO: no longer rely on this, so we can stop the re-gen churn
-        db: Database = sqlite_utils.Database(filename_or_conn="sites.db")
+        # Open sites.db read-only; a missing or unreadable file must not
+        # 500 the whole ASGI app - fall through to the redirect-home path.
+        site = None
         try:
-            site = db["sites"].get(subdomain)
+            sites_conn = sqlite3.connect("file:sites.db?mode=ro", uri=True)
+            db: Database = sqlite_utils.Database(sites_conn)
         except Exception:
-            site = None
+            logger.warning(
+                "Failed to open sites.db",
+                extra={"subdomain": subdomain, "host": host},
+            )
+        else:
+            try:
+                site = db["sites"].get(subdomain)
+            except Exception:
+                site = None
+            finally:
+                db.close()
 
         # Site not found - redirect to homepage
         if site is None:
@@ -315,52 +431,10 @@ async def datasette_by_subdomain_wrapper(scope, receive, send, app):
             scope["query_string"] = cap_result_size(query_string)
 
         metadata = json.loads(
-            jinja_env.get_template("metadata.json").render(context=context_blob)
+            JINJA_ENV.get_template("metadata.json").render(context=context_blob)
         )
 
-        # Build list of databases - always include meetings.db, optionally include finance
-        db_list = []
-        meetings_db = f"../sites/{subdomain}/meetings.db"
-        if os.path.exists(meetings_db):
-            db_list.append(meetings_db)
-
-        # Check for finance database
-        finance_db = f"../sites/{subdomain}/finance/election_finance.db"
-        if os.path.exists(finance_db):
-            db_list.append(finance_db)
-            logger.info(f"Found finance database for {subdomain}")
-
-        # Check for items db
-        items_db = f"../sites/{subdomain}/finance/items.db"
-        if os.path.exists(items_db):
-            db_list.append(items_db)
-
-        # If no databases found, use meetings.db as fallback (will 404 if doesn't exist)
-        if not db_list:
-            db_list = [meetings_db]
-
-        from datasette.app import Datasette  # noqa: PLC0415
-
-        datasette_instance = Datasette(
-            db_list,
-            config=metadata,
-            plugins_dir="plugins",
-            template_dir="templates/datasette",
-            static_mounts=[("-/static-plugins/corkboard", "plugins/static")],
-            settings={
-                "force_https_urls": True,
-                "default_page_size": 100,
-                "sql_time_limit_ms": 3000,
-                "num_sql_threads": 5,
-                "default_facet_size": 10,
-                "facet_time_limit_ms": 100,
-                "allow_download": False,
-                "allow_csv_stream": False,
-                "truncate_cells_html": 0,
-            },
-        )
-
-        ds = datasette_instance.app()
+        ds = _get_datasette_app(subdomain, metadata)
 
         # Import NotFound to catch 404s before they hit Datasette's
         # exception handler (which calls rich.print_exception and fails)

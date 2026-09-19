@@ -5,7 +5,10 @@ This plugin routes requests to Datasette instances based on subdomains.
 """
 
 import json
+import os
+import sqlite3
 import sys
+from collections import OrderedDict
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -20,6 +23,14 @@ sys.modules["djp"] = mock_djp
 
 # Now import the module under test
 from django_plugins import datasette_by_subdomain
+
+
+@pytest.fixture(autouse=True)
+def clear_datasette_cache():
+    """Keep the module-level Datasette cache from leaking between tests."""
+    datasette_by_subdomain._datasette_cache.clear()
+    yield
+    datasette_by_subdomain._datasette_cache.clear()
 
 
 @pytest.mark.asyncio
@@ -60,6 +71,7 @@ async def test_asgi_wrapper_fully_mocked():
     # than what we're patching. Let's fix this based on the implementation.
 
     with (
+        patch("django_plugins.datasette_by_subdomain.sqlite3.connect"),
         patch(
             "django_plugins.datasette_by_subdomain.sqlite_utils"
         ) as mock_sqlite_utils,
@@ -130,6 +142,7 @@ async def test_asgi_wrapper_fully_mocked():
 async def test_metadata_template_rendering():
     """Integration test that uses the real metadata.json template."""
     with (
+        patch("django_plugins.datasette_by_subdomain.sqlite3.connect"),
         patch(
             "django_plugins.datasette_by_subdomain.sqlite_utils.Database"
         ) as mock_sqlite,
@@ -200,6 +213,118 @@ async def test_metadata_template_rendering():
         assert kwargs["template_dir"] == "templates/datasette"
 
 
+@pytest.mark.asyncio
+async def test_sites_db_open_failure_redirects_home():
+    """If sites.db cannot be opened, redirect home instead of 500-ing."""
+    with patch(
+        "django_plugins.datasette_by_subdomain.sqlite3.connect",
+        side_effect=sqlite3.OperationalError("unable to open database file"),
+    ):
+        mock_app = AsyncMock()
+        mock_scope = {
+            "type": "http",
+            "method": "GET",
+            "path": "/",
+            "headers": [(b"host", b"testcity.civic.band")],
+        }
+        mock_receive = AsyncMock()
+        mock_send = AsyncMock()
+
+        wrapper = datasette_by_subdomain.wrap(mock_app)
+        await wrapper(mock_scope, mock_receive, mock_send)
+
+        mock_app.assert_not_called()
+        assert mock_send.call_count == 2
+        start_message = mock_send.call_args_list[0][0][0]
+        assert start_message["type"] == "http.response.start"
+        assert start_message["status"] == 302
+        headers_dict = dict(start_message["headers"])
+        assert headers_dict[b"location"] == b"https://civic.band/"
+
+
+def _make_site_dir(tmp_path, subdomain):
+    """Create cwd + ../sites/<subdomain>/meetings.db layout for cache tests."""
+    cwd = tmp_path / "cwd"
+    cwd.mkdir(exist_ok=True)
+    db_path = tmp_path / "sites" / subdomain / "meetings.db"
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    db_path.write_bytes(b"")
+    return cwd, db_path
+
+
+class TestDatasetteCache:
+    """Tests for the per-subdomain Datasette instance cache."""
+
+    def test_same_instance_reused_across_requests(self, tmp_path, monkeypatch):
+        cwd, _ = _make_site_dir(tmp_path, "cachecity")
+        monkeypatch.chdir(cwd)
+        monkeypatch.setattr(datasette_by_subdomain, "_datasette_cache", OrderedDict())
+
+        with patch("datasette.app.Datasette") as mock_datasette:
+            mock_ds = MagicMock()
+            mock_ds.databases = {}
+            mock_ds.app.return_value = MagicMock(name="ds_app")
+            mock_datasette.return_value = mock_ds
+
+            app1 = datasette_by_subdomain._get_datasette_app("cachecity", {})
+            app2 = datasette_by_subdomain._get_datasette_app("cachecity", {})
+
+        assert app1 is app2
+        assert mock_datasette.call_count == 1
+
+    def test_mtime_change_rebuilds_and_closes_old_instance(self, tmp_path, monkeypatch):
+        cwd, db_path = _make_site_dir(tmp_path, "cachecity")
+        monkeypatch.chdir(cwd)
+        monkeypatch.setattr(datasette_by_subdomain, "_datasette_cache", OrderedDict())
+
+        with patch("datasette.app.Datasette") as mock_datasette:
+            instances = []
+
+            def make_ds(*args, **kwargs):
+                ds = MagicMock()
+                ds.databases = {"meetings": MagicMock(name="db_conn")}
+                instances.append(ds)
+                return ds
+
+            mock_datasette.side_effect = make_ds
+
+            datasette_by_subdomain._get_datasette_app("cachecity", {})
+            stat = db_path.stat()
+            os.utime(db_path, (stat.st_atime + 10, stat.st_mtime + 10))
+            datasette_by_subdomain._get_datasette_app("cachecity", {})
+
+        assert mock_datasette.call_count == 2
+        instances[0].databases["meetings"].close.assert_called_once()
+
+    def test_eviction_closes_oldest_instance(self, tmp_path, monkeypatch):
+        cwd, _ = _make_site_dir(tmp_path, "cachecity")
+        monkeypatch.chdir(cwd)
+        cache = OrderedDict()
+        monkeypatch.setattr(datasette_by_subdomain, "_datasette_cache", cache)
+        monkeypatch.setattr(datasette_by_subdomain, "DATASETTE_CACHE_SIZE", 2)
+
+        with patch("datasette.app.Datasette") as mock_datasette:
+            closeables = []
+
+            def make_ds(*args, **kwargs):
+                ds = MagicMock()
+                closeable = MagicMock(name="db_conn")
+                ds.databases = {"meetings": closeable}
+                closeables.append(closeable)
+                return ds
+
+            mock_datasette.side_effect = make_ds
+
+            datasette_by_subdomain._get_datasette_app("a", {})
+            datasette_by_subdomain._get_datasette_app("b", {})
+            datasette_by_subdomain._get_datasette_app("c", {})
+
+        assert len(cache) == 2
+        assert "a" not in cache
+        closeables[0].close.assert_called_once()
+        closeables[1].close.assert_not_called()
+
+
 class TestQueryLengthProtection:
     """Tests for bot protection via query length limits."""
 
@@ -235,9 +360,12 @@ class TestQueryLengthProtection:
 @pytest.mark.asyncio
 async def test_bot_protection_blocks_long_queries():
     """Test that long text queries return 402."""
-    with patch(
-        "django_plugins.datasette_by_subdomain.sqlite_utils.Database"
-    ) as mock_sqlite:
+    with (
+        patch("django_plugins.datasette_by_subdomain.sqlite3.connect"),
+        patch(
+            "django_plugins.datasette_by_subdomain.sqlite_utils.Database"
+        ) as mock_sqlite,
+    ):
         mock_app = AsyncMock()
         long_text = "a" * 600
         mock_scope = {
@@ -283,9 +411,12 @@ async def test_bot_protection_blocks_long_queries():
 @pytest.mark.asyncio
 async def test_asgi_wrapper_missing_subdomain():
     """Test handling when subdomain doesn't exist - should redirect to civic.band."""
-    with patch(
-        "django_plugins.datasette_by_subdomain.sqlite_utils.Database"
-    ) as mock_sqlite:
+    with (
+        patch("django_plugins.datasette_by_subdomain.sqlite3.connect"),
+        patch(
+            "django_plugins.datasette_by_subdomain.sqlite_utils.Database"
+        ) as mock_sqlite,
+    ):
         # Setup mocks
         mock_app = AsyncMock()
         mock_scope = {
@@ -339,9 +470,12 @@ async def test_asgi_wrapper_missing_subdomain():
 @pytest.mark.asyncio
 async def test_asgi_wrapper_missing_subdomain_returns_none():
     """Test handling when subdomain lookup returns None (not exception)."""
-    with patch(
-        "django_plugins.datasette_by_subdomain.sqlite_utils.Database"
-    ) as mock_sqlite:
+    with (
+        patch("django_plugins.datasette_by_subdomain.sqlite3.connect"),
+        patch(
+            "django_plugins.datasette_by_subdomain.sqlite_utils.Database"
+        ) as mock_sqlite,
+    ):
         # Setup mocks
         mock_app = AsyncMock()
         mock_scope = {

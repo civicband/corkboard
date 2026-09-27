@@ -12,14 +12,32 @@ transforms:
       # host label (falls back to docker's host if the env var is unset)
       .host = get_env_var("HOSTNAME_OVERRIDE") ?? .host
 
+      # tag every line with the corkboard app and its compose service
+      .app = "corkboard"
+      .service = if exists(.labels."com.docker.compose.service") {
+        .labels."com.docker.compose.service"
+      } else {
+        "unknown"
+      }
+
       # if the container log line is JSON, parse it and lift its keys to the top
       parsed, err = parse_json(.message)
       if err == null && is_object(parsed) {
         obj = object!(parsed)
-        del(obj.timestamp)      # keep Docker's timestamp, not the app's string
+        # merge() overwrites existing keys with the app's, so the app's UTC ISO
+        # timestamp wins over docker's (docker's stays as a fallback)
         . = merge(., obj)
+        if .level != null {
+          .level = downcase!(string!(.level))
+        }
+        del(.asctime)
+        del(.levelname)
+      } else {
+        # plain-text lines (gunicorn/uvicorn bootstrap) still get tagged
+        .logger = "corkboard"
+        .level = "info"
       }
-
+      del(.levelname)
 
 sinks:
   victorialogs:

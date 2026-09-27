@@ -80,6 +80,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "config.middleware.RequestLogMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -262,9 +263,7 @@ _formatters = {
 
 if _json_logging_available:
     _formatters["json"] = {
-        "()": "pythonjsonlogger.json.JsonFormatter",
-        "format": "%(asctime)s %(name)s %(levelname)s %(message)s",
-        "timestamp": True,
+        "()": "config.logging.CorkboardJsonFormatter",
     }
 
 logging.config.dictConfig(
@@ -299,6 +298,46 @@ logging.config.dictConfig(
             },
             # Default runserver request logging
             "django.server": DEFAULT_LOGGING["loggers"]["django.server"],
+            # Structured access logs (from middleware and the Datasette wrapper)
+            "corkboard.access": {
+                "level": "INFO",
+                "handlers": ["console"],
+                "propagate": False,
+            },
+            # Datasette's own internal warnings/errors
+            "datasette": {
+                "level": "INFO",
+                "handlers": ["console"],
+                "propagate": False,
+            },
+            # ASGI server lifecycle messages (access logging is disabled in favour
+            # of the structured corkboard.access records above)
+            "uvicorn": {
+                "level": "INFO",
+                "handlers": ["console"],
+                "propagate": False,
+            },
+            "uvicorn.error": {
+                "level": "INFO",
+                "handlers": ["console"],
+                "propagate": False,
+            },
+            "uvicorn.access": {
+                "level": "INFO",
+                "handlers": [],
+                "propagate": False,
+            },
+            # WSGI server lifecycle messages (no access log configured)
+            "gunicorn.error": {
+                "level": "INFO",
+                "handlers": ["console"],
+                "propagate": False,
+            },
+            "gunicorn.access": {
+                "level": "WARNING",
+                "handlers": [],
+                "propagate": False,
+            },
         },
     }
 )

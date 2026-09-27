@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import sqlite3
+import time
 from collections import OrderedDict
 from urllib.parse import parse_qs
 
@@ -11,6 +12,7 @@ from jinja2 import Environment, FileSystemLoader
 from sqlite_utils.db import Database
 
 logger = logging.getLogger(__name__)
+access_logger = logging.getLogger("corkboard.access")
 
 # Bot protection: max length for text search queries
 MAX_QUERY_TEXT_LENGTH = int(os.getenv("MAX_QUERY_TEXT_LENGTH", "500"))
@@ -312,9 +314,19 @@ def _get_datasette_app(subdomain: str, metadata: dict):
     return ds_app
 
 
+def _scope_header(scope, name: str) -> str:
+    """Read a (case-insensitive) header out of an ASGI scope."""
+    target = name.lower().encode("utf-8")
+    for header, value in scope.get("headers", []):
+        if header.lower() == target:
+            return value.decode("utf-8", errors="replace")
+    return ""
+
+
 async def datasette_by_subdomain_wrapper(scope, receive, send, app):
     if scope["type"] == "http":
         headers = scope["headers"]
+        host = ""
         for header, value in headers:
             if header.decode("utf-8") == "host":
                 host = value.decode("utf-8")
@@ -323,141 +335,189 @@ async def datasette_by_subdomain_wrapper(scope, receive, send, app):
             await app(scope, receive, send)
             return  # Early return for localhost to avoid unnecessary processing
 
+        # Remember the full host for access logs before stripping the root domain
+        request_host = host
+
         for domain in ROOT_DOMAINS.split(","):
             if host.endswith(domain):
-                host: str = host.replace(domain, "")
+                host = host.replace(domain, "")
                 break
-        subdomain: str = host.rstrip(".")
+        subdomain = host.rstrip(".")
 
         # If no subdomain, fall back to Django app (main site)
         if not subdomain:
             await app(scope, receive, send)
             return
 
-        # TODO: no longer rely on this, so we can stop the re-gen churn
-        # Open sites.db read-only; a missing or unreadable file must not
-        # 500 the whole ASGI app - fall through to the redirect-home path.
-        site = None
-        try:
-            sites_conn = sqlite3.connect("file:sites.db?mode=ro", uri=True)
-            db: Database = sqlite_utils.Database(sites_conn)
-        except Exception:
-            logger.warning(
-                "Failed to open sites.db",
-                extra={"subdomain": subdomain, "host": host},
-            )
-        else:
-            try:
-                site = db["sites"].get(subdomain)
-            except Exception:
-                site = None
-            finally:
-                db.close()
+        await _dispatch_datasette_request(scope, receive, send, subdomain, request_host)
 
-        # Site not found - redirect to homepage
-        if site is None:
-            logger.warning(
-                "Site not found",
-                extra={"subdomain": subdomain, "host": host},
-            )
-            await send_redirect_to_home(send)
-            return
 
-        # Bot protection: block overly long text queries
-        query_string = scope.get("query_string", b"")
-        if is_query_too_long(query_string):
-            await send_402_response(send)
-            return
+async def _dispatch_datasette_request(scope, receive, send, subdomain, request_host):
+    """Serve a subdomain request and emit exactly one structured access record.
 
-        context_blob = {
-            "name": site["name"],
-            "state": site["state"],
-            "subdomain": site["subdomain"],
-            "last_updated": site["last_updated"],
-        }
+    A ``send`` wrapper captures the response status so every terminal path
+    (success, 404, 401/402, redirect-home) produces a ``corkboard.access`` record
+    with duration and request metadata.
+    """
+    ctx = {
+        "subdomain": subdomain,
+        "method": scope.get("method", "GET"),
+        "path": scope.get("path", ""),
+        "query_string": scope.get("query_string", b"").decode(
+            "utf-8", errors="replace"
+        ),
+        "request_host": request_host,
+        "client_ip": get_client_ip(scope),
+        "user_agent": _scope_header(scope, "user-agent"),
+        "referer": _scope_header(scope, "referer"),
+        "is_json_request": False,
+        "used_api_key": False,
+        "capped": False,
+        "trusted_source": False,
+    }
+    start = time.perf_counter()
 
-        # Tiered JSON access control:
-        # | Layer            | Condition                     | Action                    |
-        # |------------------|-------------------------------|---------------------------|
-        # | First-party      | Matching Referer              | Allow (full access)       |
-        # | Internal service | Valid X-Service-Secret        | Allow (full access)       |
-        # | Research tools   | UA contains Zotero/etc.       | Allow (full access)       |
-        # | Rate limit       | >15 req/min per IP            | 402                       |
-        # | API key          | Valid key                     | Allow (unlimited results) |
-        # | No API key       | Unauthenticated               | Allow (cap _size at 100)  |
-        path = scope.get("path", "")
-        should_cap_results = False
+    async def send_with_status(message):
+        if message["type"] == "http.response.start":
+            ctx["status_code"] = message.get("status", 0)
+        await send(message)
 
-        if is_json_endpoint(path):
-            # Layers 1-3: Trusted sources get full access without rate limiting
-            is_trusted_source = (
-                is_first_party_request(headers, subdomain)  # Layer 1: browser AJAX
-                or is_internal_service_request(headers)  # Layer 2: civic.observer
-                or is_research_tool_request(headers)  # Layer 3: Zotero, etc.
-            )
+    try:
+        await _run_datasette_request(scope, receive, send_with_status, ctx)
+    finally:
+        ctx.setdefault("status_code", 0)
+        ctx["duration_ms"] = round((time.perf_counter() - start) * 1000, 3)
+        access_logger.info("request completed", extra=ctx)
 
-            if not is_trusted_source:
-                # Layer 4: Rate limiting for all other JSON requests
-                client_ip = get_client_ip(scope)
-                if await check_rate_limit(client_ip):
-                    logger.warning(
-                        "Rate limit exceeded",
-                        extra={
-                            "subdomain": subdomain,
-                            "path": path,
-                            "client_ip": client_ip,
-                        },
-                    )
-                    await send_402_response(send, "rate_limit")
-                    return
 
-                # Layer 5: Check for API key
-                api_key = extract_api_key(headers, query_string)
+async def _run_datasette_request(scope, receive, send, ctx):
+    """Dispatch a subdomain request to the cached Datasette app.
 
-                if api_key:
-                    # Validate key against cache/civic.observer
-                    result = await validate_api_key(api_key, subdomain)
-                    if not result["valid"]:
-                        await send_401_response(send)
-                        return
-                    # Valid API key - full access, no capping
-                else:
-                    # Layer 6: No API key - allow but cap results
-                    should_cap_results = True
+    ``ctx`` carries access-log context and is updated as the request flows;
+    ``send`` is the status-capturing wrapper from ``_dispatch_datasette_request``.
+    """
+    subdomain = ctx["subdomain"]
+    path = scope.get("path", "")
 
-        # Cap result size for unauthenticated requests
-        if should_cap_results:
-            scope = dict(scope)  # Make a mutable copy
-            scope["query_string"] = cap_result_size(query_string)
-
-        metadata = json.loads(
-            JINJA_ENV.get_template("metadata.json").render(context=context_blob)
+    # TODO: no longer rely on this, so we can stop the re-gen churn
+    # Open sites.db read-only; a missing or unreadable file must not
+    # 500 the whole ASGI app - fall through to the redirect-home path.
+    site = None
+    try:
+        sites_conn = sqlite3.connect("file:sites.db?mode=ro", uri=True)
+        db: Database = sqlite_utils.Database(sites_conn)
+    except Exception:
+        logger.warning(
+            "Failed to open sites.db",
+            extra={"subdomain": subdomain, "host": ctx["request_host"]},
         )
-
-        ds = _get_datasette_app(subdomain, metadata)
-
-        # Import NotFound to catch 404s before they hit Datasette's
-        # exception handler (which calls rich.print_exception and fails)
-        from datasette.utils.asgi import NotFound  # noqa: PLC0415
-
+    else:
         try:
-            await ds(scope, receive, send)
-            logger.info(
-                "Request completed",
-                extra={
-                    "subdomain": subdomain,
-                    "path": path,
-                    "method": scope.get("method", "GET"),
-                },
-            )
-        except NotFound:
-            # Handle 404s ourselves to avoid rich.print_exception errors
-            logger.warning(
-                "Page not found",
-                extra={
-                    "subdomain": subdomain,
-                    "path": path,
-                    "method": scope.get("method", "GET"),
-                },
-            )
-            await send_404_response(send)
+            site = db["sites"].get(subdomain)
+        except Exception:
+            site = None
+        finally:
+            db.close()
+
+    # Site not found - redirect to homepage
+    if site is None:
+        logger.warning(
+            "Site not found",
+            extra={"subdomain": subdomain, "host": ctx["request_host"]},
+        )
+        await send_redirect_to_home(send)
+        return
+
+    # Bot protection: block overly long text queries
+    query_string = scope.get("query_string", b"")
+    if is_query_too_long(query_string):
+        await send_402_response(send)
+        return
+
+    context_blob = {
+        "name": site["name"],
+        "state": site["state"],
+        "subdomain": site["subdomain"],
+        "last_updated": site["last_updated"],
+    }
+
+    # Tiered JSON access control:
+    # | Layer            | Condition                     | Action                    |
+    # |------------------|-------------------------------|---------------------------|
+    # | First-party      | Matching Referer              | Allow (full access)       |
+    # | Internal service | Valid X-Service-Secret        | Allow (full access)       |
+    # | Research tools   | UA contains Zotero/etc.       | Allow (full access)       |
+    # | Rate limit       | >15 req/min per IP            | 402                       |
+    # | API key          | Valid key                     | Allow (unlimited results) |
+    # | No API key       | Unauthenticated               | Allow (cap _size at 100)  |
+    should_cap_results = False
+
+    if is_json_endpoint(path):
+        ctx["is_json_request"] = True
+        # Layers 1-3: Trusted sources get full access without rate limiting
+        is_trusted_source = (
+            is_first_party_request(scope["headers"], subdomain)  # Layer 1
+            or is_internal_service_request(scope["headers"])  # Layer 2
+            or is_research_tool_request(scope["headers"])  # Layer 3
+        )
+        ctx["trusted_source"] = is_trusted_source
+
+        if not is_trusted_source:
+            # Layer 4: Rate limiting for all other JSON requests
+            client_ip = get_client_ip(scope)
+            if await check_rate_limit(client_ip):
+                logger.warning(
+                    "Rate limit exceeded",
+                    extra={
+                        "subdomain": subdomain,
+                        "path": path,
+                        "client_ip": client_ip,
+                    },
+                )
+                await send_402_response(send, "rate_limit")
+                return
+
+            # Layer 5: Check for API key
+            api_key = extract_api_key(scope["headers"], query_string)
+
+            if api_key:
+                # Validate key against cache/civic.observer
+                result = await validate_api_key(api_key, subdomain)
+                if not result["valid"]:
+                    await send_401_response(send)
+                    return
+                # Valid API key - full access, no capping
+                ctx["used_api_key"] = True
+            else:
+                # Layer 6: No API key - allow but cap results
+                should_cap_results = True
+
+    # Cap result size for unauthenticated requests
+    if should_cap_results:
+        ctx["capped"] = True
+        scope = dict(scope)  # Make a mutable copy
+        scope["query_string"] = cap_result_size(query_string)
+
+    metadata = json.loads(
+        JINJA_ENV.get_template("metadata.json").render(context=context_blob)
+    )
+
+    ds = _get_datasette_app(subdomain, metadata)
+
+    # Import NotFound to catch 404s before they hit Datasette's
+    # exception handler (which calls rich.print_exception and fails)
+    from datasette.utils.asgi import NotFound  # noqa: PLC0415
+
+    try:
+        await ds(scope, receive, send)
+    except NotFound:
+        # Handle 404s ourselves to avoid rich.print_exception errors
+        logger.warning(
+            "Page not found",
+            extra={
+                "subdomain": subdomain,
+                "path": path,
+                "method": scope.get("method", "GET"),
+            },
+        )
+        await send_404_response(send)

@@ -115,8 +115,12 @@ async def test_asgi_wrapper_fully_mocked():
         # Mock datasette
         mock_ds_instance = MagicMock()
         mock_datasette.return_value = mock_ds_instance
-        mock_ds_app = AsyncMock()
-        mock_ds_instance.app.return_value = mock_ds_app
+
+        async def fake_ds(ds_scope, ds_receive, ds_send):
+            await ds_send({"type": "http.response.start", "status": 200, "headers": []})
+            await ds_send({"type": "http.response.body", "body": b""})
+
+        mock_ds_instance.app.return_value = fake_ds
 
         # Run the wrapper
         wrapper = datasette_by_subdomain.wrap(mock_app)
@@ -130,8 +134,13 @@ async def test_asgi_wrapper_fully_mocked():
         # Verify datasette was initialized correctly
         mock_datasette.assert_called_once()
 
-        # Verify datasette app was called with the correct scope
-        mock_ds_app.assert_called_once_with(mock_scope, mock_receive, mock_send)
+        # Verify datasette app was called with the request and that its
+        # response messages flow through to the original send wrapper
+        assert mock_ds_instance.app.call_count == 1
+        assert mock_send.call_count == 2
+        start_message = mock_send.call_args_list[0][0][0]
+        assert start_message["type"] == "http.response.start"
+        assert start_message["status"] == 200
 
         # Verify original app was not called
         mock_app.assert_not_called()

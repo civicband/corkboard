@@ -50,7 +50,7 @@
 
 {% if searchable_tables %}
     <div class="search-section">
-        <form action="{{ urls.path("/-/search") }}" method="get" class="search-form">
+        <form action="{{ urls.path("/-/search") }}" method="post" class="search-form">
             <div class="search-input-group">
                 <input type="search" name="q" value="{{ q }}" placeholder="Search agendas and minutes..." id="search-all-q" class="search-input">
                 <button type="submit" class="search-button" data-umami-event="muni_search">

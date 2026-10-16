@@ -21,7 +21,6 @@ dependencies = [
     "datasette>=1.0a38,<2.0",
     "datasette-template-sql>=1.0.2",
     "datasette-dashboards>=0.1.0",
-    "datasette-search-all==1.1.5a0",
     "python-json-logger>=2.0.0",
     "datasette-updated>=0.2.0",
     "djp>=0.0.6",

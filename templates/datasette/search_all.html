@@ -2,6 +2,9 @@
 {% block title %}{{ site_title }}: Search{% if q %}: {{ q }}{% else %} all tables{% endif %}{% endblock %}
 
 {% block extra_head %}
+{% if results and results|selectattr("document_type")|list %}
+<link rel="stylesheet" href="{{ urls.static_plugins('corkboard', 'page-card.css') }}">
+{% endif %}
 <style type="text/css">
 /* Modern search page styling consistent with site design */
 
@@ -158,41 +161,6 @@
 
 .search-row input[type="submit"]:active {
     transform: translateY(0);
-}
-
-/* Loading animations */
-.search-all-loading {
-    background: #f8f9fa;
-    border: 1px solid #e9ecef;
-    border-radius: 6px;
-    padding: 1rem;
-    margin-bottom: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.search-all-loading:before {
-    content: " ";
-    display: inline-block;
-    width: 1rem;
-    height: 1rem;
-    border-radius: 50%;
-    border: 2px solid #007bff;
-    border-color: #007bff transparent #007bff transparent;
-    animation: rotate-360 1.2s linear infinite;
-    flex-shrink: 0;
-}
-
-@keyframes rotate-360 {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.search-all-loading p {
-    margin: 0;
-    color: #6c757d;
-    font-size: 0.9rem;
 }
 
 /* Search result sections */
@@ -406,7 +374,7 @@
         </div>
     {% else %}
         <div class="search-form-section">
-            <form class="filters" action="{{ urls.path("/-/search") }}" method="get">
+            <form class="filters" action="{{ urls.path("/-/search") }}" method="post">
                 <div class="search-row">
                     <label for="search-all-q">Search:</label>
                     <div class="search-input-container">
@@ -418,221 +386,85 @@
         </div>
     {% endif %}
 
-    <div id="search-all-results">
-    {% if q and searchable_tables %}
-        <div style="display: none;">
-        {% for searchable_table in searchable_tables %}
-            <div data-searchable-url="{{ searchable_table.url }}" class="search-all-loading">
-                <p>Searching {{ searchable_table.database }}: {{ searchable_table.table }}...</p>
+    {% for result in results %}
+        {% if result.error %}
+            <div class="no-results">
+                <p>Error searching {{ result.database }}: {{ result.table }}</p>
             </div>
-        {% endfor %}
-        </div>
-    {% endif %}
-    </div>
-    <div id="search-all-no-results"></div>
-
-</div> <!-- Close page-container -->
-
-<script>
-var NUM_RESULTS = 5;
-var searchable_tables = {{ searchable_tables_json|safe }};
-var q = document.getElementById("search-all-q");
-var search_results = document.getElementById("search-all-results");
-var search_no_results = document.getElementById("search-all-no-results");
-
-function isUrl(s) {
-  let url;
-  try {
-    url = new URL(s);
-  } catch (_) {
-    return false;
-  }
-  return url.protocol === "http:" || url.protocol === "https:";
-}
-
-
-function htmlEscape(html) {
-  return html.replace(
-    /&/g, '&amp;'
-  ).replace(
-    />/g, '&gt;'
-  ).replace(
-    /</g, '&lt;'
-  ).replace(
-    /"/g, '&quot;'
-  ).replace(
-    /'/g, '&#039;'
-  );
-}
-
-class Safe extends String {}
-
-function safe(s) {
-  if (!(s instanceof Safe)) {
-    return new Safe(s);
-  } else {
-    return s;
-  }
-}
-
-var autoescape = (fragments, ...inserts) => safe(fragments.map(
-  (fragment, i) => {
-    var insert = (inserts[i] || '');
-    if (!(insert instanceof Safe)) {
-      insert = htmlEscape(insert.toString());
-    }
-    return fragment + insert;
-  }
-).join(''));
-
-function displayCell(cell, columnName, row, database, table) {
-    // cell is either a value or a {"value:", "label": } object
-    let value;
-    if (cell && typeof(cell.label) !== "undefined") {
-        value = cell.label || cell.value;
-    } else {
-        value = cell;
-    }
-
-    // Handle null/undefined values
-    if (value === null || value === undefined) {
-        return safe('<em class="null">null</em>');
-    }
-
-    // Handle special column linking for id and date
-    if (columnName && columnName.toLowerCase() === 'id' && value) {
-        // Link to the specific page/row by ID
-        var idUrl = `/${database}/${table}/${encodeURIComponent(value)}`;
-        return safe(`<a href="${idUrl}">${htmlEscape(value)}</a>`);
-    }
-
-    if (columnName && columnName.toLowerCase() === 'date' && value) {
-        // Link to query page filtered by meeting and date, ordered by page asc
-        var queryUrl = `/${database}/${table}?`;
-
-        // Try different possible field names for the meeting/body identifier
-        var meetingField = row.meeting || row.body || row.title;
-        if (meetingField) {
-            queryUrl += `meeting__exact=${encodeURIComponent(meetingField)}&date__exact=${encodeURIComponent(value)}&_sort=page`;
-        } else {
-            queryUrl += `date__exact=${encodeURIComponent(value)}&_sort=page`;
-        }
-
-        return safe(`<a href="${queryUrl}">${htmlEscape(value)}</a>`);
-    }
-
-    // Handle URLs
-    if (isUrl(value)) {
-        return safe(`<a href="${htmlEscape(value)}" target="_blank">${htmlEscape(value)}</a>`);
-    }
-
-    // Handle images
-    if (typeof(value) == "string" && value.endsWith('.png')){
-        var subdomain = window.location.hostname.split('.')[0];
-        return safe(`<img src="https://cdn.civic.band/{{subdomain}}${value}?width=600" style="max-width: 600px; height: auto;">`);
-    }
-
-    // Handle numbers - format them nicely
-    if (typeof(value) === 'number') {
-        if (columnName && columnName.toLowerCase().includes('date')) {
-            // If it's a date column, treat as timestamp
-            return new Date(value * 1000).toLocaleDateString();
-        }
-        return Number(value).toLocaleString();
-    }
-
-    // Handle dates in string format
-    if (typeof(value) === 'string' && value.match(/^\d{4}-\d{2}-\d{2}/)) {
-        return value.split('T')[0]; // Just show the date part
-    }
-
-    // Truncate very long text
-    if (typeof(value) === 'string' && value.length > 100) {
-        return htmlEscape(value.substring(0, 100) + '...');
-    }
-
-    return htmlEscape(value);
-}
-
-function displayResults(data, base_url) {
-    var rows = data.rows;
-    var database = data.database;
-    var table = data.table;
-    var columns = [];
-    if (data.rows.length) {
-        columns = Object.keys(data.rows[0]);
-    }
-    var count = data.filtered_table_rows_count || data.count;
-
-    // Generate datasette-style table headers with proper CSS classes
-    var ths = safe(columns.map(c => autoescape`<th class="col-${c}" scope="col" data-column="${c}">${c}</th>`).join(""));
-
-    // Generate table rows with proper datasette CSS classes
-    var tr_rows = safe(rows.map(row => autoescape`<tr>${safe(columns.map(column => {
-        var cellValue = displayCell(row[column], column, row, database, table);
-        var cellClass = `col-${column.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
-        return autoescape`<td class="${cellClass}">${cellValue}</td>`;
-    }).join(""))}</tr>`).join(""));
-
-    var view_more = '';
-    var search_url = `${base_url}?_search=${encodeURIComponent(q.value)}`;
-    if (count > NUM_RESULTS) {
-        var more_count = count - NUM_RESULTS;
-        view_more = autoescape`<p><a href="${search_url}">${Number(more_count).toLocaleString()} more result${more_count == 1 ? '' : 's'}</a></p>`;
-    }
-
-    var html, div;
-    if (count) {
-        // Use datasette-style markup and CSS classes
-        html = autoescape`
+        {% elif result.count %}
             <div class="search-result-section">
-                <h3><a href="${search_url}">${Number(count).toLocaleString()} result${count == 1 ? '' : 's'}</a> in ${database}: ${table}</h3>
-                <div class="table-wrapper">
-                    <table class="rows-and-columns">
-                        <thead>
-                            <tr>${ths}</tr>
-                        </thead>
-                        <tbody>
-                            ${tr_rows}
-                        </tbody>
-                    </table>
-                </div>
-                ${view_more}
+                <h3><a href="{{ result.search_url }}">{{ "{:,}".format(result.count) }} result{% if result.count != 1 %}s{% endif %}</a> in {{ result.database }}: {{ result.table }}</h3>
+                {% if result.document_type %}
+                    <div class="page-cards">
+                        {% for row in result.rows %}
+                            {% with row=row, database=result.database, table=result.table, document_type=result.document_type %}
+                                {% include "_page_card.html" %}
+                            {% endwith %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="table-wrapper">
+                        <table class="rows-and-columns">
+                            <thead>
+                                <tr>
+                                    {% for column in result.columns %}
+                                        <th class="col-{{ column }}" scope="col" data-column="{{ column }}">{{ column }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in result.rows %}
+                                    <tr>
+                                        {% for cell in row %}
+                                            <td class="col-{{ cell.column }}">{{ cell.value }}</td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+                {% if result.has_more %}
+                    <p><a href="{{ result.search_url }}">{{ "{:,}".format(result.more_count) }} more result{% if result.more_count != 1 %}s{% endif %}</a></p>
+                {% endif %}
             </div>
-        `;
-        div = document.createElement('div');
-        div.innerHTML = html;
-        search_results.appendChild(div);
-    } else {
-        search_no_results.innerHTML += autoescape`
-            <p class="no-results">No results in <a href="${base_url}">${database}: ${table}</a></p>
-        `;
-    }
-}
+        {% else %}
+            <p class="no-results">No results in <a href="{{ result.search_url }}">{{ result.database }}: {{ result.table }}</a></p>
+        {% endif %}
+    {% endfor %}
 
-if (q.value) {
-    // Show loading indicators
-    document.querySelector('#search-all-results > div').style.display = 'block';
+    {% if results and results|selectattr("document_type")|list %}
+    <div class="card-lightbox-overlay" id="card-lightbox">
+        <img src="" alt="Expanded page image">
+    </div>
+    <script>
+    (function() {
+        var lightbox = document.getElementById('card-lightbox');
+        var lightboxImg = lightbox.querySelector('img');
 
-    searchable_tables.forEach(item => {
-        var base_url = item.url;
-        var loadingEl = document.querySelector(`[data-searchable-url="${base_url}"]`);
-        var json_url = `${item.url_json}?_shape=objects&_labels=on&_extra=count&_extra=database&_extra=table&_size=${NUM_RESULTS}&_search=${encodeURIComponent(q.value)}`;
+        // Open lightbox when clicking a thumbnail
+        document.querySelectorAll('.card-image img').forEach(function(img) {
+            img.addEventListener('click', function() {
+                lightboxImg.src = this.src;
+                lightboxImg.alt = this.alt || 'Page image';
+                lightbox.classList.add('active');
+            });
+        });
 
-        fetch(json_url).then(r => r.json()).then((data) => {
-            if (loadingEl) {
-                loadingEl.style.display = 'none';
-            }
-            displayResults(data, base_url);
-        }).catch((error) => {
-            console.error('Search error:', error);
-            if (loadingEl) {
-                loadingEl.innerHTML = `<p class="no-results">Error searching ${item.database}: ${item.table}</p>`;
+        // Close on overlay click
+        lightbox.addEventListener('click', function() {
+            lightbox.classList.remove('active');
+        });
+
+        // Close on Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                lightbox.classList.remove('active');
             }
         });
-    });
-}
-</script>
+    })();
+    </script>
+    {% endif %}
 
-
+</div> <!-- Close page-container -->
 {% endblock %}

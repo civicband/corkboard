@@ -27,6 +27,7 @@ bots:
   # Allow common "keeping the internet working" routes (well-known, favicon, robots.txt)
   - import: (data)/common/keep-internet-working.yaml
   - import: (data)/common/rfc-violations.yaml
+  - import: (data)/common/domain-fronting.yaml
 
   # Search engine crawlers to allow, defaults to:
   #   - Google (so they don't try to bypass Anubis)
@@ -60,6 +61,7 @@ bots:
         - BR
         - CN
         - SG
+        - JP
     weight:
       adjust: 10
 
@@ -82,6 +84,13 @@ bots:
     action: WEIGH
     weight:
       adjust: 10
+
+  - name: linux
+    user_agent_regex: >-
+      Linux
+    action: WEIGH
+    weight:
+      adjust: 5
 
 dnsbl: false
 
@@ -131,11 +140,11 @@ thresholds:
     action: CHALLENGE
     challenge:
       algorithm: fast
-      difficulty: 2
+      difficulty: 4
 
   - name: extreme-suspicion
     expression: weight >= 20
     action: CHALLENGE
     challenge:
       algorithm: slow
-      difficulty: 7
+      difficulty: 10

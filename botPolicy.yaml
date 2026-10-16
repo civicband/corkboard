@@ -42,6 +42,11 @@ bots:
 
   - import: (data)/services/uptime-robot.yaml
 
+  - name: keenable-bot
+    user_agent_regex: >-
+      KeenableBot
+    action: DENY
+
   # # Punish any bot with "bot" in the user-agent string
   # # This is known to have a high false-positive rate, use at your own risk
   # - name: generic-bot-catchall

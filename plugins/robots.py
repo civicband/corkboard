@@ -38,6 +38,7 @@ async def robots_txt(datasette, request):
         "User-agent: Meta-ExternalAgent",
         "User-agent: Ai2Bot",
         "User-agent: Ai2Bot-Dolma",
+        "User-agent: KeenableBot",
     ]
     for user_agent in user_agents_to_block:
         lines += [user_agent]

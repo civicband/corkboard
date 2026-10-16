@@ -11,6 +11,7 @@
 ## /usr/share/docs/anubis/data or in the tarball you extracted Anubis from.
 
 bots:
+  - import: (data)/apps/searx-checker.yml
   # Pathological bots to deny
   - # This correlates to data/bots/deny-pathological.yaml in the source tree
     # https://github.com/TecharoHQ/anubis/blob/main/data/bots/deny-pathological.yaml
@@ -19,6 +20,15 @@ bots:
 
   # Enforce https://github.com/ai-robots-txt/ai.robots.txt
   - import: (data)/bots/ai-robots-txt.yaml
+
+  - import: (data)/clients/telegram-preview.yaml
+  - import: (data)/clients/x-firefox-ai.yaml
+
+  - import: (data)/common/acts-like-browser.yaml
+  - import: (data)/common/domain-fronting.yaml
+  # Allow common "keeping the internet working" routes (well-known, favicon, robots.txt)
+  - import: (data)/common/keep-internet-working.yaml
+  - import: (data)/common/rfc-violations.yaml
 
   # Search engine crawlers to allow, defaults to:
   #   - Google (so they don't try to bypass Anubis)
@@ -30,9 +40,11 @@ bots:
   #   - Marginalia
   #   - Mojeek
   - import: (data)/crawlers/_allow-good.yaml
+  - import: (data)/crawlers/xai.yaml
 
-  # Allow common "keeping the internet working" routes (well-known, favicon, robots.txt)
-  - import: (data)/common/keep-internet-working.yaml
+
+  - import: (data)/services/updown.yaml
+  - import: (data)/services/uptime-robot.yaml
 
   # # Punish any bot with "bot" in the user-agent string
   # # This is known to have a high false-positive rate, use at your own risk
@@ -52,6 +64,11 @@ bots:
 
 dnsbl: false
 
+openGraph:
+  enabled: true
+  considerHost: true
+  ttl: 12h
+
 # By default, send HTTP 200 back to clients that either get issued a challenge
 # or a denial. This seems weird, but this is load-bearing due to the fact that
 # the most aggressive scraper bots seem to really, really, want an HTTP 200 and
@@ -59,3 +76,7 @@ dnsbl: false
 status_codes:
   CHALLENGE: 200
   DENY: 200
+
+metrics:
+  bind: ":9090"
+  network: "tcp"

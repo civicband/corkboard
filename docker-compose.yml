@@ -4,9 +4,7 @@ services:
     environment:
       BIND: ":8000"
       DIFFICULTY: "3"
-      METRICS_BIND: ":9010"
       TARGET: "http://django_blue:8000"
-      OG_PASSTHROUGH: "true"
       USE_REMOTE_ADDRESS: "true"
     ports:
       - 8000:8000
@@ -40,9 +38,7 @@ services:
     environment:
       BIND: ":8001"
       DIFFICULTY: "3"
-      METRICS_BIND: ":9020"
       TARGET: "http://django_green:8000"
-      OG_PASSTHROUGH: "true"
       USE_REMOTE_ADDRESS: "true"
     ports:
       - 8001:8001

@@ -151,28 +151,6 @@ async def search_table(datasette, database, table, query):
     return result
 
 
-async def _track_search(datasette, request, query, total_results, table_count):
-    """Emit the server-side Umami search event, never letting it break search."""
-    try:
-        from plugins.civic_analytics import track_search
-    except ImportError:
-        logger.warning("civic_analytics unavailable; skipping search analytics")
-        return
-    try:
-        await track_search(
-            datasette,
-            request,
-            query,
-            search_type="search_all",
-            extra_data={
-                "result_count": total_results,
-                "tables_searched": table_count,
-            },
-        )
-    except Exception:
-        logger.exception("Failed to track search-all analytics event")
-
-
 async def search_all(datasette, request):
     query = ""
     if request.method == "POST":
@@ -186,7 +164,25 @@ async def search_all(datasette, request):
         for database, table in searchable_tables:
             results.append(await search_table(datasette, database, table, query))
         total = sum(result["count"] for result in results)
-        await _track_search(datasette, request, query, total, len(searchable_tables))
+        # Emit a server-side search event. Imported lazily so this plugin still
+        # loads without civic_analytics, and never let analytics break search.
+        try:
+            from plugins.civic_analytics import track_search
+
+            await track_search(
+                datasette,
+                request,
+                query,
+                search_type="search_all",
+                extra_data={
+                    "result_count": total,
+                    "tables_searched": len(searchable_tables),
+                },
+            )
+        except ImportError:
+            logger.warning("civic_analytics unavailable; skipping search analytics")
+        except Exception:
+            logger.exception("Failed to track search-all analytics event")
 
     return Response.html(
         await datasette.render_template(

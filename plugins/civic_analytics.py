@@ -308,6 +308,59 @@ def get_accept_language(headers: Dict[str, str]) -> str:
     return primary if primary else "en-US"
 
 
+async def _emit_search_event(
+    subdomain: str,
+    headers: Dict[str, str],
+    scope: Dict,
+    path: str,
+    query_text: str,
+    database: Optional[str] = None,
+    table: Optional[str] = None,
+    search_type: str = "full_text_search",
+    extra_data: Optional[Dict] = None,
+):
+    """Build a ``search_query`` event and send it to Umami.
+
+    This is the single place where full-text search events are constructed,
+    shared by the ASGI wrapper (which sees searches expressed as query-string
+    parameters) and :func:`track_search` (used by endpoints that run the search
+    themselves, such as the POST-only search-all page).
+    """
+    if not subdomain:
+        return
+
+    client_ip = get_client_ip(headers, scope)
+    user_agent = get_user_agent(headers)
+    language = get_accept_language(headers)
+
+    event_data = {
+        "subdomain": subdomain,
+        "timestamp": int(time.time() * 1000),
+        "client_ip": client_ip if client_ip != "unknown" else None,
+        "user_language": language,
+        "query_text": query_text[:500],
+        "query_length": len(query_text),
+        "search_type": search_type,
+        "database": database,
+        "table": table,
+    }
+    if extra_data:
+        event_data.update(extra_data)
+
+    tracker = UmamiEventTracker(UMAMI_URL, UMAMI_WEBSITE_ID)
+    await tracker.track_event(
+        event_name="search_query",
+        url=path,
+        title=f"Search Query - {subdomain}",
+        referrer=headers.get("referer"),
+        hostname=f"{subdomain}.civic.band",
+        event_data=event_data,
+        client_ip=client_ip,
+        user_agent=user_agent,
+        language=language,
+    )
+
+
 async def track_search(
     datasette,
     request,
@@ -332,36 +385,16 @@ async def track_search(
     if not subdomain:
         return
 
-    headers = request.headers
-    client_ip = get_client_ip(headers, request.scope)
-    user_agent = get_user_agent(headers)
-    language = get_accept_language(headers)
-
-    event_data = {
-        "subdomain": subdomain,
-        "timestamp": int(time.time() * 1000),
-        "client_ip": client_ip if client_ip != "unknown" else None,
-        "user_language": language,
-        "query_text": query_text[:500],
-        "query_length": len(query_text),
-        "search_type": search_type,
-        "database": database,
-        "table": table,
-    }
-    if extra_data:
-        event_data.update(extra_data)
-
-    tracker = UmamiEventTracker(UMAMI_URL, UMAMI_WEBSITE_ID)
-    await tracker.track_event(
-        event_name="search_query",
-        url=request.path,
-        title=f"Search Query - {subdomain}",
-        referrer=headers.get("referer"),
-        hostname=f"{subdomain}.civic.band",
-        event_data=event_data,
-        client_ip=client_ip,
-        user_agent=user_agent,
-        language=language,
+    await _emit_search_event(
+        subdomain,
+        request.headers,
+        request.scope,
+        request.path,
+        query_text,
+        database=database,
+        table=table,
+        search_type=search_type,
+        extra_data=extra_data,
     )
 
 
@@ -400,6 +433,38 @@ def asgi_wrapper(datasette):
             user_agent = get_user_agent(headers)
             language = get_accept_language(headers)
 
+            # Detect and track full-text search events. The event is built by
+            # ``_emit_search_event`` so this path and server-side callers
+            # (``track_search``) share a single implementation.
+            if "_search" in query_params and query_params["_search"]:
+                search_term = query_params["_search"][0]
+                path_info = parse_datasette_path(path)
+
+                # Add filter information if present
+                extra_data = {}
+                if "_where" in query_params:
+                    extra_data["has_where_filter"] = True
+                if "_sort" in query_params:
+                    extra_data["sort_column"] = query_params["_sort"][0]
+                if "_facet" in query_params:
+                    extra_data["facets"] = ",".join(query_params["_facet"])
+
+                await _emit_search_event(
+                    subdomain,
+                    headers,
+                    scope,
+                    path,
+                    search_term,
+                    database=path_info.get("database"),
+                    table=path_info.get("table"),
+                    search_type="full_text_search",
+                    extra_data=extra_data,
+                )
+
+                # Continue with the normal request handling
+                await app(scope, receive, send)
+                return
+
             # Prepare event tracking data
             event_name = None
             event_data = {
@@ -409,32 +474,8 @@ def asgi_wrapper(datasette):
                 "user_language": language,
             }
 
-            # Detect and track full-text search events
-            if "_search" in query_params and query_params["_search"]:
-                event_name = "search_query"
-                search_term = query_params["_search"][0]
-                path_info = parse_datasette_path(path)
-
-                event_data.update(
-                    {
-                        "query_text": search_term[:500],
-                        "query_length": len(search_term),
-                        "search_type": "full_text_search",
-                        "database": path_info.get("database"),
-                        "table": path_info.get("table"),
-                    }
-                )
-
-                # Add filter information if present
-                if "_where" in query_params:
-                    event_data["has_where_filter"] = True
-                if "_sort" in query_params:
-                    event_data["sort_column"] = query_params["_sort"][0]
-                if "_facet" in query_params:
-                    event_data["facets"] = ",".join(query_params["_facet"])
-
             # Detect and track SQL query events
-            elif "sql" in query_params and query_params["sql"]:
+            if "sql" in query_params and query_params["sql"]:
                 sql_text = query_params["sql"][0]
 
                 # Check deduplication cache

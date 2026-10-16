@@ -181,3 +181,5 @@ analytics/summary_*.json
 .worktrees/umami.dump
 
 .claude
+
+*.mmdb

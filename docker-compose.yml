@@ -10,6 +10,8 @@ services:
       - 8000:8000
     volumes:
       - "./botPolicy.yaml:/data/cfg/botPolicy.yaml:ro"
+      - "./GeoLite2-ASN.mmdb:/var/lib/GeoIP/GeoLite2-ASN.mmdb"
+      - "./GeoLite2-Country.mmdb:/var/lib/GeoIP/GeoLite2-Country.mmdb"
   django_blue:
     image: corkboard:${VERSION:-latest}
     # Code is baked into the image - no local build or volume mount
@@ -44,6 +46,8 @@ services:
       - 8001:8001
     volumes:
       - "./botPolicy.yaml:/data/cfg/botPolicy.yaml:ro"
+      - "./GeoLite2-ASN.mmdb:/var/lib/GeoIP/GeoLite2-ASN.mmdb"
+      - "./GeoLite2-Country.mmdb:/var/lib/GeoIP/GeoLite2-Country.mmdb"
   django_green:
     image: corkboard:${VERSION:-latest}
     # Code is baked into the image - no local build or volume mount

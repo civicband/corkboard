@@ -1,6 +1,6 @@
 {
   "title": "{{ context.name }} Civic Data",
-  "description_html": "A fully-searchable database of {{ context.name }}, {{ context.state }} civic meeting minutes and agendas. Last processed: {{ context.last_updated }}. See the full list at <a href=\"https://civic.band\">Civic Band</a>.",
+  "description_html": "A fully-searchable database of {{ context.name }}, {{ context.state }} civic meeting minutes and agendas. Last processed: {{ context.last_updated }}. See the full list at <a href=\"https://civic.band\">CivicBand</a>.",
   "about_url": "https://civic.band/",
   "name": "{{ context.name }}",
   "plugins": {
@@ -8,7 +8,7 @@
       "subdomain": "{{ context.subdomain }}",
       "site_title": "{{ context.name }} Civic Data",
       "site_name": "{{ context.name }}",
-      "site_description_html": "A fully-searchable database of {{ context.name }}, {{ context.state }} civic meeting minutes and agendas. Last processed: {{ context.last_updated }}. See the full list at <a href=\"https://civic.band\">Civic Band</a>."
+      "site_description_html": "A fully-searchable database of {{ context.name }}, {{ context.state }} civic meeting minutes and agendas. Last processed: {{ context.last_updated }}. See the full list at <a href=\"https://civic.band\">CivicBand</a>."
     },
     "datasette-updated": {
       "updated": "{{ context.last_updated }}",

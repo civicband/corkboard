@@ -12,6 +12,7 @@ USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
 
 ALLOWED_HOSTS = [
+    "localhost",
     "civic.band",
     "*.civic.band",
     "adversely-star-koala.edgecompute.app",

@@ -25,9 +25,10 @@ bots:
   - import: (data)/clients/x-firefox-ai.yaml
 
   # Allow common "keeping the internet working" routes (well-known, favicon, robots.txt)
+  - import: (data)/common/acts-like-browser.yaml
+  - import: (data)/common/domain-fronting.yaml
   - import: (data)/common/keep-internet-working.yaml
   - import: (data)/common/rfc-violations.yaml
-  - import: (data)/common/domain-fronting.yaml
 
   # Search engine crawlers to allow, defaults to:
   #   - Google (so they don't try to bypass Anubis)
@@ -39,23 +40,12 @@ bots:
   #   - Marginalia
   #   - Mojeek
   - import: (data)/crawlers/_allow-good.yaml
-
   - import: (data)/services/uptime-robot.yaml
 
   - name: keenable-bot
     user_agent_regex: >-
       KeenableBot
     action: DENY
-
-  # # Punish any bot with "bot" in the user-agent string
-  # # This is known to have a high false-positive rate, use at your own risk
-  # - name: generic-bot-catchall
-  #   user_agent_regex: (?i:bot|crawler)
-  #   action: CHALLENGE
-  #   challenge:
-  #     difficulty: 16  # impossible
-  #     report_as: 4    # lie to the operator
-  #     algorithm: slow # intentionally waste CPU cycles and time
 
   # Requires GeoIP configuration, see:
   # https://anubis.techaro.lol/docs/admin/geoip

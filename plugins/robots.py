@@ -8,40 +8,171 @@ async def robots_txt(datasette, request):
         if database_name != "_internal":
             disallow.append(datasette.urls.database(database_name))
     lines = []
-    user_agents_to_block = [
-        "User-agent: Google-Extended",
-        "User-agent: GPTBot",
-        "User-agent: Applebot",
-        "User-agent: Applebot-Extended",
-        "User-Agent: ChatGPT-User",
-        "User-Agent: CCBot",
-        "User-agent: PerplexityBot",
-        "User-agent: anthropic-ai",
-        "User-agent: Claude-Web",
-        "User-agent: ClaudeBot",
-        "User-agent: Amazonbot",
-        "User-Agent: FacebookBot",
-        "User-agent: Omgilibot",
-        "User-agent: Omgili",
-        "User-agent: Diffbot",
-        "User-agent: Bytespider",
-        "User-agent: ImagesiftBot",
-        "User-agent: cohere-ai",
-        "User-agent: SplitSignalBot",
-        "User-agent: SemrushBot",
-        "User-agent: SemrushBot-OCOB",
-        "User-agent: SemrushBot-FT",
-        "User-agent: SemrushBot-SWA",
-        "User-agent: Meta-ExternalFetcher",
-        "User-agent: OAI-SearchBot",
-        "User-agent: YouBot",
-        "User-agent: Meta-ExternalAgent",
-        "User-agent: Ai2Bot",
-        "User-agent: Ai2Bot-Dolma",
-        "User-agent: KeenableBot",
+    user_agents = [
+        "AddSearchBot,"
+        "AgentTimes,"
+        "AI2Bot-DeepResearchEval,"
+        "Ai2Bot-Dolma,"
+        "AI2Bot,"
+        "aiHitBot,"
+        "AIWebIndex,"
+        "amazon-kendra,"
+        "amazon-QBusiness,"
+        "Amazonbot,"
+        "AmazonBuyForMe,"
+        "Amzn-SearchBot,"
+        "Amzn-User,"
+        "Andibot,"
+        "Anomura,"
+        "anthropic-ai,"
+        "ApifyBot,"
+        "ApifyWebsiteContentCrawler,"
+        "Applebot-Extended,"
+        "Applebot,"
+        "Aranet-SearchBot,"
+        "atlassian-bot,"
+        "Awario,"
+        "AzureAI-SearchBot,"
+        "bedrockbot,"
+        "bigsur.ai,"
+        "Bravebot,"
+        "Brightbot 1.0,"
+        "Brightbot,"
+        "BuddyBot,"
+        "Bytespider,"
+        "Channel3Bot,"
+        "ChatGLM-Spider,"
+        "ChatGPT Agent,"
+        "Claude-Code,"
+        "Claude-SearchBot,"
+        "Claude-Web,"
+        "ClaudeBot,"
+        "Cloudflare-AutoRAG,"
+        "CloudVertexBot,"
+        "Code,"
+        "cohere-ai,"
+        "cohere-training-data-crawler,"
+        "Cotoyogi,"
+        "CragCrawler,"
+        "Crawl4AI,"
+        "Crawlspace,"
+        "Cursor,"
+        "Datenbank Crawler,"
+        "DeepSeekBot,"
+        "Devin,"
+        "Diffbot,"
+        "DuckAssistBot,"
+        "Echobot Bot,"
+        "EchoboxBot,"
+        "ExaBot,"
+        "FacebookBot,"
+        "facebookexternalhit,"
+        "Factset_spyderbot,"
+        "FirecrawlAgent,"
+        "FriendlyCrawler,"
+        "GeistHaus-PageFetcher,"
+        "Gemini-Deep-Research,"
+        "Google-Agent,"
+        "Google-CloudVertexBot,"
+        "Google-Extended,"
+        "Google-Firebase,"
+        "Google-Gemini-CLI,"
+        "Google-NotebookLM,"
+        "GoogleAgent-Mariner,"
+        "GoogleAgent-URLContext,"
+        "GoogleOther-Image,"
+        "GoogleOther-Video,"
+        "GoogleOther,"
+        "GPTBot,"
+        "HenkBot,"
+        "iAskBot,"
+        "iaskspider,"
+        "iaskspider/2.0,"
+        "IbouBot,"
+        "ICC-Crawler,"
+        "ImagesiftBot,"
+        "imageSpider,"
+        "img2dataset,"
+        "ISSCyberRiskCrawler,"
+        "kagi-fetcher,"
+        "Kangaroo Bot,"
+        "KeenableBot",
+        "Kimi-User,"
+        "KlaviyoAIBot,"
+        "KunatoCrawler,"
+        "laion-huggingface-processor,"
+        "LAIONDownloader,"
+        "LCC,"
+        "LinerBot,"
+        "Linguee Bot,"
+        "LinkupBot,"
+        "Manus-User,"
+        "meta-externalagent,"
+        "Meta-ExternalAgent,"
+        "meta-externalfetcher,"
+        "Meta-ExternalFetcher,"
+        "meta-webindexer,"
+        "MistralAI-User,"
+        "MistralAI-User/1.0,"
+        "MyCentralAIScraperBot,"
+        "NagetBot,"
+        "netEstate Imprint Crawler,"
+        "newsai,"
+        "NotebookLM,"
+        "NovaAct,"
+        "OAI-SearchBot,"
+        "omgili,"
+        "omgilibot,"
+        "OpenAI,"
+        "opencode,"
+        "Operator,"
+        "PanguBot,"
+        "Panscient,"
+        "panscient.com,"
+        "Perplexity-User,"
+        "PerplexityBot,"
+        "PetalBot,"
+        "PhindBot,"
+        "Poggio-Citations,"
+        "Poseidon Research Crawler,"
+        "QualifiedBot,"
+        "Querit-SearchBot,"
+        "QueritBot,"
+        "QuillBot,"
+        "quillbot.com,"
+        "SBIntuitionsBot,"
+        "Scrapy,"
+        "SemrushBot-OCOB,"
+        "SemrushBot-SWA,"
+        "Shap-User,"
+        "ShapBot,"
+        "Sidetrade indexer bot,"
+        "Spider,"
+        "TavilyBot,"
+        "Terra Cotta,"
+        "TerraCotta,"
+        "Thinkbot,"
+        "TikTokSpider,"
+        "Timpibot,"
+        "TongyiBot,"
+        "Trae,"
+        "TwinAgent,"
+        "UseAI,"
+        "VelenPublicWebCrawler,"
+        "WARDBot,"
+        "webzio-extended,"
+        "Webzio-Extended,"
+        "wpbot,"
+        "WRTNBot,"
+        "YaK,"
+        "YandexAdditional,"
+        "YandexAdditionalBot,"
+        "YiyanBot,"
+        "YouBot,"
+        "ZanistaBot",
     ]
-    for user_agent in user_agents_to_block:
-        lines += [user_agent]
+    for user_agent in user_agents:
+        lines += [f"User-agent: {user_agent}"]
         lines += ["Disallow: {}".format(item) for item in disallow]
         lines += ["\n"]
     return Response.text("\n".join(lines))

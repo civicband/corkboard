@@ -168,34 +168,6 @@ def _parse_json(value):
         return None
 
 
-def _render_entities_compact(data, row_url=None):
-    """Render compact entity summary for table view."""
-    if not data:
-        return ""
-
-    persons = data.get("persons", [])
-    orgs = data.get("orgs", [])
-    locations = data.get("locations", [])
-
-    parts = []
-    if persons:
-        parts.append(f"👤{len(persons)}")
-    if orgs:
-        parts.append(f"🏛{len(orgs)}")
-    if locations:
-        parts.append(f"📍{len(locations)}")
-
-    if not parts:
-        return ""
-
-    content = " ".join(parts)
-    if row_url:
-        return (
-            f'<span class="json-col-compact"><a href="{row_url}">{content}</a></span>'
-        )
-    return f'<span class="json-col-compact">{content}</span>'
-
-
 def _render_entities_full(data, database=None, table=None):
     """Render full entity display with inline chips that link to search."""
     if not data:

@@ -398,6 +398,19 @@ async def track_search(
     )
 
 
+def _is_internal_client(datasette) -> bool:
+    """True when Datasette is handling a request it made to itself.
+
+    ``datasette.client`` requests (used by plugins such as the server-side
+    search-all page to fetch table JSON) run back through this same ASGI
+    wrapper. They must not be tracked as user activity. Datasette exposes
+    ``datasette.in_client()`` for this; ``getattr`` keeps ``asgi_wrapper(None)``
+    working in tests.
+    """
+    checker = getattr(datasette, "in_client", None)
+    return bool(checker()) if callable(checker) else False
+
+
 @hookimpl
 def asgi_wrapper(datasette):
     """Wrap ASGI application to track analytics events."""
@@ -407,6 +420,12 @@ def asgi_wrapper(datasette):
         async def wrapper(scope, receive, send):
             # Only process HTTP requests
             if scope["type"] != "http":
+                await app(scope, receive, send)
+                return
+
+            # Never track requests Datasette makes to itself; relying on the
+            # localhost host header to skip them is fragile.
+            if _is_internal_client(datasette):
                 await app(scope, receive, send)
                 return
 

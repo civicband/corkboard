@@ -335,6 +335,27 @@ class TestDateLink:
         assert "/meetings/agendas/" in str(result)
         assert "/upcoming" not in str(result)
 
+    def test_strip_format_suffix_from_path(self):
+        """Strip a Datasette format suffix (e.g. .json) from the path."""
+        mock_request = MagicMock()
+        mock_request.url = "https://example.com/meetings/minutes.json"
+        mock_request.args = {"_search": "budget"}
+
+        result = date_link.render_cell(
+            row={"meeting": "City Council"},
+            value="2024-01-15",
+            column="date",
+            table="minutes",
+            database="meetings",
+            datasette=None,
+            request=mock_request,
+        )
+
+        text = str(result)
+        assert "/meetings/minutes/?" in text
+        assert "minutes.json" not in text
+        assert "date__exact=2024-01-15" in text
+
     def test_no_render_non_date_column(self):
         """Don't render non-date columns."""
         mock_request = MagicMock()

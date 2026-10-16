@@ -27,7 +27,6 @@ bots:
   # Allow common "keeping the internet working" routes (well-known, favicon, robots.txt)
   - import: (data)/common/keep-internet-working.yaml
   - import: (data)/common/rfc-violations.yaml
-  - import: (data)/common/domain-fronting.yaml
 
   # Search engine crawlers to allow, defaults to:
   #   - Google (so they don't try to bypass Anubis)
@@ -46,6 +45,14 @@ bots:
     user_agent_regex: >-
       KeenableBot
     action: DENY
+
+  - name: domain-fronting
+    action: DENY
+    expression:
+    all:
+      - '"X-Tls-Sni-Name" in headers'
+      - 'headers["X-Tls-Sni-Name"] != ""'
+      - 'headers["X-Tls-Sni-Name"] != host'
 
   # # Punish any bot with "bot" in the user-agent string
   # # This is known to have a high false-positive rate, use at your own risk

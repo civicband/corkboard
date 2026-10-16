@@ -3,7 +3,6 @@ services:
     image: ghcr.io/techarohq/anubis:latest
     environment:
       BIND: ":8000"
-      DIFFICULTY: "3"
       TARGET: "http://django_blue:8000"
       USE_REMOTE_ADDRESS: "true"
       POLICY_FNAME: "/data/cfg/botPolicy.yaml"
@@ -42,7 +41,6 @@ services:
     image: ghcr.io/techarohq/anubis:latest
     environment:
       BIND: ":8001"
-      DIFFICULTY: "3"
       TARGET: "http://django_green:8000"
       USE_REMOTE_ADDRESS: "true"
       POLICY_FNAME: "/data/cfg/botPolicy.yaml"

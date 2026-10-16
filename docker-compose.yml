@@ -1,6 +1,6 @@
 services:
   anubis_django_blue:
-    image: ghcr.io/techarohq/anubis:latest
+    image: ghcr.io/techarohq/anubis:v.128.1
     environment:
       BIND: ":8000"
       TARGET: "http://django_blue:8000"
@@ -38,7 +38,7 @@ services:
     depends_on:
       - redis
   anubis_django_green:
-    image: ghcr.io/techarohq/anubis:latest
+    image: ghcr.io/techarohq/anubis:v.128.1
     environment:
       BIND: ":8001"
       TARGET: "http://django_green:8000"

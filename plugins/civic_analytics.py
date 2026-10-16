@@ -308,6 +308,63 @@ def get_accept_language(headers: Dict[str, str]) -> str:
     return primary if primary else "en-US"
 
 
+async def track_search(
+    datasette,
+    request,
+    query_text: str,
+    database: Optional[str] = None,
+    table: Optional[str] = None,
+    search_type: str = "full_text_search",
+    extra_data: Optional[Dict] = None,
+):
+    """Track a full-text search performed on the server.
+
+    The ASGI wrapper only sees searches expressed as query-string parameters
+    on browser requests that carry a subdomain. Endpoints that run the search
+    themselves (such as the POST-only search-all page) call this helper to
+    preserve search analytics.
+    """
+    if not UMAMI_ENABLED:
+        return
+
+    config = datasette.plugin_config("corkboard") or {}
+    subdomain = config.get("subdomain")
+    if not subdomain:
+        return
+
+    headers = request.headers
+    client_ip = get_client_ip(headers, request.scope)
+    user_agent = get_user_agent(headers)
+    language = get_accept_language(headers)
+
+    event_data = {
+        "subdomain": subdomain,
+        "timestamp": int(time.time() * 1000),
+        "client_ip": client_ip if client_ip != "unknown" else None,
+        "user_language": language,
+        "query_text": query_text[:500],
+        "query_length": len(query_text),
+        "search_type": search_type,
+        "database": database,
+        "table": table,
+    }
+    if extra_data:
+        event_data.update(extra_data)
+
+    tracker = UmamiEventTracker(UMAMI_URL, UMAMI_WEBSITE_ID)
+    await tracker.track_event(
+        event_name="search_query",
+        url=request.path,
+        title=f"Search Query - {subdomain}",
+        referrer=headers.get("referer"),
+        hostname=f"{subdomain}.civic.band",
+        event_data=event_data,
+        client_ip=client_ip,
+        user_agent=user_agent,
+        language=language,
+    )
+
+
 @hookimpl
 def asgi_wrapper(datasette):
     """Wrap ASGI application to track analytics events."""

@@ -814,3 +814,69 @@ class TestRequestMetadataExtraction:
         headers = {}
         result = get_accept_language(headers)
         assert result == "en-US"
+
+
+class TestTrackSearch:
+    """Test server-side search tracking helper.
+
+    The ASGI wrapper only sees GET query strings, so POST endpoints such as
+    the search-all page must emit their own event via ``track_search``.
+    """
+
+    def _make_request(self):
+        request = MagicMock()
+        request.path = "/-/search"
+        request.scope = {"client": ("1.2.3.4", 1234)}
+        request.headers = {
+            "host": "test.civic.band",
+            "referer": "https://test.civic.band/",
+            "user-agent": "Mozilla/5.0",
+            "accept-language": "en-US,en;q=0.9",
+        }
+        return request
+
+    @pytest.mark.asyncio
+    async def test_track_search_sends_event(self):
+        from plugins import civic_analytics
+
+        datasette = MagicMock()
+        datasette.plugin_config.return_value = {"subdomain": "test"}
+
+        tracker = MagicMock()
+        tracker.track_event = AsyncMock()
+
+        with patch.object(civic_analytics, "UmamiEventTracker", return_value=tracker):
+            await civic_analytics.track_search(
+                datasette,
+                self._make_request(),
+                "budget",
+                search_type="search_all",
+                extra_data={"result_count": 5},
+            )
+
+        tracker.track_event.assert_awaited_once()
+        kwargs = tracker.track_event.await_args.kwargs
+        assert kwargs["event_name"] == "search_query"
+        assert kwargs["hostname"] == "test.civic.band"
+        assert kwargs["client_ip"] == "1.2.3.4"
+        assert kwargs["event_data"]["query_text"] == "budget"
+        assert kwargs["event_data"]["search_type"] == "search_all"
+        assert kwargs["event_data"]["subdomain"] == "test"
+        assert kwargs["event_data"]["result_count"] == 5
+
+    @pytest.mark.asyncio
+    async def test_track_search_skips_without_subdomain(self):
+        from plugins import civic_analytics
+
+        datasette = MagicMock()
+        datasette.plugin_config.return_value = {}
+
+        tracker = MagicMock()
+        tracker.track_event = AsyncMock()
+
+        with patch.object(civic_analytics, "UmamiEventTracker", return_value=tracker):
+            await civic_analytics.track_search(
+                datasette, self._make_request(), "budget"
+            )
+
+        tracker.track_event.assert_not_called()

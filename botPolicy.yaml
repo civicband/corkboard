@@ -145,11 +145,11 @@ thresholds:
     action: CHALLENGE
     challenge:
       algorithm: fast
-      difficulty: 4
+      difficulty: 2
 
   - name: extreme-suspicion
     expression: weight >= 20
     action: CHALLENGE
     challenge:
-      algorithm: slow
-      difficulty: 10
+      algorithm: fast
+      difficulty: 5

@@ -10,6 +10,10 @@ def render_cell(row, value, column, table, database, datasette, request):
         return None
     parts = urlparse(request.url)
     path = parts.path
+    for suffix in (".json", ".jsonl", ".csv", ".tsv", ".html"):
+        if path.endswith(suffix):
+            path = path[: -len(suffix)]
+            break
     path_parts = path.split("/")
     if len(path_parts) > 3:
         path = "/".join(path_parts[:3])

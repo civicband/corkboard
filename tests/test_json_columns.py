@@ -15,7 +15,6 @@ from json_columns import (
     _get_row_url,
     _is_row_detail_view,
     _parse_json,
-    _render_entities_compact,
     _render_entities_full,
     _render_votes_compact,
     _render_votes_full,
@@ -79,50 +78,6 @@ class TestParseJson:
         }
         result = _parse_json(json.dumps(entities))
         assert result == entities
-
-
-class TestRenderEntitiesCompact:
-    """Test compact entity rendering."""
-
-    def test_empty_data_returns_empty(self):
-        assert _render_entities_compact(None) == ""
-        assert _render_entities_compact({}) == ""
-
-    def test_persons_only(self):
-        data = {"persons": [{"text": "Alice"}, {"text": "Bob"}]}
-        result = _render_entities_compact(data)
-        assert "👤2" in result
-        assert "json-col-compact" in result
-
-    def test_orgs_only(self):
-        data = {"orgs": [{"text": "City Council"}]}
-        result = _render_entities_compact(data)
-        assert "🏛1" in result
-
-    def test_locations_only(self):
-        data = {"locations": [{"text": "City Hall"}, {"text": "Library"}]}
-        result = _render_entities_compact(data)
-        assert "📍2" in result
-
-    def test_all_entity_types(self):
-        data = {
-            "persons": [{"text": "Alice"}],
-            "orgs": [{"text": "Council"}, {"text": "Board"}],
-            "locations": [{"text": "Hall"}],
-        }
-        result = _render_entities_compact(data)
-        assert "👤1" in result
-        assert "🏛2" in result
-        assert "📍1" in result
-
-    def test_with_row_url(self):
-        data = {"persons": [{"text": "Alice"}]}
-        result = _render_entities_compact(data, row_url="/db/table/1")
-        assert 'href="/db/table/1"' in result
-
-    def test_empty_arrays_returns_empty(self):
-        data = {"persons": [], "orgs": [], "locations": []}
-        assert _render_entities_compact(data) == ""
 
 
 class TestRenderEntitiesFull:

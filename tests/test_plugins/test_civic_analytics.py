@@ -638,6 +638,67 @@ class TestASGIWrapper:
             # Referrer captured
             assert payload["referrer"] == "https://duckduckgo.com/"
 
+    @pytest.mark.asyncio
+    async def test_skips_internal_client_requests(self, asgi_receive, asgi_send):
+        """Requests Datasette makes to itself must not be tracked."""
+        from plugins.civic_analytics import asgi_wrapper
+
+        class _InClientDatasette:
+            def in_client(self):
+                return True
+
+        mock_app = AsyncMock()
+        scope = {
+            "type": "http",
+            "path": "/meetings/minutes.json",
+            "query_string": b"_search=budget",
+            "headers": [(b"host", b"alameda.ca.civic.org")],
+        }
+
+        wrapped_app = asgi_wrapper(_InClientDatasette())(mock_app)
+
+        with patch("httpx.AsyncClient") as mock_client:
+            await wrapped_app(scope, asgi_receive, asgi_send)
+
+        mock_app.assert_called_once_with(scope, asgi_receive, asgi_send)
+        mock_client.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_tracks_when_not_internal_client(self, asgi_receive, asgi_send):
+        """External requests are still tracked when in_client() is False."""
+        from plugins.civic_analytics import asgi_wrapper
+
+        class _ExternalDatasette:
+            def in_client(self):
+                return False
+
+        mock_app = AsyncMock()
+        scope = {
+            "type": "http",
+            "path": "/meetings/agendas",
+            "query_string": b"_search=council",
+            "headers": [(b"host", b"alameda.ca.civic.org")],
+        }
+
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+
+        mock_client = MagicMock()
+        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+        mock_client.__aexit__ = AsyncMock()
+        mock_client.post = AsyncMock(return_value=mock_response)
+
+        with patch.dict(os.environ, {"UMAMI_ANALYTICS_ENABLED": "true"}):
+            wrapped_app = asgi_wrapper(_ExternalDatasette())(mock_app)
+
+            with patch("httpx.AsyncClient", return_value=mock_client):
+                await wrapped_app(scope, asgi_receive, asgi_send)
+
+        mock_client.post.assert_called_once()
+        payload = mock_client.post.call_args[1]["json"]["payload"]
+        assert payload["name"] == "search_query"
+        assert payload["data"]["query_text"] == "council"
+
 
 class TestSQLQueryDeduplication:
     """Test SQL query deduplication logic."""
@@ -814,3 +875,69 @@ class TestRequestMetadataExtraction:
         headers = {}
         result = get_accept_language(headers)
         assert result == "en-US"
+
+
+class TestTrackSearch:
+    """Test server-side search tracking helper.
+
+    The ASGI wrapper only sees GET query strings, so POST endpoints such as
+    the search-all page must emit their own event via ``track_search``.
+    """
+
+    def _make_request(self):
+        request = MagicMock()
+        request.path = "/-/search"
+        request.scope = {"client": ("1.2.3.4", 1234)}
+        request.headers = {
+            "host": "test.civic.band",
+            "referer": "https://test.civic.band/",
+            "user-agent": "Mozilla/5.0",
+            "accept-language": "en-US,en;q=0.9",
+        }
+        return request
+
+    @pytest.mark.asyncio
+    async def test_track_search_sends_event(self):
+        from plugins import civic_analytics
+
+        datasette = MagicMock()
+        datasette.plugin_config.return_value = {"subdomain": "test"}
+
+        tracker = MagicMock()
+        tracker.track_event = AsyncMock()
+
+        with patch.object(civic_analytics, "UmamiEventTracker", return_value=tracker):
+            await civic_analytics.track_search(
+                datasette,
+                self._make_request(),
+                "budget",
+                search_type="search_all",
+                extra_data={"result_count": 5},
+            )
+
+        tracker.track_event.assert_awaited_once()
+        kwargs = tracker.track_event.await_args.kwargs
+        assert kwargs["event_name"] == "search_query"
+        assert kwargs["hostname"] == "test.civic.band"
+        assert kwargs["client_ip"] == "1.2.3.4"
+        assert kwargs["event_data"]["query_text"] == "budget"
+        assert kwargs["event_data"]["search_type"] == "search_all"
+        assert kwargs["event_data"]["subdomain"] == "test"
+        assert kwargs["event_data"]["result_count"] == 5
+
+    @pytest.mark.asyncio
+    async def test_track_search_skips_without_subdomain(self):
+        from plugins import civic_analytics
+
+        datasette = MagicMock()
+        datasette.plugin_config.return_value = {}
+
+        tracker = MagicMock()
+        tracker.track_event = AsyncMock()
+
+        with patch.object(civic_analytics, "UmamiEventTracker", return_value=tracker):
+            await civic_analytics.track_search(
+                datasette, self._make_request(), "budget"
+            )
+
+        tracker.track_event.assert_not_called()

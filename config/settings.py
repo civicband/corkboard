@@ -353,6 +353,7 @@ CIVIC_OBSERVER_SECRET = get_env_variable(
     "CIVIC_OBSERVER_SECRET", "dev-secret-change-me"
 )
 CIVIC_BAND_DOMAIN = get_env_variable("CIVIC_BAND_DOMAIN", "civic.band")
+CIVIC_OBSERVER_TIMEOUT = float(get_env_variable("CIVIC_OBSERVER_TIMEOUT", "5"))
 
 # Cache TTLs (in seconds)
 API_KEY_VALID_TTL = 7200  # 2 hours for valid keys

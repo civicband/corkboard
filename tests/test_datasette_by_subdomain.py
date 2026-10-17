@@ -575,3 +575,203 @@ class TestGetClientIp:
             "client": ("192.168.1.100", 54321),
         }
         assert datasette_by_subdomain.get_client_ip(scope) == "10.0.0.50"
+
+
+def _api_request_scope(query_string=b"", headers=None):
+    return {
+        "type": "http",
+        "method": "GET",
+        "scheme": "https",
+        "path": "/meetings/agendas.json",
+        "query_string": query_string,
+        "headers": [(b"host", b"testcity.civic.band")] + (headers or []),
+    }
+
+
+def _api_request_ctx():
+    return {
+        "subdomain": "testcity",
+        "method": "GET",
+        "path": "/meetings/agendas.json",
+        "query_string": "",
+        "request_host": "testcity.civic.band",
+        "client_ip": "203.0.113.5",
+        "user_agent": "pytest",
+        "referer": "",
+        "is_json_request": False,
+        "used_api_key": False,
+        "api_key_reason": None,
+        "capped": False,
+        "trusted_source": False,
+    }
+
+
+def _patch_site_lookup():
+    mock_db = MagicMock()
+    mock_sites = MagicMock()
+    mock_db.__getitem__.return_value = mock_sites
+    mock_sites.get.return_value = {
+        "name": "Test City",
+        "subdomain": "testcity",
+        "state": "CA",
+        "last_updated": "2024-01-01",
+    }
+    return (
+        patch("django_plugins.datasette_by_subdomain.sqlite3.connect"),
+        patch(
+            "django_plugins.datasette_by_subdomain.sqlite_utils.Database",
+            return_value=mock_db,
+        ),
+    )
+
+
+def _patch_metadata_and_datasette():
+    mock_env = MagicMock()
+    mock_env.get_template.return_value.render.return_value = json.dumps(
+        {"title": "Test City"}
+    )
+    fake_ds = AsyncMock()
+    return (
+        patch("django_plugins.datasette_by_subdomain.JINJA_ENV", mock_env),
+        patch(
+            "django_plugins.datasette_by_subdomain._get_datasette_app",
+            return_value=fake_ds,
+        ),
+        fake_ds,
+    )
+
+
+@pytest.mark.asyncio
+async def test_valid_api_key_bypasses_rate_limit_and_cap():
+    scope = _api_request_scope(
+        b"_size=500&api_key=cb_live_x",
+        [(b"authorization", b"Bearer cb_live_x")],
+    )
+    ctx = _api_request_ctx()
+    send = AsyncMock()
+    connect_patch, db_patch = _patch_site_lookup()
+    env_patch, ds_patch, fake_ds = _patch_metadata_and_datasette()
+
+    with (
+        connect_patch,
+        db_patch,
+        env_patch,
+        ds_patch,
+        patch(
+            "django_plugins.datasette_by_subdomain.validate_api_key",
+            new=AsyncMock(return_value={"valid": True, "reason": "ok"}),
+        ) as validate,
+        patch(
+            "django_plugins.datasette_by_subdomain.check_rate_limit",
+            new=AsyncMock(return_value=False),
+        ) as rate_limit,
+    ):
+        await datasette_by_subdomain._run_datasette_request(
+            scope, AsyncMock(), send, ctx
+        )
+
+    validate.assert_awaited_once()
+    assert validate.call_args.args[0] == "cb_live_x"
+    assert validate.call_args.args[1] == (
+        "https://testcity.civic.band/meetings/agendas.json?_size=500"
+    )
+    rate_limit.assert_not_called()
+    assert ctx["used_api_key"] is True
+
+    ds_scope = fake_ds.call_args.args[0]
+    assert b"api_key" in ds_scope["query_string"]
+    assert b"_size=500" in ds_scope["query_string"]
+
+
+@pytest.mark.asyncio
+async def test_invalid_api_key_returns_401_without_rate_limit():
+    scope = _api_request_scope(
+        b"api_key=cb_live_bad",
+        [(b"authorization", b"Bearer cb_live_bad")],
+    )
+    ctx = _api_request_ctx()
+    send = AsyncMock()
+    connect_patch, db_patch = _patch_site_lookup()
+    env_patch, ds_patch, fake_ds = _patch_metadata_and_datasette()
+
+    with (
+        connect_patch,
+        db_patch,
+        env_patch,
+        ds_patch,
+        patch(
+            "django_plugins.datasette_by_subdomain.validate_api_key",
+            new=AsyncMock(return_value={"valid": False, "reason": "invalid_key"}),
+        ),
+        patch(
+            "django_plugins.datasette_by_subdomain.check_rate_limit",
+            new=AsyncMock(return_value=False),
+        ) as rate_limit,
+    ):
+        await datasette_by_subdomain._run_datasette_request(
+            scope, AsyncMock(), send, ctx
+        )
+
+    rate_limit.assert_not_called()
+    fake_ds.assert_not_called()
+    assert ctx["api_key_reason"] == "invalid_key"
+    assert send.call_args_list[0][0][0]["status"] == 401
+
+
+@pytest.mark.asyncio
+async def test_no_api_key_keeps_rate_limit_and_cap():
+    scope = _api_request_scope(b"_size=500")
+    ctx = _api_request_ctx()
+    send = AsyncMock()
+    connect_patch, db_patch = _patch_site_lookup()
+    env_patch, ds_patch, fake_ds = _patch_metadata_and_datasette()
+
+    with (
+        connect_patch,
+        db_patch,
+        env_patch,
+        ds_patch,
+        patch(
+            "django_plugins.datasette_by_subdomain.validate_api_key",
+            new=AsyncMock(),
+        ) as validate,
+        patch(
+            "django_plugins.datasette_by_subdomain.check_rate_limit",
+            new=AsyncMock(return_value=False),
+        ) as rate_limit,
+    ):
+        await datasette_by_subdomain._run_datasette_request(
+            scope, AsyncMock(), send, ctx
+        )
+
+    validate.assert_not_called()
+    rate_limit.assert_awaited_once()
+    assert ctx["capped"] is True
+    ds_scope = fake_ds.call_args.args[0]
+    assert b"_size=100" in ds_scope["query_string"]
+
+
+@pytest.mark.asyncio
+async def test_rate_limited_unauthenticated_request_returns_402():
+    scope = _api_request_scope(b"_size=500")
+    ctx = _api_request_ctx()
+    send = AsyncMock()
+    connect_patch, db_patch = _patch_site_lookup()
+    env_patch, ds_patch, fake_ds = _patch_metadata_and_datasette()
+
+    with (
+        connect_patch,
+        db_patch,
+        env_patch,
+        ds_patch,
+        patch(
+            "django_plugins.datasette_by_subdomain.check_rate_limit",
+            new=AsyncMock(return_value=True),
+        ),
+    ):
+        await datasette_by_subdomain._run_datasette_request(
+            scope, AsyncMock(), send, ctx
+        )
+
+    fake_ds.assert_not_called()
+    assert send.call_args_list[0][0][0]["status"] == 402

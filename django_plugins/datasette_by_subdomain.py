@@ -51,6 +51,7 @@ except ImportError:
     pass
 
 from django_plugins.api_key_auth import (
+    build_request_url,
     cap_result_size,
     check_rate_limit,
     extract_api_key,
@@ -60,6 +61,7 @@ from django_plugins.api_key_auth import (
     is_research_tool_request,
     make_401_response,
     make_402_rate_limit_response,
+    redact_query_string,
     validate_api_key,
 )
 
@@ -363,15 +365,14 @@ async def _dispatch_datasette_request(scope, receive, send, subdomain, request_h
         "subdomain": subdomain,
         "method": scope.get("method", "GET"),
         "path": scope.get("path", ""),
-        "query_string": scope.get("query_string", b"").decode(
-            "utf-8", errors="replace"
-        ),
+        "query_string": redact_query_string(scope.get("query_string", b"")),
         "request_host": request_host,
         "client_ip": get_client_ip(scope),
         "user_agent": _scope_header(scope, "user-agent"),
         "referer": _scope_header(scope, "referer"),
         "is_json_request": False,
         "used_api_key": False,
+        "api_key_reason": None,
         "capped": False,
         "trusted_source": False,
     }
@@ -447,10 +448,11 @@ async def _run_datasette_request(scope, receive, send, ctx):
     # | First-party      | Matching Referer              | Allow (full access)       |
     # | Internal service | Valid X-Service-Secret        | Allow (full access)       |
     # | Research tools   | UA contains Zotero/etc.       | Allow (full access)       |
+    # | API key          | Valid key for URL             | Allow (unlimited results) |
     # | Rate limit       | >15 req/min per IP            | 402                       |
-    # | API key          | Valid key                     | Allow (unlimited results) |
     # | No API key       | Unauthenticated               | Allow (cap _size at 100)  |
     should_cap_results = False
+    request_url = build_request_url(scope, ctx["request_host"])
 
     if is_json_endpoint(path):
         ctx["is_json_request"] = True
@@ -463,32 +465,34 @@ async def _run_datasette_request(scope, receive, send, ctx):
         ctx["trusted_source"] = is_trusted_source
 
         if not is_trusted_source:
-            # Layer 4: Rate limiting for all other JSON requests
-            client_ip = get_client_ip(scope)
-            if await check_rate_limit(client_ip):
-                logger.warning(
-                    "Rate limit exceeded",
-                    extra={
-                        "subdomain": subdomain,
-                        "path": path,
-                        "client_ip": client_ip,
-                    },
-                )
-                await send_402_response(send, "rate_limit")
-                return
-
-            # Layer 5: Check for API key
+            # Layer 4: Validate API keys before the anonymous IP limiter so
+            # authenticated clients are not subject to the anonymous limit.
             api_key = extract_api_key(scope["headers"], query_string)
 
             if api_key:
-                # Validate key against cache/civic.observer
-                result = await validate_api_key(api_key, subdomain)
-                if not result["valid"]:
+                result = await validate_api_key(api_key, request_url)
+                if not result.get("valid"):
+                    ctx["api_key_reason"] = result.get("reason", "invalid_key")
                     await send_401_response(send)
                     return
-                # Valid API key - full access, no capping
+                # Valid API key - full access, no capping or IP rate limit
                 ctx["used_api_key"] = True
+                ctx["api_key_reason"] = result.get("reason", "ok")
             else:
+                # Layer 5: Rate limiting for unauthenticated JSON requests
+                client_ip = get_client_ip(scope)
+                if await check_rate_limit(client_ip):
+                    logger.warning(
+                        "Rate limit exceeded",
+                        extra={
+                            "subdomain": subdomain,
+                            "path": path,
+                            "client_ip": client_ip,
+                        },
+                    )
+                    await send_402_response(send, "rate_limit")
+                    return
+
                 # Layer 6: No API key - allow but cap results
                 should_cap_results = True
 

@@ -60,13 +60,15 @@ def _normalize_url_for_cache(url: str) -> str:
 
 def _cache_key(api_key: str, url: str = "") -> str:
     """Generate cache key from API key and normalized URL (hashed for security)."""
-    # API keys are high-entropy bearer credentials, not user passwords. Use a
-    # keyed hash so the cache key cannot be correlated with a known key.
-    key_hash = hashlib.blake2b(
+    # Derive an opaque cache identifier with a password-style KDF. The key is
+    # high-entropy, so a modest iteration count is sufficient.
+    key_hash = hashlib.pbkdf2_hmac(
+        "sha256",
         api_key.encode(),
-        key=settings.SECRET_KEY.encode()[:64],
-        digest_size=8,
-    ).hexdigest()
+        settings.SECRET_KEY.encode()[:16],
+        10_000,
+        dklen=8,
+    ).hex()
     if not url:
         return f"apikey:{key_hash}"
     url_hash = hashlib.sha256(_normalize_url_for_cache(url).encode()).hexdigest()[:16]

@@ -369,8 +369,8 @@ async def _dispatch_datasette_request(scope, receive, send, subdomain, request_h
         "user_agent": _scope_header(scope, "user-agent"),
         "referer": _scope_header(scope, "referer"),
         "is_json_request": False,
-        "used_credential": False,
-        "credential_reason": None,
+        "authenticated": False,
+        "denial_reason": None,
         "capped": False,
         "trusted_source": False,
     }
@@ -472,12 +472,12 @@ async def _run_datasette_request(scope, receive, send, ctx):
             if api_key:
                 result = await validate_api_key(api_key, request_url)
                 if not result.get("valid"):
-                    ctx["credential_reason"] = result.get("reason", "invalid_key")
+                    ctx["denial_reason"] = result.get("reason", "invalid_key")
                     await send_401_response(send)
                     return
                 # Valid API key - full access, no capping or IP rate limit
-                ctx["used_credential"] = True
-                ctx["credential_reason"] = result.get("reason", "ok")
+                ctx["authenticated"] = True
+                ctx["denial_reason"] = result.get("reason", "ok")
             else:
                 # Layer 5: Rate limiting for unauthenticated JSON requests
                 client_ip = get_client_ip(scope)

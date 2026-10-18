@@ -599,8 +599,8 @@ def _api_request_ctx():
         "user_agent": "pytest",
         "referer": "",
         "is_json_request": False,
-        "used_credential": False,
-        "credential_reason": None,
+        "authenticated": False,
+        "denial_reason": None,
         "capped": False,
         "trusted_source": False,
     }
@@ -676,7 +676,7 @@ async def test_valid_api_key_bypasses_rate_limit_and_cap():
         "https://testcity.civic.band/meetings/agendas.json?_size=500"
     )
     rate_limit.assert_not_called()
-    assert ctx["used_credential"] is True
+    assert ctx["authenticated"] is True
 
     ds_scope = fake_ds.call_args.args[0]
     assert b"api_key" in ds_scope["query_string"]
@@ -714,7 +714,7 @@ async def test_invalid_api_key_returns_401_without_rate_limit():
 
     rate_limit.assert_not_called()
     fake_ds.assert_not_called()
-    assert ctx["credential_reason"] == "invalid_key"
+    assert ctx["denial_reason"] == "invalid_key"
     assert send.call_args_list[0][0][0]["status"] == 401
 
 

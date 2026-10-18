@@ -472,12 +472,12 @@ async def _run_datasette_request(scope, receive, send, ctx):
             if api_key:
                 result = await validate_api_key(api_key, request_url)
                 if not result.get("valid"):
-                    ctx["denial_reason"] = result.get("reason", "invalid_key")
+                    ctx["denial_reason"] = "invalid_key"
                     await send_401_response(send)
                     return
                 # Valid API key - full access, no capping or IP rate limit
                 ctx["authenticated"] = True
-                ctx["denial_reason"] = result.get("reason", "ok")
+                ctx["denial_reason"] = "ok"
             else:
                 # Layer 5: Rate limiting for unauthenticated JSON requests
                 client_ip = get_client_ip(scope)

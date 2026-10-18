@@ -9,8 +9,9 @@ import hashlib
 import json
 import logging
 from typing import Optional
-from urllib.parse import parse_qs, urlencode
+from urllib.parse import parse_qs, parse_qsl, urlencode, urlsplit, urlunsplit
 
+import httpx
 import redis.asyncio as redis
 from django.conf import settings
 
@@ -45,21 +46,44 @@ def set_redis_client(client: redis.Redis) -> None:
     _redis_client = client
 
 
-def _cache_key(api_key: str) -> str:
-    """Generate cache key from API key (hashed for security)."""
-    key_hash = hashlib.sha256(api_key.encode()).hexdigest()[:16]
-    return f"apikey:{key_hash}"
+def _normalize_url_for_cache(url: str) -> str:
+    """Normalize a URL to scheme://host/path for cache keying.
 
-
-async def validate_api_key(api_key: str, subdomain: str) -> dict:
+    The observer's current judgement does not depend on the query string.
     """
-    Validate an API key, using cache when available.
+    try:
+        parsed = urlsplit(url)
+    except ValueError:
+        return url
+    return f"{parsed.scheme.lower()}://{parsed.netloc.lower()}{parsed.path}"
+
+
+def _cache_key(api_key: str, url: str = "") -> str:
+    """Generate cache key from API key and normalized URL (hashed for security)."""
+    # Derive an opaque cache identifier with a password-style KDF. The key is
+    # high-entropy, so a modest iteration count is sufficient.
+    key_hash = hashlib.pbkdf2_hmac(
+        "sha256",
+        api_key.encode(),
+        settings.SECRET_KEY.encode()[:16],
+        10_000,
+        dklen=8,
+    ).hex()
+    if not url:
+        return f"apikey:{key_hash}"
+    url_hash = hashlib.sha256(_normalize_url_for_cache(url).encode()).hexdigest()[:16]
+    return f"apikey:{key_hash}:{url_hash}"
+
+
+async def validate_api_key(api_key: str, url: str) -> dict:
+    """
+    Validate an API key for a specific URL, using cache when available.
 
     Returns:
-        {"valid": True, "org_id": "...", "org_name": "..."} or
-        {"valid": False}
+        {"valid": True, "reason": "ok", ...} or
+        {"valid": False, "reason": "invalid_key" | "invalid_url" | ...}
     """
-    cache_key = _cache_key(api_key)
+    cache_key = _cache_key(api_key, url)
     redis_client = await get_redis()
 
     # Check cache first
@@ -70,7 +94,11 @@ async def validate_api_key(api_key: str, subdomain: str) -> dict:
 
     # Cache miss - validate against civic.observer
     logger.debug(f"API key cache miss for {cache_key}, calling civic.observer")
-    result = await _call_civic_observer(api_key, subdomain)
+    result = await _call_civic_observer(api_key, url)
+
+    # Transport/config failures must not be cached, so recovery is immediate.
+    if result is None:
+        return {"valid": False, "reason": "observer_unavailable"}
 
     # Cache the result
     ttl = (
@@ -81,37 +109,80 @@ async def validate_api_key(api_key: str, subdomain: str) -> dict:
     return result
 
 
-async def _call_civic_observer(api_key: str, subdomain: str) -> dict:
+async def _call_civic_observer(api_key: str, url: str) -> Optional[dict]:
     """
-    Call civic.observer to validate an API key.
+    Call civic.observer to judge whether this key may access this URL.
 
-    For now, this is stubbed to return invalid for all keys.
-    When civic.observer endpoint is ready, this will make an HTTP call.
+    Returns None when the observer cannot give a judgement (network error,
+    timeout, non-200 status, or malformed response). The caller treats None as
+    a denial without caching it.
     """
-    # TODO: Replace stub with actual HTTP call when civic.observer is ready
-    #
-    # import httpx
-    # async with httpx.AsyncClient() as client:
-    #     try:
-    #         response = await client.post(
-    #             f"{settings.CIVIC_OBSERVER_URL}/api/v1/validate-key",
-    #             json={"api_key": api_key, "subdomain": subdomain},
-    #             headers={"X-Service-Secret": settings.CIVIC_OBSERVER_SECRET},
-    #             timeout=5.0,
-    #         )
-    #         if response.status_code == 200:
-    #             return response.json()
-    #     except httpx.RequestError as e:
-    #         logger.error(f"Error calling civic.observer: {e}")
-    #
-    #     return {"valid": False}
-
     # STUB: For development only, accept keys starting with "dev_"
     if settings.DEBUG and api_key.startswith("dev_"):
         logger.debug("Accepting dev_ key in DEBUG mode")
-        return {"valid": True, "org_id": "dev", "org_name": "Development"}
+        return {"valid": True, "reason": "ok", "key_id": "dev"}
 
-    return {"valid": False}
+    observer_url = settings.CIVIC_OBSERVER_URL.rstrip("/")
+    try:
+        async with httpx.AsyncClient(timeout=settings.CIVIC_OBSERVER_TIMEOUT) as client:
+            response = await client.post(
+                f"{observer_url}/api/v1/authorize",
+                json={"api_key": api_key, "url": url},
+                headers={"X-Service-Secret": settings.CIVIC_OBSERVER_SECRET},
+            )
+    except httpx.RequestError as e:
+        logger.error(f"Error calling civic.observer: {e}")
+        return None
+
+    if response.status_code != 200:
+        logger.error("civic.observer authorize returned HTTP %s", response.status_code)
+        return None
+
+    try:
+        data = response.json()
+    except ValueError:
+        logger.error("civic.observer authorize returned invalid JSON")
+        return None
+
+    if not isinstance(data, dict):
+        logger.error("civic.observer authorize returned a non-object response")
+        return None
+
+    allowed = bool(data.get("allowed"))
+    return {
+        "valid": allowed,
+        "reason": data.get("reason", "ok" if allowed else "invalid_key"),
+        "key_id": data.get("key_id"),
+        "user_id": data.get("user_id"),
+        "user_email": data.get("user_email"),
+        "subdomain": data.get("subdomain"),
+    }
+
+
+def build_request_url(scope: dict, host: str) -> str:
+    """Build the client-facing URL for observer judgement."""
+    scheme = ""
+    for name, value in scope.get("headers", []):
+        if name.decode("utf-8").lower() == "x-forwarded-proto":
+            scheme = value.decode("utf-8").split(",")[0].strip()
+            break
+    scheme = scheme or scope.get("scheme", "http")
+
+    params = parse_qsl(
+        scope.get("query_string", b"").decode("utf-8", errors="replace"),
+        keep_blank_values=True,
+    )
+    params = [(key, value) for key, value in params if key != "api_key"]
+
+    return urlunsplit(
+        (
+            scheme,
+            host,
+            scope.get("path", "/") or "/",
+            urlencode(params, doseq=True),
+            "",
+        )
+    )
 
 
 def extract_api_key(headers: list, query_string: bytes) -> Optional[str]:

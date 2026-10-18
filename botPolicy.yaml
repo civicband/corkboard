@@ -46,6 +46,30 @@ bots:
       KeenableBot
     action: DENY
 
+  # Defer API-key authorization to corkboard. Only JSON requests that carry
+  # a CivicBand key skip Anubis; corkboard validates the key and returns 401
+  # for invalid or expired keys. These rules come after the DENY rules so
+  # known-bad bots are still denied first.
+  - name: defer-api-key-authorization-header
+    path_regex: '\.json$'
+    headers_regex:
+      Authorization: '(?i)^Bearer\s+cb_live_'
+    action: ALLOW
+
+  - name: defer-api-key-x-header
+    path_regex: '\.json$'
+    headers_regex:
+      X-API-Key: '^cb_live_'
+    action: ALLOW
+
+  - name: defer-api-key-query-param
+    path_regex: '\.json$'
+    action: ALLOW
+    expression:
+      all:
+        - '"api_key" in query'
+        - 'query["api_key"].startsWith("cb_live_")'
+
   # Requires GeoIP configuration, see:
   # https://anubis.techaro.lol/docs/admin/geoip
   - name: countries-with-aggressive-scrapers

@@ -1,5 +1,11 @@
 # API Key Authentication Design
 
+> **Updated 2026-10-17:** The observer contract is now
+> `POST /api/v1/authorize` with `{"url", "api_key"}` and an
+> `{"allowed", "reason"}` response. See
+> `docs/superpowers/specs/2026-10-17-api-key-authorization-design.md`.
+> `/api/v1/validate-key` remains as a compatibility wrapper.
+
 ## Problem Statement
 
 CivicBand's JSON API endpoints (*.json) are currently open to anyone. We need to require API key authentication for JSON endpoints while keeping HTML endpoints freely accessible. Additionally, first-party browser requests (like datasette-search-all AJAX calls) should work without requiring an API key.

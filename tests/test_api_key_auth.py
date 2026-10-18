@@ -3,6 +3,7 @@
 import pytest
 
 from django_plugins.api_key_auth import (
+    build_request_url,
     cap_result_size,
     extract_api_key,
     is_first_party_request,
@@ -177,6 +178,38 @@ class TestExtractApiKey:
         assert extract_api_key([], b"") is None
 
 
+class TestBuildRequestUrl:
+    """Test construction of the URL sent to civic.observer."""
+
+    def test_uses_forwarded_proto_and_strips_api_key(self):
+        scope = {
+            "scheme": "http",
+            "path": "/meetings/agendas.json",
+            "query_string": b"_size=100&api_key=cb_live_secret",
+            "headers": [(b"x-forwarded-proto", b"https")],
+        }
+        assert build_request_url(scope, "alameda.ca.civic.band") == (
+            "https://alameda.ca.civic.band/meetings/agendas.json?_size=100"
+        )
+
+    def test_falls_back_to_scope_scheme(self):
+        scope = {
+            "scheme": "https",
+            "path": "/meetings/agendas.json",
+            "query_string": b"",
+            "headers": [],
+        }
+        assert build_request_url(scope, "alameda.ca.civic.band") == (
+            "https://alameda.ca.civic.band/meetings/agendas.json"
+        )
+
+    def test_handles_empty_path(self):
+        scope = {"scheme": "https", "path": "", "query_string": b"", "headers": []}
+        assert build_request_url(scope, "alameda.ca.civic.band") == (
+            "https://alameda.ca.civic.band/"
+        )
+
+
 class TestMake401Response:
     """Test 401 response generation."""
 
@@ -194,7 +227,7 @@ class TestMake401Response:
 
 @pytest.mark.asyncio
 class TestValidateApiKey:
-    """Test API key validation (with stubbed civic.observer)."""
+    """Test API key validation against civic.observer."""
 
     @pytest.fixture(autouse=True)
     def reset_redis_client(self):
@@ -213,70 +246,211 @@ class TestValidateApiKey:
         return fakeredis.aioredis.FakeRedis()
 
     async def test_dev_key_valid_in_debug_mode(self, settings, fake_redis):
-        from django_plugins.api_key_auth import set_redis_client, validate_api_key
+        from django_plugins.api_key_auth import (
+            _cache_key,
+            set_redis_client,
+            validate_api_key,
+        )
 
         set_redis_client(fake_redis)
         settings.DEBUG = True
-        # Dev keys are accepted by the stub in DEBUG mode
-        result = await validate_api_key("dev_test_key", "alameda.ca")
+        url = "https://alameda.ca.civic.band/meetings/agendas.json"
+
+        result = await validate_api_key("dev_test_key", url)
+
         assert result["valid"] is True
-        assert result["org_id"] == "dev"
+        assert result["reason"] == "ok"
+        cached = await fake_redis.get(_cache_key("dev_test_key", url))
+        assert cached is not None
 
-    async def test_dev_key_rejected_in_production(self, settings, fake_redis):
-        from django_plugins.api_key_auth import set_redis_client, validate_api_key
+    async def test_dev_key_rejected_in_production(
+        self, settings, fake_redis, monkeypatch
+    ):
+        from django_plugins import api_key_auth
+        from django_plugins.api_key_auth import set_redis_client
 
+        async def fake_call(api_key, url):
+            return {"valid": False, "reason": "invalid_key"}
+
+        monkeypatch.setattr(api_key_auth, "_call_civic_observer", fake_call)
         set_redis_client(fake_redis)
         settings.DEBUG = False
-        # Dev keys are rejected when DEBUG=False
-        result = await validate_api_key("dev_test_key", "alameda.ca")
+
+        result = await api_key_auth.validate_api_key(
+            "dev_test_key", "https://alameda.ca.civic.band/meetings/agendas.json"
+        )
+
         assert result["valid"] is False
+        assert result["reason"] == "invalid_key"
 
-    async def test_invalid_key(self, settings, fake_redis):
-        from django_plugins.api_key_auth import set_redis_client, validate_api_key
+    async def test_observer_transport_failure_is_not_cached(
+        self, fake_redis, monkeypatch
+    ):
+        from django_plugins import api_key_auth
+        from django_plugins.api_key_auth import _cache_key, set_redis_client
 
+        async def fake_call(api_key, url):
+            return None
+
+        monkeypatch.setattr(api_key_auth, "_call_civic_observer", fake_call)
         set_redis_client(fake_redis)
-        settings.DEBUG = True
-        # Non-dev keys are rejected by the stub
-        result = await validate_api_key("invalid_key", "alameda.ca")
-        assert result["valid"] is False
+        url = "https://alameda.ca.civic.band/meetings/agendas.json"
 
-    async def test_valid_key_is_cached(self, settings, fake_redis):
+        result = await api_key_auth.validate_api_key("cb_live_x", url)
+
+        assert result == {"valid": False, "reason": "observer_unavailable"}
+        assert await fake_redis.get(_cache_key("cb_live_x", url)) is None
+
+    async def test_valid_key_is_cached(self, fake_redis, monkeypatch):
+        from django_plugins import api_key_auth
         from django_plugins.api_key_auth import (
             _cache_key,
             set_redis_client,
             validate_api_key,
         )
 
+        async def fake_call(api_key, url):
+            return {"valid": True, "reason": "ok", "key_id": "k1"}
+
+        monkeypatch.setattr(api_key_auth, "_call_civic_observer", fake_call)
         set_redis_client(fake_redis)
-        settings.DEBUG = True
+        url = "https://alameda.ca.civic.band/meetings/agendas.json"
 
-        # First call
-        await validate_api_key("dev_test_key", "alameda.ca")
+        await validate_api_key("cb_live_x", url)
 
-        # Check it was cached
-        cached = await fake_redis.get(_cache_key("dev_test_key"))
+        cached = await fake_redis.get(_cache_key("cb_live_x", url))
         assert cached is not None
-        assert b"valid" in cached
         assert b"true" in cached.lower()
 
-    async def test_invalid_key_is_cached(self, settings, fake_redis):
+    async def test_invalid_key_is_cached(self, fake_redis, monkeypatch):
+        from django_plugins import api_key_auth
         from django_plugins.api_key_auth import (
             _cache_key,
             set_redis_client,
             validate_api_key,
         )
 
+        async def fake_call(api_key, url):
+            return {"valid": False, "reason": "invalid_key"}
+
+        monkeypatch.setattr(api_key_auth, "_call_civic_observer", fake_call)
         set_redis_client(fake_redis)
-        settings.DEBUG = True
+        url = "https://alameda.ca.civic.band/meetings/agendas.json"
 
-        # Call with invalid key
-        await validate_api_key("invalid_key", "alameda.ca")
+        await validate_api_key("cb_live_x", url)
 
-        # Check it was cached
-        cached = await fake_redis.get(_cache_key("invalid_key"))
+        cached = await fake_redis.get(_cache_key("cb_live_x", url))
         assert cached is not None
-        assert b"valid" in cached
         assert b"false" in cached.lower()
+
+    async def test_cache_key_includes_url(self):
+        from django_plugins.api_key_auth import _cache_key
+
+        key = "cb_live_x"
+        one = _cache_key(key, "https://alameda.ca.civic.band/meetings/agendas.json")
+        two = _cache_key(key, "https://oakland.ca.civic.band/meetings/agendas.json")
+        same = _cache_key(
+            key, "https://alameda.ca.civic.band/meetings/agendas.json?_size=50"
+        )
+
+        assert one != two
+        assert one == same
+
+    async def test_observer_call_sends_expected_payload(self, settings, monkeypatch):
+        from django_plugins import api_key_auth
+
+        settings.CIVIC_OBSERVER_URL = "http://observer"
+        settings.CIVIC_OBSERVER_SECRET = "secret"
+        settings.CIVIC_OBSERVER_TIMEOUT = 2
+        captured = {}
+
+        class FakeResponse:
+            status_code = 200
+
+            def json(self):
+                return {"allowed": True, "reason": "ok", "key_id": "k1"}
+
+        class FakeClient:
+            def __init__(self, *_, **kwargs):
+                captured["timeout"] = kwargs.get("timeout")
+
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *args):
+                return None
+
+            async def post(self, url, json=None, headers=None):
+                captured.update(url=url, json=json, headers=headers)
+                return FakeResponse()
+
+        monkeypatch.setattr(api_key_auth.httpx, "AsyncClient", FakeClient)
+
+        result = await api_key_auth._call_civic_observer(
+            "cb_live_x", "https://alameda.ca.civic.band/meetings/agendas.json"
+        )
+
+        assert result["valid"] is True
+        assert captured["timeout"] == 2
+        assert captured["url"] == "http://observer/api/v1/authorize"
+        assert captured["json"] == {
+            "api_key": "cb_live_x",
+            "url": "https://alameda.ca.civic.band/meetings/agendas.json",
+        }
+        assert captured["headers"] == {"X-Service-Secret": "secret"}
+
+    async def test_observer_non_200_returns_none(self, monkeypatch):
+        from django_plugins import api_key_auth
+
+        class FakeResponse:
+            status_code = 401
+
+        class FakeClient:
+            def __init__(self, *_, **__):
+                pass
+
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *args):
+                return None
+
+            async def post(self, *_args, **_kwargs):
+                return FakeResponse()
+
+        monkeypatch.setattr(api_key_auth.httpx, "AsyncClient", FakeClient)
+
+        result = await api_key_auth._call_civic_observer(
+            "cb_live_x", "https://alameda.ca.civic.band/meetings/agendas.json"
+        )
+
+        assert result is None
+
+    async def test_observer_request_error_returns_none(self, monkeypatch):
+        import httpx
+
+        from django_plugins import api_key_auth
+
+        class FakeClient:
+            def __init__(self, *_, **__):
+                pass
+
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *args):
+                return None
+
+            async def post(self, *_args, **_kwargs):
+                raise httpx.ConnectError("boom")
+
+        monkeypatch.setattr(api_key_auth.httpx, "AsyncClient", FakeClient)
+
+        result = await api_key_auth._call_civic_observer(
+            "cb_live_x", "https://alameda.ca.civic.band/meetings/agendas.json"
+        )
+
+        assert result is None
 
 
 class TestIsResearchToolRequest:

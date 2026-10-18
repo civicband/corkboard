@@ -6,6 +6,7 @@ Also includes rate limiting and research tool detection.
 """
 
 import hashlib
+import hmac
 import json
 import logging
 from typing import Optional
@@ -60,10 +61,11 @@ def _normalize_url_for_cache(url: str) -> str:
 
 def _cache_key(api_key: str, url: str = "") -> str:
     """Generate cache key from API key and normalized URL (hashed for security)."""
-    # API keys are high-entropy bearer credentials, not user passwords. A fast
-    # hash is appropriate here and the raw key is never stored or logged.
-    # codeql[py/weak-sensitive-data-hashing]
-    key_hash = hashlib.sha256(api_key.encode()).hexdigest()[:16]
+    # API keys are high-entropy bearer credentials, not user passwords. Use a
+    # keyed hash so the cache key cannot be correlated with a known key.
+    key_hash = hmac.new(
+        settings.SECRET_KEY.encode(), api_key.encode(), hashlib.sha256
+    ).hexdigest()[:16]
     if not url:
         return f"apikey:{key_hash}"
     url_hash = hashlib.sha256(_normalize_url_for_cache(url).encode()).hexdigest()[:16]

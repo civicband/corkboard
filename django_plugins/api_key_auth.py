@@ -6,7 +6,6 @@ Also includes rate limiting and research tool detection.
 """
 
 import hashlib
-import hmac
 import json
 import logging
 from typing import Optional
@@ -63,9 +62,11 @@ def _cache_key(api_key: str, url: str = "") -> str:
     """Generate cache key from API key and normalized URL (hashed for security)."""
     # API keys are high-entropy bearer credentials, not user passwords. Use a
     # keyed hash so the cache key cannot be correlated with a known key.
-    key_hash = hmac.new(
-        settings.SECRET_KEY.encode(), api_key.encode(), hashlib.sha256
-    ).hexdigest()[:16]
+    key_hash = hashlib.blake2b(
+        api_key.encode(),
+        key=settings.SECRET_KEY.encode()[:64],
+        digest_size=8,
+    ).hexdigest()
     if not url:
         return f"apikey:{key_hash}"
     url_hash = hashlib.sha256(_normalize_url_for_cache(url).encode()).hexdigest()[:16]
@@ -179,17 +180,6 @@ def build_request_url(scope: dict, host: str) -> str:
             urlencode(params, doseq=True),
             "",
         )
-    )
-
-
-def redact_query_string(query_string: bytes) -> str:
-    """Render a query string for access logs without exposing API keys."""
-    params = parse_qsl(
-        query_string.decode("utf-8", errors="replace"), keep_blank_values=True
-    )
-    return urlencode(
-        [(key, "[REDACTED]" if key == "api_key" else value) for key, value in params],
-        doseq=True,
     )
 
 

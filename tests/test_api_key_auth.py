@@ -12,7 +12,6 @@ from django_plugins.api_key_auth import (
     is_research_tool_request,
     make_401_response,
     make_402_rate_limit_response,
-    redact_query_string,
 )
 
 
@@ -209,21 +208,6 @@ class TestBuildRequestUrl:
         assert build_request_url(scope, "alameda.ca.civic.band") == (
             "https://alameda.ca.civic.band/"
         )
-
-
-class TestRedactQueryString:
-    """Test API key redaction for access logs."""
-
-    def test_redacts_api_key(self):
-        assert redact_query_string(b"api_key=cb_live_secret&x=1") == (
-            "api_key=%5BREDACTED%5D&x=1"
-        )
-
-    def test_leaves_other_params(self):
-        assert redact_query_string(b"_search=budget") == "_search=budget"
-
-    def test_empty_query(self):
-        assert redact_query_string(b"") == ""
 
 
 class TestMake401Response:

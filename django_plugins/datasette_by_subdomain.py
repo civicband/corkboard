@@ -61,7 +61,6 @@ from django_plugins.api_key_auth import (
     is_research_tool_request,
     make_401_response,
     make_402_rate_limit_response,
-    redact_query_string,
     validate_api_key,
 )
 
@@ -365,7 +364,6 @@ async def _dispatch_datasette_request(scope, receive, send, subdomain, request_h
         "subdomain": subdomain,
         "method": scope.get("method", "GET"),
         "path": scope.get("path", ""),
-        "query_string": redact_query_string(scope.get("query_string", b"")),
         "request_host": request_host,
         "client_ip": get_client_ip(scope),
         "user_agent": _scope_header(scope, "user-agent"),
@@ -388,10 +386,9 @@ async def _dispatch_datasette_request(scope, receive, send, subdomain, request_h
     finally:
         ctx.setdefault("status_code", 0)
         ctx["duration_ms"] = round((time.perf_counter() - start) * 1000, 3)
-        # Build an explicit log payload: query strings may contain credentials
-        # and must never reach the access log, even in redacted form.
-        log_ctx = {key: value for key, value in ctx.items() if key != "query_string"}
-        access_logger.info("request completed", extra=log_ctx)
+        # Query strings may contain credentials, so they are deliberately
+        # excluded from the subdomain access log payload.
+        access_logger.info("request completed", extra=ctx)
 
 
 async def _run_datasette_request(scope, receive, send, ctx):

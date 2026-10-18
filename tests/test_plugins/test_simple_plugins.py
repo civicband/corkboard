@@ -140,10 +140,15 @@ class TestRobots:
         if isinstance(content, bytes):
             content = content.decode("utf-8")
 
-        # Should include AI bot user agents
-        assert "User-agent: GPTBot" in content
-        assert "User-agent: ClaudeBot" in content
-        assert "User-agent: Google-Extended" in content
+        # Should include AI bot user agents in the grouped User-agent line
+        user_agent_line = next(
+            line for line in content.splitlines() if line.startswith("User-agent:")
+        )
+        user_agents = {
+            agent.strip()
+            for agent in user_agent_line.removeprefix("User-agent:").split(",")
+        }
+        assert {"GPTBot", "ClaudeBot", "Google-Extended"} <= user_agents
 
         # Should disallow meetings database but not _internal
         assert "Disallow: /meetings" in content

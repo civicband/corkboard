@@ -390,9 +390,8 @@ async def _dispatch_datasette_request(scope, receive, send, subdomain, request_h
         ctx["duration_ms"] = round((time.perf_counter() - start) * 1000, 3)
         # query_string is already redacted by redact_query_string; CodeQL
         # cannot see through the helper and flags the access log.
-        access_logger.info(
-            "request completed", extra=ctx
-        )  # lgtm[py/clear-text-logging-sensitive-data]
+        # codeql[py/clear-text-logging-sensitive-data]
+        access_logger.info("request completed", extra=ctx)
 
 
 async def _run_datasette_request(scope, receive, send, ctx):

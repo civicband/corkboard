@@ -2,7 +2,7 @@
 # Base/builder layer
 # ------------------------------------------------------------
 
-FROM python:3.15-slim-trixie AS builder
+FROM python:3.14-slim-trixie AS builder
 
 # Keeps Python from generating .pyc files in the container
 ENV PYTHONDONTWRITEBYTECODE=1

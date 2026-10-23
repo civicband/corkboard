@@ -20,7 +20,8 @@ def extra_body_script(datasette):
     # 4. Patches umami.track to auto-include subdomain
 
     script = """</script>
-<script src="https://analytics.civic.band/sunshine" data-website-id="6250918b-6a0c-4c05-a6cb-ec8f86349e1a"></script>
+<script src="https://analytics.civic.band/sunshine" data-website-id="6250918b-6a0c-4c05-a6cb-ec8f86349e1a" data-performance="true"></script>
+<script defer src="https://analytics.civic.band/recorder.js" data-website-id="6250918b-6a0c-4c05-a6cb-ec8f86349e1a"></script>
 <script>
 (function() {
     // Extract subdomain from hostname (everything except last 2 parts)

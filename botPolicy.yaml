@@ -165,4 +165,4 @@ thresholds:
     action: CHALLENGE
     challenge:
       algorithm: fast
-      difficulty: 5
+      difficulty: 4

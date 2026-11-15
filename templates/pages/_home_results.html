@@ -1,0 +1,76 @@
+{% load humanize %}
+<div id="home-results" aria-live="polite">
+  {% if query or state or kind or has_finance %}
+  <div class="bg-gray-50 border-b border-gray-200">
+    <div class="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
+      <div class="flex flex-wrap items-baseline justify-between gap-3 mb-4">
+        <h2 class="text-xl font-bold text-gray-900">
+          {{ visible_count|intcomma }} municipalit{{ visible_count|pluralize:"y,ies" }} match
+        </h2>
+        {% if request.GET %}
+        <a href="/municipalities?{{ request.GET.urlencode }}"
+           class="text-sm font-medium text-indigo-600 hover:text-indigo-800"
+           data-umami-event="homepage_browse">See all results &rarr;</a>
+        {% else %}
+        <a href="/municipalities"
+           class="text-sm font-medium text-indigo-600 hover:text-indigo-800"
+           data-umami-event="homepage_browse">See all results &rarr;</a>
+        {% endif %}
+      </div>
+
+      {% if sites %}
+      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {% for site in sites|slice:":12" %}
+        {% include 'pages/_result_card.html' %}
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="rounded-lg border border-gray-200 bg-white p-6 text-center">
+        <p class="text-gray-600">No municipalities match your search.</p>
+        <p class="mt-1 text-sm text-gray-500">
+          Try a different name or state, or
+          <a href="/municipalities" class="text-indigo-600 hover:text-indigo-800 underline">browse all municipalities</a>.
+        </p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% else %}
+  <div class="bg-gray-50 border-b border-gray-200">
+    <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+      <p class="text-sm text-gray-600">
+        Already know the name? Search above, or
+        <a href="/municipalities" class="font-medium text-indigo-600 hover:text-indigo-800" data-umami-event="homepage_browse">browse all {{ num_sites|intcomma }} municipalities</a>.
+      </p>
+    </div>
+  </div>
+  {% endif %}
+
+  {% include 'pages/_map_data.html' %}
+
+  {% if query %}
+  <script>
+  if (typeof umami !== 'undefined') {
+    umami.track('homepage_search', {
+      query: '{{ query|escapejs }}',
+      state: '{{ state|escapejs }}',
+      kind: '{{ kind|escapejs }}',
+      results: {{ visible_count }}
+    });
+  }
+  </script>
+  {% endif %}
+
+  {% if state or kind or has_finance %}
+  <script>
+  if (typeof umami !== 'undefined') {
+    umami.track('homepage_filter', {
+      state: '{{ state|escapejs }}',
+      kind: '{{ kind|escapejs }}',
+      has_finance: '{{ has_finance|escapejs }}',
+      results: {{ visible_count }}
+    });
+  }
+  </script>
+  {% endif %}
+</div>

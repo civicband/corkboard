@@ -1,3 +1,4 @@
+from django.core.paginator import Paginator
 from django.db.models import Sum
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -8,20 +9,26 @@ from pages.models import Site
 from pages.utils import apply_site_filters
 
 
+def _global_filter_options():
+    """Shared stats and filter choices for the homepage and browse page."""
+    all_sites = Site.objects.all()
+    return {
+        "num_sites": all_sites.count(),
+        "total_pages": all_sites.aggregate(total=Sum("pages"))["total"] or 0,
+        "finance_sites_count": all_sites.filter(has_finance_data=True).count(),
+        "states": Site.objects.values_list("state", flat=True)
+        .distinct()
+        .order_by("state"),
+        "kinds": Site.objects.values_list("kind", flat=True)
+        .distinct()
+        .order_by("kind"),
+    }
+
+
 def home_view(request):
-    """Homepage with sites directory."""
+    """Homepage with search and map-first municipality discovery."""
     # Apply filters and sorting
     sites, query, state, kind, sort, has_finance = apply_site_filters(request)
-
-    # Get aggregate stats (from all sites, not filtered)
-    all_sites = Site.objects.all()
-    num_sites = all_sites.count()
-    total_pages = all_sites.aggregate(total=Sum("pages"))["total"] or 0
-    finance_sites_count = all_sites.filter(has_finance_data=True).count()
-
-    # Get unique states and kinds for filter dropdowns
-    states = Site.objects.values_list("state", flat=True).distinct().order_by("state")
-    kinds = Site.objects.values_list("kind", flat=True).distinct().order_by("kind")
 
     context = {
         "sites": sites,
@@ -29,17 +36,45 @@ def home_view(request):
         "state": state,
         "kind": kind,
         "sort": sort,
-        "num_sites": num_sites,
-        "total_pages": total_pages,
-        "states": states,
-        "kinds": kinds,
         "visible_count": sites.count(),
-        "total_count": num_sites,
-        "finance_sites_count": finance_sites_count,
         "has_finance": has_finance,
+        **_global_filter_options(),
     }
+    context["total_count"] = context["num_sites"]
+
+    if (
+        request.headers.get("HX-Request")
+        and request.headers.get("HX-Target") == "home-results"
+    ):
+        return render(request, "pages/_home_results.html", context)
 
     return render(request, "pages/home.html", context)
+
+
+def municipalities_view(request):
+    """Browse the full municipality directory with pagination."""
+    sites, query, state, kind, sort, has_finance = apply_site_filters(request)
+    paginator = Paginator(sites, 50)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    context = {
+        "page_obj": page_obj,
+        "paginator": paginator,
+        "query": query,
+        "state": state,
+        "kind": kind,
+        "sort": sort,
+        "has_finance": has_finance,
+        **_global_filter_options(),
+    }
+
+    if (
+        request.headers.get("HX-Request")
+        and request.headers.get("HX-Target") == "municipalities-table-container"
+    ):
+        return render(request, "pages/_municipalities_table.html", context)
+
+    return render(request, "pages/municipalities.html", context)
 
 
 def sites_search_view(request):

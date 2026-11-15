@@ -1,12 +1,18 @@
 {% extends "pages/base.html" %}
 
+{% block title %}CivicBand - Find your local government's meetings{% endblock %}
+{% block description %}Search agendas, minutes, and campaign finance records from local governments across the US and Canada. Find your municipality in seconds.{% endblock %}
+{% block og_title %}CivicBand - Find your local government's meetings{% endblock %}
+{% block og_description %}Search agendas, minutes, and campaign finance records from local governments across the US and Canada.{% endblock %}
+
 {% block navbar %}
 {% include 'pages/_hero.html' %}
 {% endblock %}
 
 {% block content %}
 {% include 'pages/_finder.html' %}
-{% include 'pages/_results.html' %}
+{% include 'pages/_map_section.html' %}
+{% include 'pages/_home_results.html' %}
 {% endblock %}
 
 {% block extra_scripts %}
@@ -77,12 +83,10 @@
     }
   }
 
-  // Listen for HTMX updates
   document.body.addEventListener('sites:updated', function(event) {
     loadMarkers(event.detail);
   });
 
-  // Load initial data
   setTimeout(function() {
     if (window.sitesGeoJSON) {
       loadMarkers(window.sitesGeoJSON);
@@ -129,27 +133,6 @@
   financeFilter.addEventListener('change', updateClearButton);
   document.body.addEventListener('htmx:afterSwap', updateClearButton);
 
-  // ===== QUICK-START BUTTONS =====
-  const quickStartButtons = document.querySelectorAll('.quick-start-btn');
-
-  quickStartButtons.forEach(function(button) {
-    button.addEventListener('click', function() {
-      const searchTerm = this.getAttribute('data-search');
-      searchInput.value = searchTerm;
-
-      // Trigger HTMX request
-      htmx.trigger(searchInput, 'keyup');
-
-      // Scroll to results
-      setTimeout(function() {
-        document.getElementById('sites-table-container').scrollIntoView({
-          behavior: 'smooth',
-          block: 'start'
-        });
-      }, 300);
-    });
-  });
-
   // ===== GEOLOCATION =====
   const useLocationBtn = document.getElementById('use-location-btn');
 
@@ -159,7 +142,6 @@
       return;
     }
 
-    // Show loading state
     useLocationBtn.disabled = true;
     useLocationBtn.innerHTML = `
       <svg class="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
@@ -171,10 +153,10 @@
 
     navigator.geolocation.getCurrentPosition(
       function(position) {
-        const userLat = position.coords.latitude;
-        const userLng = position.coords.longitude;
-
-        findNearestMunicipalities(userLat, userLng);
+        findNearestMunicipalities(
+          position.coords.latitude,
+          position.coords.longitude
+        );
       },
       function(error) {
         console.error('Geolocation error:', error);
@@ -215,22 +197,27 @@
       .filter(f => f.geometry && f.geometry.coordinates)
       .map(function(feature) {
         const [lng, lat] = feature.geometry.coordinates;
-        const distance = calculateDistance(userLat, userLng, lat, lng);
         return {
           name: feature.properties.name,
-          distance: distance
+          distance: calculateDistance(userLat, userLng, lat, lng)
         };
       })
       .sort((a, b) => a.distance - b.distance)
       .slice(0, 1);
 
     if (sitesWithDistance.length > 0) {
-      const nearest = sitesWithDistance[0];
-      searchInput.value = nearest.name;
-      htmx.trigger(searchInput, 'keyup');
+      searchInput.value = sitesWithDistance[0].name;
+      stateFilter.value = '';
+      kindFilter.value = '';
+      financeFilter.checked = false;
+      updateClearButton();
+
+      if (window.htmx) {
+        htmx.trigger(document.getElementById('home-search-form'), 'submit');
+      }
 
       setTimeout(function() {
-        document.getElementById('sites-table-container').scrollIntoView({
+        document.getElementById('home-results').scrollIntoView({
           behavior: 'smooth',
           block: 'start'
         });

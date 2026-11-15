@@ -84,6 +84,21 @@ class Site(models.Model):
         return f"{self.name} ({self.subdomain})"
 
     @property
+    def has_map_coordinates(self):
+        """Return True when lat/lng are usable map coordinates."""
+        try:
+            lat = float(self.lat)
+            lng = float(self.lng)
+        except (TypeError, ValueError):
+            return False
+
+        if not (-90 <= lat <= 90 and -180 <= lng <= 180):
+            return False
+
+        # (0, 0) is a common placeholder for missing geocoding data.
+        return not (lat == 0 and lng == 0)
+
+    @property
     def popup(self):
         """Legacy property for backward compatibility."""
         return {}  # Can implement if needed

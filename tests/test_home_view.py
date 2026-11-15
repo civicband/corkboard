@@ -94,3 +94,33 @@ class TestHomeView:
         content = response.content.decode()
         assert "Test City" in content
         assert "https://test.ca.civic.band" in content
+
+    def test_home_view_has_visible_fastly_and_raft_credits(self, client: Client):
+        """Fastly and Raft credits should be visible in the hero, above the fold."""
+        content = client.get(reverse("home")).content.decode()
+
+        assert 'id="project-credits"' in content
+        credits = content.split('id="project-credits"', 1)[1].split(
+            "<!-- Collapsible secondary information -->", 1
+        )[0]
+        assert "https://www.fastly.com/fast-forward" in credits
+        assert "https://raft.foundation" in credits
+
+    def test_home_view_map_excludes_zero_coordinates(self, client: Client):
+        """Sites with placeholder 0,0 coordinates should not break map bounds."""
+        from pages.models import Site
+
+        Site.objects.create(
+            subdomain="zero.ca",
+            name="Zero Coordinate City",
+            state="California",
+            kind="city",
+            pages=10,
+            lat="0",
+            lng="0",
+        )
+
+        content = client.get(reverse("home") + "?q=Zero").content.decode()
+
+        assert "Zero Coordinate City" in content
+        assert '"subdomain": "zero.ca"' not in content

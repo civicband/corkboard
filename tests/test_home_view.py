@@ -40,3 +40,57 @@ class TestHomeView:
         content = response.content.decode()
         assert "Clear filters" in content  # Button exists in HTML
         assert 'style="display: none;"' in content  # But is hidden
+
+    def test_home_view_is_search_first(self, client: Client):
+        """Homepage should target a dedicated results region, not a table."""
+        response = client.get(reverse("home"))
+        content = response.content.decode()
+        assert 'id="home-search-form"' in content
+        assert 'id="home-results"' in content
+        assert 'id="sites-map"' in content
+        assert "sites-table-container" not in content
+
+    def test_home_view_does_not_render_full_directory_table(self, client: Client):
+        """Homepage should not render the full municipality table."""
+        response = client.get(reverse("home"))
+        assert "<table" not in response.content.decode().lower()
+
+    def test_home_view_has_social_icons_without_rss(self, client: Client):
+        """Nav should use social icons and omit the RSS link."""
+        response = client.get(reverse("home"))
+        content = response.content.decode()
+        assert 'aria-label="CivicBand on GitHub"' in content
+        assert 'aria-label="CivicBand on Mastodon"' in content
+        assert 'aria-label="CivicBand on Bluesky"' in content
+        assert 'href="/rss.xml"' not in content
+
+    def test_home_view_newsletter_is_in_details(self, client: Client):
+        """Newsletter signup should be collapsed behind a details drawer."""
+        response = client.get(reverse("home"))
+        content = response.content.decode()
+        assert "subscribe to our newsletter" in content
+        assert "<details" in content
+
+    def test_home_view_links_to_browse_page(self, client: Client):
+        """Homepage should link to the full municipalities directory."""
+        response = client.get(reverse("home"))
+        assert 'href="/municipalities"' in response.content.decode()
+
+    def test_home_view_htmx_search_returns_partial(self, client: Client):
+        """HTMX searches should return only the results partial."""
+        response = client.get(
+            reverse("home"),
+            HTTP_HX_REQUEST="true",
+            HTTP_HX_TARGET="home-results",
+        )
+        content = response.content.decode()
+        assert "<html" not in content.lower()
+        assert 'id="home-results"' in content
+        assert "sites:updated" in content
+
+    def test_home_view_filtered_results_have_direct_links(self, client: Client):
+        """Filtered homepage results should link straight to the municipal site."""
+        response = client.get(reverse("home") + "?q=Test")
+        content = response.content.decode()
+        assert "Test City" in content
+        assert "https://test.ca.civic.band" in content

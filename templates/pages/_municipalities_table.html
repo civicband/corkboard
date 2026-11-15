@@ -1,0 +1,124 @@
+{% load humanize %}
+<div id="municipalities-table-container">
+  {% if page_obj.object_list %}
+  <div class="mb-2 text-sm text-gray-600">
+    Showing <span class="font-semibold">{{ page_obj.start_index|intcomma }}</span>–<span class="font-semibold">{{ page_obj.end_index|intcomma }}</span>
+    of <span class="font-semibold">{{ paginator.count|intcomma }}</span> municipalities
+  </div>
+
+  <div class="border border-gray-200 rounded bg-white overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200 text-sm">
+      <thead class="bg-gray-50">
+        <tr>
+          <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">
+            Municipality
+          </th>
+          <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase hidden sm:table-cell">
+            State / Province
+          </th>
+          <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase hidden md:table-cell">
+            Type
+          </th>
+          <th scope="col"
+              role="button"
+              tabindex="0"
+              aria-sort="{% if sort == 'pages' or not sort %}descending{% else %}none{% endif %}"
+              class="px-3 py-2 text-right text-xs font-medium uppercase cursor-pointer hover:bg-gray-100 select-none {% if sort == 'pages' or not sort %}text-indigo-600{% else %}text-gray-700{% endif %}"
+              hx-get="/municipalities?sort=pages"
+              hx-trigger="click, keydown[key=='Enter']"
+              hx-target="#municipalities-table-container"
+              hx-swap="outerHTML"
+              hx-include="[name='q'], [name='state'], [name='kind'], [name='has_finance']"
+              hx-push-url="true">
+            Pages {% if sort == 'pages' or not sort %}<span aria-hidden="true">&darr;</span>{% endif %}
+          </th>
+          <th scope="col"
+              role="button"
+              tabindex="0"
+              aria-sort="{% if sort == 'updated_at' %}descending{% else %}none{% endif %}"
+              class="px-3 py-2 text-right text-xs font-medium uppercase cursor-pointer hover:bg-gray-100 select-none hidden lg:table-cell {% if sort == 'updated_at' %}text-indigo-600{% else %}text-gray-700{% endif %}"
+              hx-get="/municipalities?sort=updated_at"
+              hx-trigger="click, keydown[key=='Enter']"
+              hx-target="#municipalities-table-container"
+              hx-swap="outerHTML"
+              hx-include="[name='q'], [name='state'], [name='kind'], [name='has_finance']"
+              hx-push-url="true">
+            Last Updated {% if sort == 'updated_at' %}<span aria-hidden="true">&darr;</span>{% endif %}
+          </th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        {% for site in page_obj %}
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-3 py-2">
+            <a href="https://{{ site.subdomain }}.civic.band"
+               class="text-indigo-600 hover:text-indigo-900 font-medium block"
+               data-umami-event="browse_muni"
+               data-umami-event-subdomain="{{ site.subdomain }}">
+              {{ site.name|default:site.subdomain }}
+              {% if site.has_finance_data %}
+              <span class="inline-flex items-center px-1.5 py-0.5 ml-2 text-xs font-medium bg-green-100 text-green-800 rounded border border-green-200" title="Campaign finance data available: contribution and spending records">Finance data</span>
+              {% endif %}
+              <span class="text-gray-500 sm:hidden">, {{ site.state }}</span>
+            </a>
+          </td>
+          <td class="px-3 py-2 text-gray-600 hidden sm:table-cell">
+            {{ site.state }}
+          </td>
+          <td class="px-3 py-2 text-gray-600 capitalize hidden md:table-cell">
+            {{ site.kind }}
+          </td>
+          <td class="px-3 py-2 text-right text-gray-600 whitespace-nowrap">
+            {{ site.pages|default:0|intcomma }}
+          </td>
+          <td class="px-3 py-2 text-right text-gray-600 whitespace-nowrap hidden lg:table-cell">
+            {{ site.updated_at|date:"M j, Y" }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if page_obj.has_other_pages %}
+  <nav class="mt-4 flex items-center justify-between gap-3 text-sm" aria-label="Pagination">
+    <div>
+      {% if page_obj.has_previous %}
+      <a href="/municipalities?page={{ page_obj.previous_page_number }}&sort={{ sort }}"
+         hx-get="/municipalities?page={{ page_obj.previous_page_number }}&sort={{ sort }}"
+         hx-target="#municipalities-table-container"
+         hx-swap="outerHTML"
+         hx-include="[name='q'], [name='state'], [name='kind'], [name='has_finance']"
+         hx-push-url="true"
+         class="inline-flex items-center px-3 py-1.5 rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">
+        &larr; Previous
+      </a>
+      {% endif %}
+    </div>
+    <span class="text-gray-600">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    <div>
+      {% if page_obj.has_next %}
+      <a href="/municipalities?page={{ page_obj.next_page_number }}&sort={{ sort }}"
+         hx-get="/municipalities?page={{ page_obj.next_page_number }}&sort={{ sort }}"
+         hx-target="#municipalities-table-container"
+         hx-swap="outerHTML"
+         hx-include="[name='q'], [name='state'], [name='kind'], [name='has_finance']"
+         hx-push-url="true"
+         class="inline-flex items-center px-3 py-1.5 rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">
+        Next &rarr;
+      </a>
+      {% endif %}
+    </div>
+  </nav>
+  {% endif %}
+
+  {% else %}
+  <div class="px-6 py-12 text-center border border-gray-200 rounded bg-white">
+    <p class="text-gray-500">No municipalities match your search.</p>
+    <p class="text-sm text-gray-500 mt-2">
+      Try adjusting your filters or
+      <a href="/municipalities" class="text-indigo-600 hover:text-indigo-800 underline">clear them</a>.
+    </p>
+  </div>
+  {% endif %}
+</div>

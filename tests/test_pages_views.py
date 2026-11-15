@@ -11,7 +11,7 @@ Tests cover:
 import pytest
 from django.test import Client, RequestFactory
 
-from pages.views import feed_view, home_view, how_view, why_view
+from pages.views import feed_view, home_view, how_view, municipalities_view, why_view
 
 
 class TestPageViews:
@@ -56,6 +56,14 @@ class TestPageViews:
 
         assert response.status_code == 200
 
+    @pytest.mark.django_db
+    def test_municipalities_view(self, request_factory):
+        """Test municipalities browse view returns 200."""
+        request = request_factory.get("/municipalities")
+        response = municipalities_view(request)
+
+        assert response.status_code == 200
+
     # Integration tests with full Django test client
     @pytest.mark.django_db
     def test_home_view_integration(self, client):
@@ -80,7 +88,27 @@ class TestPageViews:
 
     @pytest.mark.django_db
     def test_feed_view_integration(self, client):
-        """Test RSS feed via test client."""
+        """Test RSS feed view via test client."""
         response = client.get("/rss.xml")
 
         assert response.status_code == 200
+
+    @pytest.mark.django_db
+    def test_shared_nav_has_social_icons_without_rss(self, client):
+        """Shared navigation should use social icons and omit RSS."""
+        response = client.get("/how.html")
+        content = response.content.decode()
+
+        assert 'aria-label="CivicBand on GitHub"' in content
+        assert 'aria-label="CivicBand on Mastodon"' in content
+        assert 'aria-label="CivicBand on Bluesky"' in content
+        assert 'href="/rss.xml"' not in content
+
+    @pytest.mark.django_db
+    def test_footer_newsletter_is_in_details(self, client):
+        """Footer newsletter should be collapsed behind a details drawer."""
+        response = client.get("/how.html")
+        content = response.content.decode()
+
+        assert "subscribe to our newsletter" in content
+        assert "<details" in content

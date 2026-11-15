@@ -63,6 +63,7 @@
       }
 
       L.geoJSON(geojson, {
+        pointToLayer: window.civicPointToLayer,
         onEachFeature: function(feature, layer) {
           if (feature.properties && feature.properties.popup) {
             layer.bindPopup(feature.properties.popup);

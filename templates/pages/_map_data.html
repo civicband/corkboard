@@ -1,11 +1,73 @@
 <script>
 (function() {
+  function addMarkerOffsets(geojson) {
+    if (!geojson || !Array.isArray(geojson.features)) {
+      return;
+    }
+
+    const groups = {};
+    geojson.features.forEach(function(feature) {
+      if (!feature.geometry || !Array.isArray(feature.geometry.coordinates)) {
+        return;
+      }
+      const coords = feature.geometry.coordinates;
+      const key = Number(coords[0]).toFixed(6) + ',' + Number(coords[1]).toFixed(6);
+      if (!groups[key]) {
+        groups[key] = [];
+      }
+      groups[key].push(feature);
+    });
+
+    Object.keys(groups).forEach(function(key) {
+      const features = groups[key];
+      if (features.length < 2) {
+        return;
+      }
+
+      const radius = 14;
+      features.forEach(function(feature, index) {
+        const angle = (2 * Math.PI * index) / features.length;
+        feature.properties = feature.properties || {};
+        feature.properties.markerOffset = [
+          Math.round(Math.cos(angle) * radius),
+          Math.round(Math.sin(angle) * radius)
+        ];
+      });
+    });
+  }
+
+  if (!window.civicPointToLayer) {
+    window.civicPointToLayer = function(feature, latlng) {
+      const offset = (feature.properties && feature.properties.markerOffset) || [0, 0];
+      if (!offset[0] && !offset[1]) {
+        return L.marker(latlng);
+      }
+
+      const base = new L.Icon.Default();
+      const icon = L.icon({
+        iconUrl: base._getIconUrl('icon'),
+        iconRetinaUrl: base._getIconUrl('iconRetina'),
+        shadowUrl: base._getIconUrl('shadow'),
+        iconSize: base.options.iconSize,
+        iconAnchor: [
+          base.options.iconAnchor[0] + offset[0],
+          base.options.iconAnchor[1] + offset[1]
+        ],
+        popupAnchor: base.options.popupAnchor,
+        shadowSize: base.options.shadowSize,
+        shadowAnchor: base.options.shadowAnchor,
+        tooltipAnchor: base.options.tooltipAnchor
+      });
+      return L.marker(latlng, { icon: icon });
+    };
+  }
+
   try {
     const geojson = {
       "type": "FeatureCollection",
       "features": [
         {% for site in sites %}
-        {% if site.lat and site.lng %}
+        {% if site.has_map_coordinates %}
         {
           "type": "Feature",
           "geometry": {
@@ -24,6 +86,8 @@
         {% endfor %}
       ]
     };
+
+    addMarkerOffsets(geojson);
 
     // Store data globally for map initialization
     window.sitesGeoJSON = geojson;

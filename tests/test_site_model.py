@@ -58,3 +58,25 @@ class TestSiteModel:
         # Verify we can actually read sites
         count = Site.objects.count()
         assert count > 0  # Should have sites in the database
+
+
+class TestSiteMapCoordinates:
+    def test_valid_coordinates_are_usable(self):
+        site = Site(lat="37.7652076", lng="-122.241635")
+        assert site.has_map_coordinates is True
+
+    def test_zero_coordinates_are_not_usable(self):
+        site = Site(lat="0", lng="0")
+        assert site.has_map_coordinates is False
+
+    def test_missing_coordinates_are_not_usable(self):
+        site = Site(lat=None, lng=None)
+        assert site.has_map_coordinates is False
+
+    def test_out_of_range_coordinates_are_not_usable(self):
+        site = Site(lat="91", lng="-122.241635")
+        assert site.has_map_coordinates is False
+
+    def test_non_numeric_coordinates_are_not_usable(self):
+        site = Site(lat="north", lng="west")
+        assert site.has_map_coordinates is False

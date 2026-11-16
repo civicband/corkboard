@@ -124,3 +124,20 @@ class TestHomeView:
 
         assert "Zero Coordinate City" in content
         assert '"subdomain": "zero.ca"' not in content
+
+    def test_home_view_uses_carto_positron_tiles(self, client: Client):
+        """Homepage map should use the quieter CARTO Positron basemap."""
+        content = client.get(reverse("home")).content.decode()
+
+        assert "basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" in content
+        assert "tile.openstreetmap.org" not in content
+        assert "CARTO" in content
+
+    def test_home_view_has_mobile_nav_menu(self, client: Client):
+        """Mobile nav should hide text links behind a menu, keeping socials/donate."""
+        content = client.get(reverse("home")).content.decode()
+
+        assert 'aria-label="Open navigation menu"' in content
+        assert "md:hidden" in content
+        assert "hidden md:flex" in content
+        assert "https://opencollective.com/civicband" in content

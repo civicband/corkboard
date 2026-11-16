@@ -355,6 +355,9 @@ CIVIC_OBSERVER_SECRET = get_env_variable(
 CIVIC_BAND_DOMAIN = get_env_variable("CIVIC_BAND_DOMAIN", "civic.band")
 CIVIC_OBSERVER_TIMEOUT = float(get_env_variable("CIVIC_OBSERVER_TIMEOUT", "5"))
 
+# CARTO Basemaps API key. When unset, maps fall back to Esri basemaps.
+CARTO_API_KEY = os.environ.get("CARTO_API_KEY", "")
+
 # Cache TTLs (in seconds)
 API_KEY_VALID_TTL = 7200  # 2 hours for valid keys
 API_KEY_INVALID_TTL = 300  # 5 minutes for invalid keys

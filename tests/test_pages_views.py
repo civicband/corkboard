@@ -9,7 +9,7 @@ Tests cover:
 """
 
 import pytest
-from django.test import Client, RequestFactory
+from django.test import Client, RequestFactory, override_settings
 
 from pages.views import feed_view, home_view, how_view, municipalities_view, why_view
 
@@ -114,15 +114,30 @@ class TestPageViews:
         assert "<details" in content
 
     @pytest.mark.django_db
+    @override_settings(CARTO_API_KEY="test-carto-key")
     def test_map_view_uses_carto_voyager_tiles(self, client):
-        """Full map should use the CARTO Voyager basemap."""
+        """Full map should use CARTO Voyager when an API key is configured."""
         response = client.get("/map")
         content = response.content.decode()
 
         assert response.status_code == 200
-        assert "basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" in content
+        assert (
+            "basemaps.cartocdn.com/rastertiles/voyager/"
+            "{z}/{x}/{y}{r}.png?key=test-carto-key" in content
+        )
         assert "tile.openstreetmap.org" not in content
         assert "CARTO" in content
+
+    @pytest.mark.django_db
+    @override_settings(CARTO_API_KEY="")
+    def test_map_view_falls_back_to_esri_without_carto_key(self, client):
+        """Full map should keep working without a CARTO key."""
+        response = client.get("/map")
+        content = response.content.decode()
+
+        assert response.status_code == 200
+        assert "World_Street_Map/MapServer/tile/{z}/{y}/{x}" in content
+        assert "basemaps.cartocdn.com" not in content
 
     @pytest.mark.django_db
     def test_shared_nav_has_mobile_nav_menu(self, client):

@@ -1,5 +1,5 @@
 import pytest
-from django.test import Client
+from django.test import Client, override_settings
 from django.urls import reverse
 
 
@@ -125,13 +125,26 @@ class TestHomeView:
         assert "Zero Coordinate City" in content
         assert '"subdomain": "zero.ca"' not in content
 
+    @override_settings(CARTO_API_KEY="test-carto-key")
     def test_home_view_uses_carto_positron_tiles(self, client: Client):
-        """Homepage map should use the quieter CARTO Positron basemap."""
+        """Homepage map should use CARTO Positron when an API key is configured."""
         content = client.get(reverse("home")).content.decode()
 
-        assert "basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" in content
+        assert (
+            "basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png?key=test-carto-key"
+            in content
+        )
         assert "tile.openstreetmap.org" not in content
         assert "CARTO" in content
+
+    @override_settings(CARTO_API_KEY="")
+    def test_home_view_falls_back_to_esri_without_carto_key(self, client: Client):
+        """Homepage map should keep working without a CARTO key."""
+        content = client.get(reverse("home")).content.decode()
+
+        assert "World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}" in content
+        assert "World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}" in content
+        assert "basemaps.cartocdn.com" not in content
 
     def test_home_view_has_mobile_nav_menu(self, client: Client):
         """Mobile nav should hide text links behind a menu, keeping socials/donate."""

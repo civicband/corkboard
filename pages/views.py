@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.paginator import Paginator
 from django.db.models import Sum
 from django.http import JsonResponse
@@ -38,6 +39,7 @@ def home_view(request):
         "sort": sort,
         "visible_count": sites.count(),
         "has_finance": has_finance,
+        "carto_api_key": settings.CARTO_API_KEY,
         **_global_filter_options(),
     }
     context["total_count"] = context["num_sites"]
@@ -137,7 +139,11 @@ def feed_view(request):
 def map_view(request):
     """Full-page map of all CivicBand sites."""
     sites = Site.objects.filter(lat__isnull=False, lng__isnull=False)
-    return render(request, "pages/map.html", {"sites": sites})
+    return render(
+        request,
+        "pages/map.html",
+        {"sites": sites, "carto_api_key": settings.CARTO_API_KEY},
+    )
 
 
 def recent_deploys_view(request):

@@ -154,3 +154,11 @@ class TestHomeView:
         assert "md:hidden" in content
         assert "hidden md:flex" in content
         assert "https://opencollective.com/civicband" in content
+
+    def test_home_view_chat_widget_skips_mobile_homepage(self, client: Client):
+        """Chat widget should not load on the mobile homepage."""
+        content = client.get(reverse("home")).content.decode()
+
+        assert "tawk-chat-script" in content
+        assert "isHomepage && mobileQuery.matches" in content
+        assert "embed.tawk.to" in content

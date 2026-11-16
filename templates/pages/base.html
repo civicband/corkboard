@@ -46,16 +46,57 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
-    <!-- Tawk.to Chat -->
+    <!-- Tawk.to Chat (skipped on the mobile homepage) -->
     <script type="text/javascript">
-    var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-    (function(){
-    var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-    s1.async=true;
-    s1.src='https://embed.tawk.to/6941d7e665b580197cc611f4/1jckj6njm';
-    s1.charset='UTF-8';
-    s1.setAttribute('crossorigin','*');
-    s0.parentNode.insertBefore(s1,s0);
+    (function() {
+      var mobileQuery = window.matchMedia('(max-width: 767px)');
+      var isHomepage = window.location.pathname === '/';
+
+      function loadTawkChat() {
+        if (document.getElementById('tawk-chat-script')) {
+          return;
+        }
+
+        var Tawk_API = window.Tawk_API = window.Tawk_API || {};
+        window.Tawk_LoadStart = window.Tawk_LoadStart || new Date();
+
+        Tawk_API.onLoad = function() {
+          if (isHomepage && mobileQuery.matches && typeof Tawk_API.hideWidget === 'function') {
+            Tawk_API.hideWidget();
+          }
+        };
+
+        var s1 = document.createElement('script');
+        s1.id = 'tawk-chat-script';
+        s1.async = true;
+        s1.src = 'https://embed.tawk.to/6941d7e665b580197cc611f4/1jckj6njm';
+        s1.charset = 'UTF-8';
+        s1.setAttribute('crossorigin', '*');
+        var s0 = document.getElementsByTagName('script')[0];
+        s0.parentNode.insertBefore(s1, s0);
+      }
+
+      function syncChatWidget() {
+        if (isHomepage && mobileQuery.matches) {
+          if (window.Tawk_API && typeof window.Tawk_API.hideWidget === 'function') {
+            window.Tawk_API.hideWidget();
+          }
+          return;
+        }
+
+        loadTawkChat();
+        if (window.Tawk_API && typeof window.Tawk_API.showWidget === 'function') {
+          window.Tawk_API.showWidget();
+        }
+      }
+
+      syncChatWidget();
+
+      if (mobileQuery.addEventListener) {
+        mobileQuery.addEventListener('change', syncChatWidget);
+      } else if (mobileQuery.addListener) {
+        mobileQuery.addListener(syncChatWidget);
+      }
     })();
     </script>
 

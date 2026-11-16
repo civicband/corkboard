@@ -7,17 +7,15 @@
     <nav class="mb-3 pb-2 border-b border-indigo-500/40" aria-label="Main navigation">
       <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <a href="/" class="text-white font-bold text-lg mr-2">CivicBand</a>
-          <ul class="flex flex-wrap gap-2 text-sm">
-            <li><a href="/how.html" class="text-white hover:text-white hover:bg-white/10 px-2 py-0.5 rounded transition" data-umami-event="homepage_nav" data-umami-event-target="how">How it works</a></li>
-            <li><a href="/why.html" class="text-white hover:text-white hover:bg-white/10 px-2 py-0.5 rounded transition" data-umami-event="homepage_nav" data-umami-event-target="why">Why?</a></li>
-            <li><a href="/researchers" class="text-white hover:text-white hover:bg-white/10 px-2 py-0.5 rounded transition" data-umami-event="homepage_nav" data-umami-event-target="researchers">For Researchers</a></li>
-            <li><a href="/municipalities" class="text-white hover:text-white hover:bg-white/10 px-2 py-0.5 rounded transition" data-umami-event="homepage_nav" data-umami-event-target="municipalities">All municipalities</a></li>
+          <a href="/" class="text-white font-bold text-base sm:text-lg mr-2">CivicBand</a>
+          <ul class="hidden md:flex flex-wrap gap-2 text-sm">
+            {% include 'pages/_nav_text_links.html' with event_name="homepage_nav" %}
           </ul>
         </div>
         <div class="flex items-center gap-2">
           {% include 'pages/_nav_social_icons.html' with event_prefix="homepage" %}
-          <a href="https://opencollective.com/civicband" target="_blank" rel="noopener noreferrer" class="bg-amber-500 text-gray-900 hover:bg-amber-400 px-2 py-0.5 rounded font-medium transition" data-umami-event="homepage_support">Donate! <span class="text-xs" aria-hidden="true">&#8599;</span><span class="sr-only">(opens in new tab)</span></a>
+          <a href="https://opencollective.com/civicband" target="_blank" rel="noopener noreferrer" class="bg-amber-500 text-gray-900 hover:bg-amber-400 px-1.5 py-1 text-xs sm:px-2 sm:py-0.5 sm:text-sm rounded font-medium transition" data-umami-event="homepage_support">Donate! <span class="text-xs" aria-hidden="true">&#8599;</span><span class="sr-only">(opens in new tab)</span></a>
+          {% include 'pages/_mobile_nav_menu.html' with event_name="homepage_nav" %}
         </div>
       </div>
     </nav>

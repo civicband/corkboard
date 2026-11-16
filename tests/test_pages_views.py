@@ -112,3 +112,24 @@ class TestPageViews:
 
         assert "subscribe to our newsletter" in content
         assert "<details" in content
+
+    @pytest.mark.django_db
+    def test_map_view_uses_carto_voyager_tiles(self, client):
+        """Full map should use the CARTO Voyager basemap."""
+        response = client.get("/map")
+        content = response.content.decode()
+
+        assert response.status_code == 200
+        assert "basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" in content
+        assert "tile.openstreetmap.org" not in content
+        assert "CARTO" in content
+
+    @pytest.mark.django_db
+    def test_shared_nav_has_mobile_nav_menu(self, client):
+        """Shared nav should hide text links behind a menu on mobile."""
+        content = client.get("/how.html").content.decode()
+
+        assert 'aria-label="Open navigation menu"' in content
+        assert "md:hidden" in content
+        assert "hidden md:flex" in content
+        assert "https://opencollective.com/civicband" in content

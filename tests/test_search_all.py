@@ -210,7 +210,8 @@ class TestSearchAllPage:
         response = await ds.client.post("/-/search", data={"q": "budget"})
 
         html = response.text
-        assert "/meetings/minutes/?date__exact=2024-01-15" in html
+        assert "/meetings/minutes?date__exact=2024-01-15" in html
+        assert "/meetings/agendas?date__exact=2024-01-16" in html
         assert "minutes.json" not in html
 
     async def test_post_limits_results_and_links_to_more(self, datasette_with_search):

@@ -259,125 +259,167 @@ class TestPageImage:
         assert result is None
 
 
+def _date_link_request(url, search=None):
+    request = MagicMock()
+    request.url = url
+    request.args = {"_search": search} if search else {}
+    return request
+
+
+def _date_link_datasette():
+    datasette = MagicMock()
+    datasette.urls.table = lambda database, table: f"/{database}/{table}"
+    return datasette
+
+
+def _render_date(
+    url,
+    value="2024-01-15",
+    column="date",
+    table="agendas",
+    row=None,
+    search=None,
+    datasette=None,
+):
+    return date_link.render_cell(
+        row={} if row is None else row,
+        value=value,
+        column=column,
+        table=table,
+        database="meetings",
+        datasette=_date_link_datasette() if datasette is None else datasette,
+        request=_date_link_request(url, search=search),
+    )
+
+
 class TestDateLink:
     """Test date_link.py plugin."""
 
     def test_render_date_link(self):
-        """Render date as filtered link."""
-        mock_request = MagicMock()
-        mock_request.url = "https://example.com/meetings/agendas/row123"
-        mock_request.args = {}
-
-        result = date_link.render_cell(
-            row={},
-            value="2024-01-15",
-            column="date",
-            table="agendas",
-            database="meetings",
-            datasette=None,
-            request=mock_request,
+        """Render date as filtered link for the queried table."""
+        result = _render_date(
+            "https://example.com/meetings/agendas/City%20Council/2024-01-15"
         )
 
         assert isinstance(result, markupsafe.Markup)
-        assert "<a href=" in str(result)
-        assert "date__exact=2024-01-15" in str(result)
+        assert 'href="/meetings/agendas?date__exact=2024-01-15' in str(result)
         assert "_sort=page" in str(result)
 
-    def test_include_highlight_with_search(self):
-        """Include highlight parameter when search present."""
-        mock_request = MagicMock()
-        mock_request.url = "https://example.com/meetings/agendas"
-        mock_request.args = {"_search": "council"}
-
-        result = date_link.render_cell(
-            row={},
-            value="2024-01-15",
-            column="date",
-            table="agendas",
-            database="meetings",
-            datasette=None,
-            request=mock_request,
-        )
-
-        assert "_highlight=council" in str(result)
-
-    def test_normalize_path(self):
-        """Normalize path to table level."""
-        mock_request = MagicMock()
-        mock_request.url = "https://example.com/meetings/agendas/row123/extra/parts"
-        mock_request.args = {}
-
-        result = date_link.render_cell(
-            row={},
-            value="2024-01-15",
-            column="date",
-            table="agendas",
-            database="meetings",
-            datasette=None,
-            request=mock_request,
-        )
-
-        # Path should be normalized to /meetings/agendas
-        assert "/meetings/agendas/" in str(result)
-        assert "/row123" not in str(result)
-
-    def test_replace_upcoming_with_agendas(self):
-        """Replace 'upcoming' in path with 'agendas'."""
-        mock_request = MagicMock()
-        mock_request.url = "https://example.com/meetings/upcoming"
-        mock_request.args = {}
-
-        result = date_link.render_cell(
-            row={},
-            value="2024-01-15",
-            column="date",
-            table="agendas",
-            database="meetings",
-            datasette=None,
-            request=mock_request,
-        )
-
-        assert "/meetings/agendas/" in str(result)
-        assert "/upcoming" not in str(result)
-
-    def test_strip_format_suffix_from_path(self):
-        """Strip a Datasette format suffix (e.g. .json) from the path."""
-        mock_request = MagicMock()
-        mock_request.url = "https://example.com/meetings/minutes.json"
-        mock_request.args = {"_search": "budget"}
-
-        result = date_link.render_cell(
-            row={"meeting": "City Council"},
-            value="2024-01-15",
-            column="date",
+    def test_uses_table_argument_over_path(self):
+        """The table Datasette queried wins, even on a row page path."""
+        result = _render_date(
+            "https://example.com/meetings/agendas/City%20Council/2024-01-15",
             table="minutes",
-            database="meetings",
-            datasette=None,
-            request=mock_request,
         )
 
-        text = str(result)
-        assert "/meetings/minutes/?" in text
-        assert "minutes.json" not in text
-        assert "date__exact=2024-01-15" in text
+        assert "/meetings/minutes?" in str(result)
+        assert "/meetings/agendas?" not in str(result)
 
-    def test_no_render_non_date_column(self):
-        """Don't render non-date columns."""
-        mock_request = MagicMock()
-        mock_request.url = "https://example.com/meetings/agendas"
-        mock_request.args = {}
+    def test_path_segment_fallback_without_table(self):
+        """Fall back to a minutes path segment when table is unavailable."""
+        result = _render_date("https://example.com/meetings/minutes", table=None)
 
-        result = date_link.render_cell(
-            row={},
-            value="some value",
-            column="text",
-            table="agendas",
-            database="meetings",
-            datasette=None,
-            request=mock_request,
+        assert "/meetings/minutes?" in str(result)
+
+    def test_no_link_for_upcoming(self):
+        """Saved query pages are ambiguous, so no link is emitted."""
+        result = _render_date("https://example.com/meetings/upcoming", table=None)
+
+        assert result is None
+
+    def test_no_link_for_database_sql_page(self):
+        """Database-level SQL pages are ambiguous, so no link is emitted."""
+        result = _render_date(
+            "https://example.com/meetings?sql=select+*+from+agendas", table=None
         )
 
         assert result is None
+
+    def test_no_link_for_unrelated_table(self):
+        """Non meeting tables get no link, even with a date column."""
+        result = _render_date(
+            "https://example.com/finance/contributions", table="contributions"
+        )
+
+        assert result is None
+
+    def test_table_segment_below_database(self):
+        """Only segments after the database name select the table."""
+        result = _render_date("https://example.com/otherdb/minutes/table", table=None)
+
+        assert "/meetings/minutes?" in str(result)
+
+    def test_no_link_for_non_exact_dates(self):
+        """Years and free text cannot be filtered exactly, so no link."""
+        for value in ("2024", "Jan 15, 2024", "2024-01", ""):
+            assert (
+                _render_date("https://example.com/meetings/agendas", value=value)
+                is None
+            )
+
+    def test_no_link_for_none_value(self):
+        """Null dates render as plain cells."""
+        assert _render_date("https://example.com/meetings/agendas", value=None) is None
+
+    def test_no_link_for_non_date_columns(self):
+        """Only date columns are linked."""
+        assert (
+            _render_date("https://example.com/meetings/agendas", column="text") is None
+        )
+        assert (
+            _render_date("https://example.com/meetings/agendas", column="report_date")
+            is None
+        )
+
+    def test_isodate_column(self):
+        """Minute slugs use isodate; the filter key follows the column."""
+        result = _render_date(
+            "https://example.com/meetings/minutes", column="isodate", table="minutes"
+        )
+
+        assert "isodate__exact=2024-01-15" in str(result)
+
+    def test_include_highlight_with_search(self):
+        """Include highlight parameter when search present."""
+        result = _render_date("https://example.com/meetings/agendas", search="council")
+
+        assert "_highlight=council" in str(result)
+        assert "_search" not in str(result)
+
+    def test_meeting_filter_is_encoded(self):
+        """Meeting names are URL encoded, not pasted raw."""
+        result = _render_date(
+            "https://example.com/meetings/agendas",
+            row={"meeting": "City Council & Board"},
+        )
+
+        assert "meeting__exact=City+Council+%26+Board" in str(result)
+        assert "&Board" not in str(result)
+
+    def test_no_meeting_filter_without_meeting(self):
+        """Rows without a meeting column still link by date."""
+        result = _render_date("https://example.com/meetings/agendas", row={})
+
+        assert "meeting__exact" not in str(result)
+        assert "date__exact=2024-01-15" in str(result)
+
+    def test_value_is_escaped(self):
+        """Anchor text is HTML escaped."""
+        result = _render_date(
+            "https://example.com/meetings/agendas", value="2024-01-15<script>"
+        )
+
+        text = str(result)
+        assert "<script>" not in text
+        assert "2024-01-15&lt;script&gt;" in text
+
+    def test_fallback_without_url_builder(self):
+        """A datasette without urls still yields a table-level path."""
+        result = _render_date(
+            "https://example.com/meetings/agendas", datasette=MagicMock(urls=None)
+        )
+
+        assert "/meetings/agendas?" in str(result)
 
 
 class TestUmami:

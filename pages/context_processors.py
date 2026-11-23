@@ -1,7 +1,9 @@
-"""Context processor providing the canonical URL for the main Django site.
+"""Template context shared by the bare-domain CivicBand pages.
 
-Phase 1 of the sharing plan: every page advertises one canonical permalink.
-Rules:
+Includes the canonical permalink for Django pages and the default OG card
+image. The Datasette pages get the same values from their own plugins.
+
+Canonical rules:
 
 - The canonical is always absolute and built from ``request.build_absolute_uri``.
 - Query strings are dropped (``?q=``, ``?sort=``, ``?page=`` are views of the
@@ -19,9 +21,12 @@ from urllib.parse import urlencode
 from django.urls import reverse
 
 from pages.utils import CANONICAL_QUERY_PARAMS
+from plugins.og_meta import global_card_url
 
 # Endpoint that only exists for HTMX; its content lives at "/".
 SITES_SEARCH_PATH = reverse("sites_search")
+
+OG_DEFAULT_IMAGE = global_card_url()
 
 
 def canonical_url_for_request(request) -> str:
@@ -43,3 +48,7 @@ def canonical_url_for_request(request) -> str:
 
 def canonical(request):
     return {"canonical_url": canonical_url_for_request(request)}
+
+
+def og_defaults(request):
+    return {"og_default_image": OG_DEFAULT_IMAGE}

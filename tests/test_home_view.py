@@ -162,3 +162,23 @@ class TestHomeView:
         assert "tawk-chat-script" in content
         assert "isHomepage && mobileQuery.matches" in content
         assert "embed.tawk.to" in content
+
+    def test_home_view_has_global_og_image(self, client: Client):
+        """Bare-domain pages point at the static CivicBand card."""
+        content = client.get(reverse("home")).content.decode()
+
+        assert (
+            'property="og:image" content="https://cdn.civic.band/og/civicband-v1.png"'
+            in content
+        )
+        assert (
+            'name="twitter:image" content="https://cdn.civic.band/og/civicband-v1.png"'
+            in content
+        )
+
+    def test_home_view_og_title_includes_query(self, client: Client):
+        """Searching the homepage should produce a query-specific preview."""
+        content = client.get(reverse("home") + "?q=alameda").content.decode()
+
+        assert "Search CivicBand for" in content
+        assert "alameda" in content

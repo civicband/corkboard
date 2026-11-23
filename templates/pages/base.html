@@ -17,6 +17,14 @@
     <meta property="og:title" content="{% block og_title %}CivicBand: Government and Municipality Meeting Data{% endblock %}">
     <meta property="og:description" content="{% block og_description %}Dive into City Meeting Data Across the U.S.{% endblock %}">
     <meta property="og:site_name" content="CivicBand"/>
+    <meta property="og:image" content="{% block og_image %}{{ og_default_image }}{% endblock %}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="CivicBand: Government and Municipality Meeting Data">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{% block twitter_title %}CivicBand: Government and Municipality Meeting Data{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}Dive into City Meeting Data Across the U.S.{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}{{ og_default_image }}{% endblock %}">
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>

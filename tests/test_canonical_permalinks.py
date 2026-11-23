@@ -208,7 +208,7 @@ class TestOpenGraphUrl:
 
     async def test_twitter_url_matches_canonical(self, canonical_site):
         response = await canonical_site.client.get("/meetings/minutes")
-        match = re.search(r'<meta name="twitter:url" value="([^"]*)" />', response.text)
+        match = re.search(r'<meta name="twitter:url" content="([^"]*)">', response.text)
         assert match
         assert match.group(1) == _canonical(response.text)
 

@@ -2,16 +2,20 @@
 
 OCR output is noisy: it carries hard line breaks at the ends of scanned
 lines, hyphenation splits, repeated whitespace, control characters and
-stray glyphs that mean nothing to a reader. The same "make this readable,
-then cut it to length" behaviour is used for ``og:description`` on row and
-search pages.
+stray glyphs that mean nothing to a reader.
 
-This module is intentionally dependency-free: it must not import Django or
-Datasette so it can be used from templates, Django views and Datasette
-routes alike.
+The generic parts are handled by the standard library: ``textwrap.shorten``
+normalises whitespace and truncates on word boundaries, and ``unicodedata``
+identifies control/format characters. Only the OCR-specific line-break
+hyphenation and decorative punctuation runs need regular expressions.
+
+This module must not import Django or Datasette so it can be used from
+templates, Django views and Datasette routes alike.
 """
 
 import re
+import textwrap
+import unicodedata
 
 # How long a preview description may be before it is cut. Chosen to fit every
 # crawler's truncation point.
@@ -21,25 +25,34 @@ DEFAULT_PREVIEW_CHARS = 200
 # (or a hostile query string) cannot make cleaning expensive.
 MAX_INPUT_CHARS = 4000
 
-# Control characters other than whitespace are never meaningful in a
-# preview. Keep \t \n \r for the whitespace normalisation step below.
-_CONTROL_CHARS_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
-
-# Soft hyphens are invisible; hard hyphens at a line end are OCR line-split
-# artefacts: "approv-\nal" should read "approval", but "well-known" must
-# survive. Requiring whitespace *before* the hyphen distinguishes the two.
+# Hard hyphens at a line end are OCR line-split artefacts: "approv-\nal"
+# should read "approval", but "well-known" must survive. Requiring whitespace
+# before the hyphen distinguishes the two.
 _LINE_BREAK_HYPHEN_RE = re.compile(r"(?<=\w)-\s*[\r\n]+\s*(?=[a-z])")
-
-# Anything that renders as a break in the scan becomes a single space.
-_WHITESPACE_RE = re.compile(r"\s+")
 
 # OCR often leaves runs of punctuation from tables, underlines or stamp
 # noise ("..........", "_____", "===="). Collapse those to a single separator
 # so they do not eat the description budget.
 _NOISE_PUNCT_RE = re.compile(r"([._=~*|·•])\1{2,}")
 
-# Characters that are almost always OCR garbage in a human-facing snippet.
-_DROP_CHARS = "\u00ad\u200b\u200c\u200d\ufeff"
+
+def _strip_unprintable(text: str) -> str:
+    """Replace controls with spaces and drop zero-width formatting marks."""
+    out = []
+    for char in text:
+        if char in "\n\r\t":
+            out.append(" ")
+            continue
+        category = unicodedata.category(char)
+        if category == "Cf":
+            # Soft hyphens, zero-width spaces/joiners and BOMs are invisible;
+            # removing them without a separator keeps words joined.
+            continue
+        if category.startswith("C"):
+            out.append(" ")
+        else:
+            out.append(char)
+    return "".join(out)
 
 
 def clean_snippet_text(raw) -> str:
@@ -48,14 +61,12 @@ def clean_snippet_text(raw) -> str:
         return ""
     if isinstance(raw, bytes):
         raw = raw.decode("utf-8", errors="replace")
-    text = str(raw)[:MAX_INPUT_CHARS]
-    text = _CONTROL_CHARS_RE.sub(" ", text)
-    text = _LINE_BREAK_HYPHEN_RE.sub("", text)
-    for char in _DROP_CHARS:
-        text = text.replace(char, "")
+    # Join line-split hyphens before control characters are normalised so the
+    # regex can still see the original line break.
+    text = _LINE_BREAK_HYPHEN_RE.sub("", str(raw)[:MAX_INPUT_CHARS])
+    text = _strip_unprintable(text)
     text = _NOISE_PUNCT_RE.sub(" ", text)
-    text = _WHITESPACE_RE.sub(" ", text)
-    return text.strip()
+    return " ".join(text.split())
 
 
 def trim_to_length(text: str, limit: int = DEFAULT_PREVIEW_CHARS) -> str:
@@ -64,14 +75,23 @@ def trim_to_length(text: str, limit: int = DEFAULT_PREVIEW_CHARS) -> str:
         return ""
     if len(text) <= limit:
         return text
-    budget = limit - 1
-    if budget <= 0:
-        return "\u2026"[:limit]
-    cut = text[:budget]
-    space = cut.rfind(" ")
-    if space >= budget // 2:
-        cut = cut[:space]
-    return cut.rstrip(" ,;:.-") + "\u2026"
+
+    shortened = textwrap.shorten(
+        text,
+        width=limit,
+        placeholder="\u2026",
+        break_long_words=False,
+        break_on_hyphens=False,
+    )
+    # ``shorten`` returns just the placeholder for a single over-long token;
+    # fall back to a hard cut so the preview still carries part of the word.
+    if shortened == "\u2026":
+        stem = text[: limit - 1].rstrip(" ,;:.-")
+        return (stem + "\u2026") if stem else "\u2026"
+    if shortened.endswith("\u2026"):
+        stem = shortened[:-1].rstrip(" ,;:.-")
+        return (stem + "\u2026") if stem else "\u2026"
+    return shortened
 
 
 def preview_text(raw, limit: int = DEFAULT_PREVIEW_CHARS) -> str:

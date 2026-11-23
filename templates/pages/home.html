@@ -2,8 +2,10 @@
 
 {% block title %}CivicBand - Find your local government's meetings{% endblock %}
 {% block description %}Search agendas, minutes, and campaign finance records from local governments across the US and Canada. Find your municipality in seconds.{% endblock %}
-{% block og_title %}CivicBand - Find your local government's meetings{% endblock %}
-{% block og_description %}Search agendas, minutes, and campaign finance records from local governments across the US and Canada.{% endblock %}
+{% block og_title %}{% if query %}Search CivicBand for “{{ query }}”{% else %}CivicBand - Find your local government's meetings{% endif %}{% endblock %}
+{% block og_description %}{% if query %}Search results for “{{ query }}” across agendas, minutes, and campaign finance records.{% else %}Search agendas, minutes, and campaign finance records from local governments across the US and Canada.{% endif %}{% endblock %}
+{% block twitter_title %}{% if query %}Search CivicBand for “{{ query }}”{% else %}CivicBand - Find your local government's meetings{% endif %}{% endblock %}
+{% block twitter_description %}{% if query %}Search results for “{{ query }}” across agendas, minutes, and campaign finance records.{% else %}Search agendas, minutes, and campaign finance records from local governments across the US and Canada.{% endif %}{% endblock %}
 
 {% block navbar %}
 {% include 'pages/_hero.html' %}

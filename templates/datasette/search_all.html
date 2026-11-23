@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 {% block title %}{{ site_title }}: Search{% if q %}: {{ q }}{% else %} all tables{% endif %}{% endblock %}
+{% block og_title %}{{ og_search_title(q) }}{% endblock %}
+{% block og_description %}{% if q %}{{ site_title }} search results for “{{ q }}”{% else %}{{ super() }}{% endif %}{% endblock %}
 
 {% block extra_head %}
 {% if results and results|selectattr("document_type")|list %}

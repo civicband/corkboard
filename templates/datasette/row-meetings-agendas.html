@@ -3,6 +3,9 @@
 {# Used by base.html to build the canonical row permalink. #}
 {% set row_id = rows[0].id %}
 {% block title %}{{ site_name }}: {{ rows[0].id }} ({{ table|title }}, {{ rows[0].date }}){% endblock %}
+{% block og_title %}{{ og_row_title(site_name, rows[0].meeting, rows[0].date, rows[0].page) }}{% endblock %}
+{% block og_description %}{% if rows[0].text %}{{ rows[0].text|og_preview }}{% else %}{{ super() }}{% endif %}{% endblock %}
+{% block og_image %}{{ rows[0].page_image|og_scan_url }}{% endblock %}
 {% block extra_head %}
 <!-- Dublin Core metadata for citation tools -->
 <meta name="DC.title" content="{{ rows[0].meeting }} {{ table|title }}, {{ rows[0].date }}">

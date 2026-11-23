@@ -101,6 +101,8 @@
 </div>
 <footer class="ft">{% block footer %}{% include "_footer.html" %}{% endblock %} <a href="https://civic.band/researchers">For Researchers</a> | <a href="https://civic.band/privacy.html">Privacy</a></footer>
 
+{% include "_close_open_menus.html" %}
+
 {% for body_script in body_scripts %}
     <script{% if body_script.module %} type="module"{% endif %}>{{ body_script.script }}</script>
 {% endfor %}

@@ -20,6 +20,7 @@ from django.contrib import admin
 from django.urls import include, path
 
 from config.views import health_check
+from pages.og_card_views import og_card_image
 from pages.views import (
     disclaimer_view,
     feed_view,
@@ -46,6 +47,8 @@ urlpatterns = [
     path("health/", health_check, name="health_check"),
     path(route="disclaimer.html", view=disclaimer_view),
     path("api/recent-deploys/", recent_deploys_view, name="recent_deploys"),
+    # Server-rendered Open Graph card for the bare-domain search pages.
+    path("og-card.png", og_card_image, name="og_card_image"),
     path("admin/", admin.site.urls),
     path("", include("social_django.urls", namespace="social")),
     path("", home_view, name="home"),

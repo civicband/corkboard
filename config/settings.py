@@ -107,6 +107,7 @@ TEMPLATES = [
                 "social_django.context_processors.backends",
                 "social_django.context_processors.login_redirect",
                 "pages.context_processors.canonical",
+                "pages.context_processors.og_meta",
             ],
         },
     },

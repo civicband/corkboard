@@ -37,6 +37,9 @@ dependencies = [
     "dj-database-url>=3.1.0",
     "social-auth-app-django>=5.7.0",
     "django-json-widget>=2.1.1",
+    # Renders the 1200x630 Open Graph unfurl cards server-side
+    # (plugins/og_card.py + og_card_image.py). No client-side JS.
+    "pillow>=10.0.0",
 ]
 
 [project.optional-dependencies]

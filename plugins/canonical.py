@@ -89,6 +89,9 @@ def prepare_jinja2_environment(env, datasette):
     """
     subdomain = (datasette.plugin_config("corkboard") or {}).get("subdomain") or ""
     env.filters["canonical_url"] = make_canonical_url(subdomain)
+    # The canonical host, for templates that must build a *different* absolute
+    # URL on the same host (e.g. the OG image, which is not a page permalink).
+    env.globals["canonical_host"] = municipality_host(subdomain)
     # Templates check this flag instead of probing ``canonical_url is filter``
     # (Jinja 3.1.6 does not reliably expose the built-in ``filter`` test).
     env.globals["canonical_plugin_enabled"] = True

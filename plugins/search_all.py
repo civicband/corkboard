@@ -156,6 +156,9 @@ async def search_all(datasette, request):
     if request.method == "POST":
         post = await request.post_vars()
         query = (post.get("q") or "").strip()[:MAX_QUERY_LENGTH]
+        # extra_template_vars must not re-read the body (see og_card); pass
+        # the already-parsed query through the request object.
+        request._corkboard_search_q = query
 
     searchable_tables = await get_searchable_tables(datasette, request)
 

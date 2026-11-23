@@ -12,6 +12,13 @@ Rules:
 
 ``canonical_url`` is always defined so templates can render unconditionally,
 including fragments rendered outside a request (where it is empty).
+
+Phase 2 (sharing plan, workstream 2) adds ``og_*`` values for the Django
+search page - the homepage with query/filter parameters, which is where
+``/sites/search/`` redirects. It gets a rendered unfurl card from
+``plugins/og_card.py``, the same endpoint the municipality subdomains use.
+Every other Django page leaves the template's ``og_title``/
+``og_description`` blocks in charge and emits no card.
 """
 
 from urllib.parse import urlencode
@@ -43,3 +50,25 @@ def canonical_url_for_request(request) -> str:
 
 def canonical(request):
     return {"canonical_url": canonical_url_for_request(request)}
+
+
+def og_meta(request):
+    """``og_*`` values for a filtered homepage (the Django search page).
+
+    Returns ``{}`` for every other page, including a bare homepage: the
+    default card says nothing about a search that was not performed.
+    """
+    if request is None:
+        return {}
+    query = (request.GET.get("q") or "").strip()
+    if not query:
+        return {}
+
+    # Imported lazily: plugins/ imports Datasette, which the plain Django
+    # surface does not otherwise load. Keeping it here bounds that to the one
+    # page that needs a card.
+    from plugins.og_card import municipality_search_card  # noqa: PLC0415
+
+    return municipality_search_card(
+        request.get_host(), query, scheme=request.scheme or "https"
+    )

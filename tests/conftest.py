@@ -3,6 +3,7 @@ Shared pytest fixtures for CivicBand tests.
 """
 
 import asyncio
+import contextlib
 import os
 import sqlite3
 import tempfile
@@ -278,3 +279,107 @@ def django_db_setup(django_db_setup, django_db_blocker):
     # Cleanup
     with django_db_blocker.unblock(), connections["default"].cursor() as cursor:
         cursor.execute("DELETE FROM sites WHERE subdomain = 'test.ca'")
+
+
+# ---------------------------------------------------------------------------
+# OG unfurl card fixtures (sharing plan, Phase 2 workstream 2)
+# ---------------------------------------------------------------------------
+OG_TEST_SUBDOMAIN = "alameda.ca"
+OG_TEST_BASE_URL = f"https://{OG_TEST_SUBDOMAIN}.civic.band"
+
+
+def create_og_meetings_db(path: Path) -> None:
+    """A minutes/agendas database with the rows the card tests need."""
+    conn = sqlite3.connect(path)
+    cur = conn.cursor()
+    for table in ("minutes", "agendas"):
+        cur.execute(f"""
+            CREATE TABLE {table} (
+                id TEXT PRIMARY KEY,
+                meeting TEXT,
+                date TEXT,
+                page INTEGER,
+                text TEXT,
+                page_image TEXT,
+                entities_json TEXT,
+                votes_json TEXT
+            )
+        """)
+        cur.execute(
+            f'CREATE VIRTUAL TABLE {table}_fts USING fts5(text, '
+            f'content="{table}", content_rowid="rowid")'
+        )
+    # OCR text with the noise a preview must not show: a line-break
+    # hyphenation, a hard newline and a control character.
+    cur.execute(
+        "INSERT INTO minutes VALUES "
+        "('min-001', 'City Council', '2024-01-15', 1, ?, '', '', NULL)",
+        ("The council approv-\ned the budget 5-2.\x01",),
+    )
+    # A row with no OCR text, no date and no page.
+    cur.execute(
+        "INSERT INTO minutes VALUES "
+        "('min-empty', NULL, NULL, NULL, NULL, '', '', NULL)"
+    )
+    cur.execute(
+        "INSERT INTO agendas VALUES "
+        "('agenda-001', 'Planning Commission', '2024-01-16', 1, "
+        "'Zoning map update.', '', '', NULL)"
+    )
+    cur.execute("INSERT INTO minutes_fts(minutes_fts) VALUES('rebuild')")
+    cur.execute("INSERT INTO agendas_fts(agendas_fts) VALUES('rebuild')")
+    conn.commit()
+    conn.close()
+
+
+@pytest.fixture
+def og_cache_dir(tmp_path, monkeypatch):
+    """Private card cache per test so hits/misses are deterministic."""
+    from plugins import og_card  # noqa: PLC0415
+
+    monkeypatch.setenv("OG_CARD_CACHE_DIR", str(tmp_path / "og-cards"))
+    og_card.reset_caches()
+    yield tmp_path / "og-cards"
+    og_card.reset_caches()
+
+
+@pytest.fixture
+async def og_site(og_cache_dir):
+    """A Datasette instance wired exactly like the production wrapper."""
+    from datasette import plugins as datasette_plugins  # noqa: PLC0415
+
+    temp_dir = Path(tempfile.mkdtemp())
+    db_path = temp_dir / "meetings.db"
+    create_og_meetings_db(db_path)
+
+    repo = Path(__file__).parent.parent
+    registered_before = set(datasette_plugins.pm.get_plugins())
+
+    ds = Datasette(
+        [str(db_path)],
+        template_dir=str(repo / "templates" / "datasette"),
+        plugins_dir=str(repo / "plugins"),
+        config={
+            "plugins": {
+                "corkboard": {
+                    "subdomain": OG_TEST_SUBDOMAIN,
+                    "site_name": "Alameda",
+                    "site_title": "Alameda Public Meetings",
+                }
+            }
+        },
+    )
+    with contextlib.suppress(Exception):
+        await ds.invoke_startup()
+
+    yield ds
+
+    with contextlib.suppress(AttributeError):
+        await ds.invoke_shutdown()
+    for plugin in set(datasette_plugins.pm.get_plugins()) - registered_before:
+        with contextlib.suppress(Exception):
+            datasette_plugins.pm.unregister(plugin)
+    if db_path.exists():
+        db_path.unlink()
+    if temp_dir.exists():
+        temp_dir.rmdir()

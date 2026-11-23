@@ -7,7 +7,13 @@
 
     <!-- Meta tags -->
     <meta name="description" content="{% block description %}Dive into City Meeting Data Across the U.S. | Instant Access to Council Agendas, Minutes, and Local Government Insights{% endblock %}" />
-    <meta property="og:url" content="https://civic.band">
+    {% comment %}
+      Canonical is computed by pages.context_processors.canonical (not
+      request.build_absolute_uri here) so query strings and the HTMX-only
+      /sites/search/ endpoint never leak into it.
+    {% endcomment %}
+    <link rel="canonical" href="{{ canonical_url }}">
+    <meta property="og:url" content="{{ canonical_url }}">
     <meta property="og:title" content="{% block og_title %}CivicBand: Government and Municipality Meeting Data{% endblock %}">
     <meta property="og:description" content="{% block og_description %}Dive into City Meeting Data Across the U.S.{% endblock %}">
     <meta property="og:site_name" content="CivicBand"/>

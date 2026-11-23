@@ -7,6 +7,10 @@ from pages.models import Site
 # Allowed sort fields to prevent potential errors
 ALLOWED_SORT_FIELDS = {"pages", "updated_at"}
 
+# Query params that identify the same content view (filter/sort of /), used
+# when canonicalizing the HTMX-only /sites/search/ endpoint back to "/".
+CANONICAL_QUERY_PARAMS = ("q", "state", "kind", "has_finance", "sort")
+
 
 def apply_site_filters(request):
     """

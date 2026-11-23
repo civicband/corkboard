@@ -143,9 +143,9 @@
         <h3>Advanced export</h3>
         <p>JSON shape:
             <a href="{{ renderers['json'] }}">default</a>,
-            <a href="{{ append_querystring(renderers['json'], '_shape=array') }}">array</a>,
-            <a href="{{ append_querystring(renderers['json'], '_shape=array&_nl=on') }}">newline-delimited</a>{% if primary_keys %},
-                <a href="{{ append_querystring(renderers['json'], '_shape=object') }}">object</a>
+            <a href="{{ urls.modify(renderers['json'], add={'_shape': 'array'}) }}">array</a>,
+            <a href="{{ urls.modify(renderers['json'], add={'_shape': 'array', '_nl': 'on'}) }}">newline-delimited</a>{% if primary_keys %},
+                <a href="{{ urls.modify(renderers['json'], add={'_shape': 'object'}) }}">object</a>
             {% endif %}
         </p>
         <form class="core" action="{{ url_csv_path }}" method="get">

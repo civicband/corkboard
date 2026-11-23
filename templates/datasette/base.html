@@ -5,7 +5,19 @@
     <link rel="stylesheet" href="{{ urls.static('app.css') }}?{{ app_css_hash }}">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="{{ site_title }} -- Meeting minutes, agendas, and civic transparency">
-    <meta property="og:url" content="https:{{ subdomain }}.civic.band"/>
+    {# Canonical permalink: /<db>/<table>/<id> for rows, table root for lists.
+       The plugin filter builds the absolute URL; if the plugin is not loaded
+       the tag falls back to "/" so the page stays valid. #}
+    {%- set row = row_id if row_id is defined else none -%}
+    {%- if canonical_plugin_enabled -%}
+    {%- set canonical = database|canonical_url(table, row) -%}
+    {%- else -%}
+    {%- set canonical = "/" -%}
+    {%- endif %}
+    <link rel="canonical" href="{{ canonical }}">
+    {%- if canonical_plugin_enabled %}
+    <meta property="og:url" content="{{ canonical }}"/>
+    {%- endif %}
     <meta property="og:title" content="{{ site_title }}"/>
     <meta property="og:description" content="{{ site_title }} -- Meeting minutes, agendas, and civic transparency"/>
     <meta property="og:site_name" content="{{ site_title }} on CivicBand"/>
@@ -13,7 +25,7 @@
     <meta name="twitter:domain" value="{{ subdomain }}.civic.band" />
     <meta name="twitter:title" value="{{ site_title }} on CivicBand" />
     <meta name="twitter:description" value="{{ site_title }} -- Meeting minutes, agendas, and civic transparency" />
-    <meta name="twitter:url" value="https://{{ subdomain }}.civic.band/" />
+    <meta name="twitter:url" value="{{ canonical }}" />
     <meta name="fediverse:creator" content="@civicband@sfba.social" />
 {% for url in extra_css_urls %}
     <link rel="stylesheet" href="{{ url.url }}"{% if url.get("sri") %} integrity="{{ url.sri }}" crossorigin="anonymous"{% endif %}>
@@ -88,8 +100,6 @@
 </section>
 </div>
 <footer class="ft">{% block footer %}{% include "_footer.html" %}{% endblock %} <a href="https://civic.band/researchers">For Researchers</a> | <a href="https://civic.band/privacy.html">Privacy</a></footer>
-
-{% include "_close_open_menus.html" %}
 
 {% for body_script in body_scripts %}
     <script{% if body_script.module %} type="module"{% endif %}>{{ body_script.script }}</script>

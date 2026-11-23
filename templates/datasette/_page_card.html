@@ -26,8 +26,11 @@
 {# Get the ID for building the row URL #}
 {% set row_id = get_cell_raw(row, "id")|string %}
 {% set row_url = "/" ~ database ~ "/" ~ table ~ "/" ~ (row_id|urlencode) %}
+{# Stable #page-N anchor so a card can later be linked directly (e.g. ...#page-3). #}
+{% set row_page = get_cell_raw(row, "page")|string %}
+{% set page_anchor_id = ("page-" ~ row_page) if row_page else "" %}
 
-<article class="page-card" data-type="{{ document_type }}">
+<article class="page-card" data-type="{{ document_type }}"{% if page_anchor_id %} id="{{ page_anchor_id }}"{% endif %}>
   <header class="card-metadata">
     <div class="card-meta-left">
       <a href="{{ row_url }}" class="card-id">ID: {{ row_id }}</a>
